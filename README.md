@@ -1,7 +1,9 @@
 # MedTracker
 ## Description
 
-Web app to track and visualize the effects of medication prescriptions.
+Web app to track and visualize the effects of medication prescriptions.\
+This project also exposes a rest api that can be reached with the react app found in the medtracker-react-frontend repo
+https://github.com/OBrien-Cathal/medtracker-react-frontend
 
 Technologies used:
 - Spring Boot
