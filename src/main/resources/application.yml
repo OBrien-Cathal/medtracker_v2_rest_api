@@ -1,0 +1,26 @@
+server:
+  port: 3100
+website:
+  origin: http://localhost:5173
+token:
+  signing:
+    key: EBE23F1FD75A89A9355F1A81D194EUEISJDLJg23455jjuriu43387kjksfgjlkiuRDDRTGFDXVRXFBERJLIUMLSIhhYLCISL
+spring:
+  application:
+    name: MedTracker
+  h2:
+    console:
+      enabled: true
+  jpa:
+    generate-ddl: false
+    show-sql: false
+    hibernate:
+      ddl-auto: none
+  sql:
+    init:
+      mode: always
+  datasource:
+    driverClassName: org.h2.Driver
+    url: jdbc:h2:file:~/h2DBs/medtracker;AUTO_SERVER=TRUE
+
+

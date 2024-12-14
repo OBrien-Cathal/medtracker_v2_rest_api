@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Diastole graph</title>
+</head>
+<body>
+<div th:fragment="diastoleGraph">
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript" th:inline="javascript">
+        google.charts.load('current', {'packages':['corechart', 'line']});
+        google.charts.setOnLoadCallback(drawChart);
+
+        function drawChart() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', /*[[${col0}]]*/'col0');
+
+          collData = ([
+       /*[# th:each="row : ${diastoleColls}"]*/
+        [[${row}]],
+        /*[/]*/
+       ])[0];
+
+        var numColls = collData.length;
+
+        for (var i = 0; i < numColls; i++)
+            data.addColumn('number', collData[i]);
+
+
+       data.addRows([
+       /*[# th:each="row : ${diastoleChartData}"]*/
+        [[${row}]],
+        /*[/]*/
+       ]);
+          var options = {
+            interpolateNulls: true,
+            title: /*[[${diastoleGraphTitle}]]*/ "",
+             series: {
+           0: { color: 'red', lineDashStyle: [2, 2] },
+           1: { color: '#dc3912', lineDashStyle: [2, 2] },
+           2: { color: '#3366cc' },
+           3: { color: '#109618' },
+           4: { color: '#990099' },
+           5: { color: '#22aa99' },
+           6: { color: '#743411' },
+
+          }
+          };
+
+          var chart = new google.visualization.LineChart(document.getElementById('diastoleGraph'));
+
+          chart.draw(data, options);
+        }
+    </script>
+    <div id="diastoleGraph" style="height: 500px"></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,122 @@
+{
+  "id": "8bcd02b5-b8b0-41e1-af66-3365f0f24992",
+  "version": "2.0",
+  "name": "MedTracker",
+  "url": "http://localhost:3100",
+  "tests": [{
+    "id": "267d91e8-a6b0-496b-b3c3-55db5513d741",
+    "name": "login_viewUploads",
+    "commands": [{
+      "id": "50182cbd-d336-4a2f-87fa-ae941b144603",
+      "comment": "",
+      "command": "open",
+      "target": "/",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "f8dcdc5f-75da-4bee-8505-e0d35aa16c49",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "2332x1442",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "0bfc04f3-d840-49e5-8c79-6d65a61ec94f",
+      "comment": "",
+      "command": "click",
+      "target": "linkText=Login",
+      "targets": [
+        ["linkText=Login", "linkText"],
+        ["css=a:nth-child(3)", "css:finder"],
+        ["xpath=//a[contains(text(),'Login')]", "xpath:link"],
+        ["xpath=//a[contains(@href, '/login')]", "xpath:href"],
+        ["xpath=//div[2]/div/div/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Login')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "a2ad6452-5b11-4b3c-a17c-f7b9a4ad6789",
+      "comment": "",
+      "command": "click",
+      "target": "name=username",
+      "targets": [
+        ["name=username", "name"],
+        ["css=input:nth-child(2)", "css:finder"],
+        ["xpath=//input[@name='username']", "xpath:attributes"],
+        ["xpath=//input[2]", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "b2289afd-aa41-473c-bd7e-f82c5fc6b996",
+      "comment": "",
+      "command": "type",
+      "target": "name=username",
+      "targets": [
+        ["name=username", "name"],
+        ["css=input:nth-child(2)", "css:finder"],
+        ["xpath=//input[@name='username']", "xpath:attributes"],
+        ["xpath=//input[2]", "xpath:position"]
+      ],
+      "value": "patient1@pat.com"
+    }, {
+      "id": "dbdba84c-226d-4dbd-b4f1-0f6f1af7961c",
+      "comment": "",
+      "command": "click",
+      "target": "name=password",
+      "targets": [
+        ["name=password", "name"],
+        ["css=input:nth-child(3)", "css:finder"],
+        ["xpath=//input[@name='password']", "xpath:attributes"],
+        ["xpath=//input[3]", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "10728bcd-3976-430e-a08d-efed8fb34ea0",
+      "comment": "",
+      "command": "type",
+      "target": "name=password",
+      "targets": [
+        ["name=password", "name"],
+        ["css=input:nth-child(3)", "css:finder"],
+        ["xpath=//input[@name='password']", "xpath:attributes"],
+        ["xpath=//input[3]", "xpath:position"]
+      ],
+      "value": "abc"
+    }, {
+      "id": "bd9149c1-dc64-441e-a7ca-50f3893a1bf8",
+      "comment": "",
+      "command": "click",
+      "target": "css=input:nth-child(4)",
+      "targets": [
+        ["css=input:nth-child(4)", "css:finder"],
+        ["xpath=//input[@value='Log in']", "xpath:attributes"],
+        ["xpath=//input[4]", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "1aab3e9b-d3fe-45ba-adca-a5db88a9f3d8",
+      "comment": "",
+      "command": "click",
+      "target": "linkText=Upload",
+      "targets": [
+        ["linkText=Upload", "linkText"],
+        ["css=div:nth-child(3) > a", "css:finder"],
+        ["xpath=//a[contains(text(),'Upload')]", "xpath:link"],
+        ["xpath=//a[contains(@href, '/patient/upload')]", "xpath:href"],
+        ["xpath=//div[3]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Upload')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }]
+  }],
+  "suites": [{
+    "id": "98c3a77b-96d4-4dfc-84d6-45a2d7e61eb0",
+    "name": "Default Suite",
+    "persistSession": false,
+    "parallel": false,
+    "timeout": 300,
+    "tests": ["267d91e8-a6b0-496b-b3c3-55db5513d741"]
+  }],
+  "urls": ["http://localhost:3100/"],
+  "plugins": []
+}

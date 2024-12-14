@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Practitioner role request</title>
+    <link rel="stylesheet" th:href="@{../css/main.css}">
+</head>
+<body>
+    <div th:insert="~{headerAndFooter :: header}"></div>
+    <div class="mainContent">
+        <div class="centeredLayout">
+            <h3>Request Practitioner Role</h3>
+            <div th:if="${approved}">
+                Your submitted practitioner role request has been approved, please log out and in again to enable role
+                authorization.
+            </div>
+            <div th:if="${pending}">
+                You have successfully submitted a practitioner role request, this request is pending.
+            </div>
+            <div th:if="${notSubmitted}">
+                <p>To upgrade your account to enable Practitioner functionality, please submit a request.
+                    Requests will be reviewed by an administrator</p>
+                <form th:action="@{/user/practitionerRoleRequest}" method="post">
+                    <input type="submit" value="Submit Request">
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
