@@ -1,6 +1,6 @@
 package com.cathalob.medtracker.controller.web;
 
-import com.cathalob.medtracker.err.PractitionerRoleRequestNotFound;
+import com.cathalob.medtracker.exception.PractitionerRoleRequestNotFound;
 import com.cathalob.medtracker.service.impl.UserServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

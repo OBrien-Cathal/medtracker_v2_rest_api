@@ -1,7 +1,7 @@
 package com.cathalob.medtracker.service;
 
-import com.cathalob.medtracker.err.PractitionerRoleRequestValidationFailed;
-import com.cathalob.medtracker.err.UserNotFound;
+import com.cathalob.medtracker.exception.PractitionerRoleRequestValidationFailed;
+import com.cathalob.medtracker.exception.UserNotFound;
 import com.cathalob.medtracker.model.PractitionerRoleRequest;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;

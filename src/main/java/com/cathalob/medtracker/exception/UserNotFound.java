@@ -1,6 +1,6 @@
-package com.cathalob.medtracker.err;
+package com.cathalob.medtracker.exception;
 
-public class UserNotFound extends RuntimeException {
+public class UserNotFound extends InternalException {
 
     public UserNotFound(String username) {
         super(expandedMessage(username));

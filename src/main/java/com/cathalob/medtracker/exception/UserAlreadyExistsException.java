@@ -1,9 +1,10 @@
-package com.cathalob.medtracker.err;
+package com.cathalob.medtracker.exception;
 
-public class UserAlreadyExistsException extends RuntimeException {
+public class UserAlreadyExistsException extends InternalException {
     public UserAlreadyExistsException(String username) {
         super(expandedMessage(username));
     }
+
     public UserAlreadyExistsException() {
         super(expandedMessage("UNKNOWN_USER"));
     }

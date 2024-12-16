@@ -1,7 +1,7 @@
 package com.cathalob.medtracker.service.web;
 
-import com.cathalob.medtracker.err.UserAlreadyExistsException;
-import com.cathalob.medtracker.err.UserNotFound;
+import com.cathalob.medtracker.exception.UserAlreadyExistsException;
+import com.cathalob.medtracker.exception.UserNotFound;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.repository.UserModelRepository;
 import org.junit.jupiter.api.BeforeEach;
