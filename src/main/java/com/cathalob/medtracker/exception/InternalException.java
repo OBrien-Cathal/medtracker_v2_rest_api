@@ -6,7 +6,7 @@ public class InternalException extends MedTrackerException{
         super(message);
     }
 
-    public Integer errorCode(){
+    public static Integer errorCode(){
          return -1;
      };
 }

@@ -68,6 +68,7 @@ class AuthenticationServiceApiTests {
         verify(userModelRepository, times(1)).save(any(UserModel.class));
         assertThat(jwtAuthenticationResponse).isNotNull();
         assertThat(jwtAuthenticationResponse.getToken()).isEqualTo(tokenString);
+        assertThat(jwtAuthenticationResponse.getCurrentUserRole()).isEqualTo(userModel.getRole().name());
         assertThat(jwtAuthenticationResponse.getMessage()).isEqualTo("success");
     }
 
@@ -110,6 +111,7 @@ class AuthenticationServiceApiTests {
         // then - verify the output
         assertThat(jwtAuthenticationResponse).isNotNull();
         assertThat(jwtAuthenticationResponse.getToken()).isEqualTo(tokenString);
+        assertThat(jwtAuthenticationResponse.getCurrentUserRole()).isEqualTo(userModel.getRole().name());
         assertThat(jwtAuthenticationResponse.getMessage()).isEqualTo("success");
     }
 

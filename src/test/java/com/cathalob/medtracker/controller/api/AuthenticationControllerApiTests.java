@@ -8,6 +8,8 @@ import com.cathalob.medtracker.dao.request.SignUpRequest;
 import com.cathalob.medtracker.dao.response.AccountVerificationResponse;
 import com.cathalob.medtracker.dao.response.AuthenticationVerificationResponse;
 import com.cathalob.medtracker.dao.response.JwtAuthenticationResponse;
+import com.cathalob.medtracker.exception.ExternalException;
+import com.cathalob.medtracker.exception.InternalException;
 import com.cathalob.medtracker.exception.UserAlreadyExistsException;
 import com.cathalob.medtracker.exception.UserNotFound;
 import com.cathalob.medtracker.service.api.impl.AuthenticationServiceApi;
@@ -24,6 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.Collections;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -58,6 +61,7 @@ class AuthenticationControllerApiTests {
                 .willReturn(JwtAuthenticationResponse.builder()
                         .token("abc")
                         .message("success")
+                        .currentUserRole("USER")
                         .build());
 
         // when - action or the behaviour that we are going test
@@ -69,6 +73,7 @@ class AuthenticationControllerApiTests {
         response.andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token", is("abc")))
+                .andExpect(jsonPath("$.currentUserRole", is("USER")))
                 .andExpect(jsonPath("$.message", is("success")));
     }
 
@@ -87,7 +92,8 @@ class AuthenticationControllerApiTests {
         response.andDo(print())
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.errors",
-                        is(Collections.singletonList(UserAlreadyExistsException.expandedMessage(signUpRequest.getUsername())))));
+                        is(globallyHandledExceptionExpectedMessage(UserAlreadyExistsException.expandedMessage(signUpRequest.getUsername()),
+                                UserAlreadyExistsException.errorCode()))));
     }
 
     @Test
@@ -97,6 +103,7 @@ class AuthenticationControllerApiTests {
         given(authenticationServiceApi.signIn(any(SignInRequest.class)))
                 .willReturn(JwtAuthenticationResponse.builder()
                         .token("abc")
+                        .currentUserRole("USER")
                         .message("success")
                         .build());
 
@@ -110,6 +117,7 @@ class AuthenticationControllerApiTests {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token", is("abc")))
+                .andExpect(jsonPath("$.currentUserRole", is("USER")))
                 .andExpect(jsonPath("$.message", is("success")));
     }
 
@@ -130,14 +138,17 @@ class AuthenticationControllerApiTests {
                 .andDo(print())
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.errors",
-                        is(Collections.singletonList(UserNotFound.expandedMessage(signInRequest.getUsername())))));
+                        is(globallyHandledExceptionExpectedMessage(UserNotFound.expandedMessage(signInRequest.getUsername()),
+                                UserNotFound.errorCode()))));
     }
+
     @Test
     public void givenAuthenticationVerificationRequest_whenVerify_thenReturnAuthenticationVerificationResponseWithAuthenticatedTrue()
             throws Exception {
         //given - precondition or setup
         verifyAuthenticated(true);
     }
+
     @Test
     public void givenExpiredAuthenticationVerificationRequest_whenVerify_thenReturnAuthenticationVerificationResponseWithAuthenticatedFalse()
             throws Exception {
@@ -171,6 +182,7 @@ class AuthenticationControllerApiTests {
         //given - precondition or setup
         checkAccountExists(true);
     }
+
     @Test
     public void givenAccountVerificationRequest_whenVerify_thenReturnAccountVerificationResponseWithAccountExistsFalse()
             throws Exception {
@@ -197,4 +209,13 @@ class AuthenticationControllerApiTests {
                         is(accountExists)));
     }
 
+    private List<String> globallyHandledExceptionExpectedMessage(String message, Integer code) {
+        return Collections.singletonList(ExternalException.getErrorMessageWithCode(message, code));
+
+    }
+
+    private Exception globallyHandledException(InternalException ex) {
+        return new ExternalException(ex);
+
+    }
 }

@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 public class MedTrackerException extends RuntimeException {
     public MedTrackerException(String message) {
+        super(message);
     }
 
     public Integer getErrorCode() {

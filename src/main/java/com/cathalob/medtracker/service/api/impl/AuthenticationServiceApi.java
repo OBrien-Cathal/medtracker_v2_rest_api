@@ -46,6 +46,7 @@ public class AuthenticationServiceApi implements com.cathalob.medtracker.service
         return JwtAuthenticationResponse.builder()
                 .token(jwt)
                 .message("success")
+                .currentUserRole(user.getRole().name())
                 .build();
     }
 
@@ -61,6 +62,7 @@ public class AuthenticationServiceApi implements com.cathalob.medtracker.service
         return JwtAuthenticationResponse.builder()
                 .token(jwt)
                 .message("success")
+                .currentUserRole(user.getRole().name())
                 .build();
     }
 
