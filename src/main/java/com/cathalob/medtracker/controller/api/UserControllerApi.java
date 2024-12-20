@@ -1,7 +1,8 @@
 package com.cathalob.medtracker.controller.api;
 
 import com.cathalob.medtracker.model.UserModel;
-import com.cathalob.medtracker.repository.UserModelRepository;
+
+import com.cathalob.medtracker.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,9 +15,9 @@ import java.util.List;
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserControllerApi {
-    private final UserModelRepository userModelRepository;
+    private final UserService userService;
     @GetMapping
     public ResponseEntity<List<UserModel>> getUserModels(){
-        return ResponseEntity.ok(userModelRepository.findAll());
+        return ResponseEntity.ok(userService.getUserModels());
     }
 }

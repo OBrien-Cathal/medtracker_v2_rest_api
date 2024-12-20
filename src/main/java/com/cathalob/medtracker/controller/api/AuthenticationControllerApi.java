@@ -8,6 +8,7 @@ import com.cathalob.medtracker.dao.response.AccountVerificationResponse;
 import com.cathalob.medtracker.dao.response.AuthenticationVerificationResponse;
 import com.cathalob.medtracker.dao.response.JwtAuthenticationResponse;
 import com.cathalob.medtracker.service.api.impl.AuthenticationServiceApi;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,11 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthenticationControllerApi {
     private final AuthenticationServiceApi authenticationService;
     @PostMapping("/signup")
-    public ResponseEntity<JwtAuthenticationResponse> signUp(@RequestBody SignUpRequest request){
+    public ResponseEntity<JwtAuthenticationResponse> signUp(@RequestBody @Valid SignUpRequest request){
         return ResponseEntity.ok(authenticationService.signUp(request));
     }
     @PostMapping("/signin")
-    public ResponseEntity<JwtAuthenticationResponse> signUp(@RequestBody SignInRequest request){
+    public ResponseEntity<JwtAuthenticationResponse> signUp(@RequestBody @Valid SignInRequest request){
         return ResponseEntity.ok(authenticationService.signIn(request));
     }
     @PostMapping("/verify")
@@ -33,7 +34,7 @@ public class AuthenticationControllerApi {
         return ResponseEntity.ok(authenticationService.verifyAuthentication(request));
     }
     @PostMapping("/checkaccount")
-    public ResponseEntity<AccountVerificationResponse> checkAccountExists(@RequestBody AccountVerificationRequest request){
+    public ResponseEntity<AccountVerificationResponse> checkAccountExists(@RequestBody @Valid AccountVerificationRequest request){
         return ResponseEntity.ok(authenticationService.checkAccountExists(request));
     }
 }

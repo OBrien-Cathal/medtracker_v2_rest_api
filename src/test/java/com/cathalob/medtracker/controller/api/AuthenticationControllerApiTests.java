@@ -15,6 +15,7 @@ import com.cathalob.medtracker.exception.UserNotFound;
 import com.cathalob.medtracker.service.api.impl.AuthenticationServiceApi;
 import com.cathalob.medtracker.service.api.impl.JwtServiceImpl;
 import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
+import com.cathalob.medtracker.testdata.SignInRequestBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.util.Collections;
 import java.util.List;
 
+import static com.cathalob.medtracker.testdata.SignUpRequestBuilder.aSignUpRequest;
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -56,13 +58,10 @@ class AuthenticationControllerApiTests {
     @Test
     public void givenSignUpRequest_whenSignUp_thenReturnOk() throws Exception {
         //given - precondition or setup
-        SignUpRequest signUpRequest = SignUpRequest.builder().username("name").password("abc").build();
+        SignUpRequest signUpRequest = aSignUpRequest().build();
+        JwtAuthenticationResponse jwtResponse = JwtAuthenticationResponse.builder().build();
         given(authenticationServiceApi.signUp(any(SignUpRequest.class)))
-                .willReturn(JwtAuthenticationResponse.builder()
-                        .token("abc")
-                        .message("success")
-                        .currentUserRole("USER")
-                        .build());
+                .willReturn(jwtResponse);
 
         // when - action or the behaviour that we are going test
         ResultActions response = mockMvc.perform(post("/api/v1/auth/signup")
@@ -72,15 +71,15 @@ class AuthenticationControllerApiTests {
         // then - verify the output
         response.andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token", is("abc")))
-                .andExpect(jsonPath("$.currentUserRole", is("USER")))
-                .andExpect(jsonPath("$.message", is("success")));
+                .andExpect(jsonPath("$.token", is(jwtResponse.getToken())))
+                .andExpect(jsonPath("$.currentUserRole", is(jwtResponse.getCurrentUserRole())))
+                .andExpect(jsonPath("$.message", is(jwtResponse.getMessage())));
     }
 
     @Test
     public void givenSignUpRequestForExistingUsername_whenSignUp_thenThrowUserAlreadyExists() throws Exception {
         //given - precondition or setup
-        SignUpRequest signUpRequest = SignUpRequest.builder().username("name").password("abc").build();
+        SignUpRequest signUpRequest = aSignUpRequest().build();
         given(authenticationServiceApi.signUp(any(SignUpRequest.class)))
                 .willThrow(new UserAlreadyExistsException(signUpRequest.getUsername()));
 
@@ -99,13 +98,10 @@ class AuthenticationControllerApiTests {
     @Test
     public void givenSignInRequest_whenSignIn_thenReturnOk() throws Exception {
         //given - precondition or setup
-        SignInRequest signInRequest = SignInRequest.builder().username("name").password("abc").build();
+        SignInRequest signInRequest = SignInRequestBuilder.aSignInRequest().build();
+        JwtAuthenticationResponse jwtResponse = JwtAuthenticationResponse.builder().build();
         given(authenticationServiceApi.signIn(any(SignInRequest.class)))
-                .willReturn(JwtAuthenticationResponse.builder()
-                        .token("abc")
-                        .currentUserRole("USER")
-                        .message("success")
-                        .build());
+                .willReturn(jwtResponse);
 
         // when - action or the behaviour that we are going test
         ResultActions response = mockMvc.perform(post("/api/v1/auth/signin")
@@ -116,15 +112,15 @@ class AuthenticationControllerApiTests {
         response
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token", is("abc")))
-                .andExpect(jsonPath("$.currentUserRole", is("USER")))
-                .andExpect(jsonPath("$.message", is("success")));
+                .andExpect(jsonPath("$.token", is(jwtResponse.getToken())))
+                .andExpect(jsonPath("$.currentUserRole", is(jwtResponse.getCurrentUserRole())))
+                .andExpect(jsonPath("$.message", is(jwtResponse.getMessage())));
     }
 
     @Test
     public void givenSignInRequestForNonExistentUsername_whenSignIn_thenThrowUserNotFound() throws Exception {
         //given - precondition or setup
-        SignInRequest signInRequest = SignInRequest.builder().username("name").password("abc").build();
+        SignInRequest signInRequest = SignInRequestBuilder.aSignInRequest().build();
         given(authenticationServiceApi.signIn(any(SignInRequest.class)))
                 .willThrow(new UserNotFound(signInRequest.getUsername()));
 
