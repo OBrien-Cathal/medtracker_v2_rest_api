@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.controller;
+package com.cathalob.medtracker.config;
 
 import com.cathalob.medtracker.exception.ExternalException;
 import com.cathalob.medtracker.exception.InternalException;

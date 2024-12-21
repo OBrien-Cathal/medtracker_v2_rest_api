@@ -82,6 +82,7 @@ public class AuthenticationServiceApi implements com.cathalob.medtracker.service
     public AuthenticationVerificationResponse verifyAuthentication(AuthenticationVerificationRequest request) {
         String token = request.getToken();
         boolean tokenValid = false;
+        if (token.isEmpty()) return getAuthenticationVerificationResponse(tokenValid);
         try {
             String username = jwtService.extractUserName(token);
             Optional<UserModel> maybeUserModel = userModelRepository.findByUsername(username);
