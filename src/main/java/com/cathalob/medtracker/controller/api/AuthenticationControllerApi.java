@@ -26,7 +26,7 @@ public class AuthenticationControllerApi {
         return ResponseEntity.ok(authenticationService.signUp(request));
     }
     @PostMapping("/signin")
-    public ResponseEntity<JwtAuthenticationResponse> signUp(@RequestBody @Valid SignInRequest request){
+    public ResponseEntity<JwtAuthenticationResponse> signIp(@RequestBody @Valid SignInRequest request){
         return ResponseEntity.ok(authenticationService.signIn(request));
     }
     @PostMapping("/verify")

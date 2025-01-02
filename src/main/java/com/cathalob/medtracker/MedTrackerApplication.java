@@ -10,19 +10,25 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @SpringBootApplication
 public class MedTrackerApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(MedTrackerApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(MedTrackerApplication.class, args);
+    }
 
-	@Value("${website.origin}")
-	private String websiteOrigin;
-	@Bean
-	public WebMvcConfigurer corsConfigurer() {
-		return new WebMvcConfigurer() {
-			@Override
-			public void addCorsMappings(CorsRegistry registry) {
-				registry.addMapping("/api/**").allowedOrigins(websiteOrigin);
-			}
-		};
-	}
+    @Value("${website.origin}")
+    private String websiteOrigin;
+    @Value("${website.localOrigin}")
+    private String websiteLocalOrigin;
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/api/**")
+                        .allowedOrigins(
+                                websiteOrigin,
+                                websiteLocalOrigin);
+            }
+        };
+    }
 }

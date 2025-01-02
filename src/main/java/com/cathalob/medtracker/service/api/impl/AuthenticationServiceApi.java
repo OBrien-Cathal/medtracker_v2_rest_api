@@ -34,10 +34,11 @@ public class AuthenticationServiceApi implements com.cathalob.medtracker.service
 
     @Override
     public JwtAuthenticationResponse signUp(SignUpRequest request) {
-        if (userModelRepository.findByUsername(request.getUsername()).isPresent()) {
+        String lowerCaseUsername = request.getUsername().toLowerCase();
+        if (userModelRepository.findByUsername(lowerCaseUsername).isPresent()) {
             throw new UserAlreadyExistsException();
         }
-        var user = UserModel.builder().username(request.getUsername())
+        var user = UserModel.builder().username(lowerCaseUsername)
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(USERROLE.USER).build();
         userModelRepository.save(user);
@@ -52,7 +53,7 @@ public class AuthenticationServiceApi implements com.cathalob.medtracker.service
 
     @Override
     public JwtAuthenticationResponse signIn(SignInRequest request) {
-        String username = request.getUsername();
+        String username = request.getUsername().toLowerCase();
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, request.getPassword()));
         var user = userModelRepository.findByUsername(username)
@@ -103,8 +104,8 @@ public class AuthenticationServiceApi implements com.cathalob.medtracker.service
     }
 
     public AccountVerificationResponse checkAccountExists(AccountVerificationRequest request) {
-        boolean userExists = userModelRepository.findByUsername(request.getUsername()).isPresent();
-        System.out.println("Account " + ((userExists) ? "EXISTS" : "NOT EXISTS") + " for User: " + request.getUsername());
+        boolean userExists = userModelRepository.findByUsername(request.getUsername().toLowerCase()).isPresent();
+//        System.out.println("Account " + ((userExists) ? "EXISTS" : "NOT EXISTS") + " for User: " + request.getUsername());
         return AccountVerificationResponse.builder().accountExists(userExists).build();
     }
 }
