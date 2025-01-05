@@ -54,4 +54,10 @@ public class UsersControllerApi {
         return ResponseEntity.ok(response);
     }
 
+
+    @GetMapping("/practitioners")
+    public ResponseEntity<List<UserModel>> getPractitionerUserModels() {
+        return ResponseEntity.ok(userService.getPractitionerUserModels());
+    }
+
 }

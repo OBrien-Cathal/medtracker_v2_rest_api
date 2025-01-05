@@ -1,5 +1,6 @@
 package com.cathalob.medtracker.service;
 
+import com.cathalob.medtracker.config.SecurityConfig;
 import com.cathalob.medtracker.exception.PractitionerRoleRequestValidationFailed;
 import com.cathalob.medtracker.exception.UserNotFound;
 import com.cathalob.medtracker.model.PractitionerRoleRequest;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.annotation.Import;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,6 +37,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@Import(SecurityConfig.class)
 class UserServiceImplTests {
     @Mock
     private UserModelRepository userModelRepository;
@@ -233,27 +236,28 @@ class UserServiceImplTests {
 
         // then - verify the output
     }
-      @Test
-          public void givenRoleChanges_whenGetUnapprovedRoleChanges_thenReturnRoleChanges(){
-          RoleChange roleChange = aRoleChange().withId(1L).build();
-          roleChange.setUserModel(userModel);
-          RoleChange roleChange2 = aRoleChange().withNewRole(USERROLE.ADMIN).withId(2L).build();
-          roleChange2.getUserModel().setId(2L);
+
+    @Test
+    public void givenRoleChanges_whenGetUnapprovedRoleChanges_thenReturnRoleChanges() {
+        RoleChange roleChange = aRoleChange().withId(1L).build();
+        roleChange.setUserModel(userModel);
+        RoleChange roleChange2 = aRoleChange().withNewRole(USERROLE.ADMIN).withId(2L).build();
+        roleChange2.getUserModel().setId(2L);
 
 
-          given(roleChangeRepository.findByApprovedById(null))
-                  .willReturn(List.of(roleChange,roleChange2));
+        given(roleChangeRepository.findByApprovedById(null))
+                .willReturn(List.of(roleChange, roleChange2));
 
 
-          // when - action or the behaviour that we are going test
-          List<RoleChangeData> unapprovedRoleChanges = userService.getUnapprovedRoleChanges();
-          // then - verify the output
-          assertThat(unapprovedRoleChanges.size()).isEqualTo(2);
-          assertThat(unapprovedRoleChanges.stream().anyMatch(roleChangeData -> roleChangeData.getUserRole().equals(USERROLE.PRACTITIONER)));
-          assertThat(unapprovedRoleChanges.stream().anyMatch(roleChangeData -> roleChangeData.getUserRole().equals(USERROLE.ADMIN)));
-          
-          verify(roleChangeRepository, times(1)).findByApprovedById(null);
-          }
+        // when - action or the behaviour that we are going test
+        List<RoleChangeData> unapprovedRoleChanges = userService.getUnapprovedRoleChanges();
+        // then - verify the output
+        assertThat(unapprovedRoleChanges.size()).isEqualTo(2);
+        assertThat(unapprovedRoleChanges.stream().anyMatch(roleChangeData -> roleChangeData.getUserRole().equals(USERROLE.PRACTITIONER)));
+        assertThat(unapprovedRoleChanges.stream().anyMatch(roleChangeData -> roleChangeData.getUserRole().equals(USERROLE.ADMIN)));
+
+        verify(roleChangeRepository, times(1)).findByApprovedById(null);
+    }
 
 
     @Test
@@ -363,4 +367,8 @@ class UserServiceImplTests {
         // then - verify the output
         assertThat(requestStatus).isFalse();
     }
+
+
+
+
 }

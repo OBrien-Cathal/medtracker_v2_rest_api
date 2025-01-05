@@ -11,11 +11,13 @@ import com.cathalob.medtracker.model.userroles.RoleChange;
 import com.cathalob.medtracker.payload.data.RoleChangeData;
 import com.cathalob.medtracker.payload.response.GenericRequestResponse;
 import com.cathalob.medtracker.payload.response.RoleChangeStatusResponse;
+import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.PractitionerRoleRequestRepository;
 import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.repository.UserModelRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,10 +33,12 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @Transactional
+@EnableMethodSecurity
 public class UserServiceImpl implements com.cathalob.medtracker.service.UserService {
     private final UserModelRepository userModelRepository;
     private final PractitionerRoleRequestRepository practitionerRoleRequestRepository;
     private final RoleChangeRepository roleChangeRepository;
+    private final PatientRegistrationRepository patientRegistrationRepository;
 
     @Override
     public UserModel findByLogin(String username) throws UserNotFound {
@@ -44,13 +48,22 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
     }
 
     @Override
+    public List<UserModel> findUserModelsById(List<Long> ids) {
+        return userModelRepository.findAllById(ids);
+    }
+    @Override
+    public Optional<UserModel> findUserModelById(Long id) {
+        return userModelRepository.findById(id);
+    }
+    @Override
     public List<UserModel> getUserModels() {
         return userModelRepository.findAll();
     }
 
+
     @Override
-    public List<UserModel> getPatientUserModels() {
-        return userModelRepository.findByRole(USERROLE.USER);
+    public List<UserModel> getPractitionerUserModels() {
+        return userModelRepository.findByRole(USERROLE.PRACTITIONER);
     }
 
     public Map<Long, UserModel> getUserModelsById() {
@@ -160,8 +173,6 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
 
         RoleChangeData practitionerRoleChangeData = new RoleChangeData();
         practitionerRoleChangeData.setUserRole(USERROLE.PRACTITIONER);
-        System.out.println(adminRoleChange);
-        System.out.println(practitionerRoleChange);
         if (adminRoleChange == null) {
             adminRoleData.setStatus("Unrequested");
         } else {
@@ -201,6 +212,9 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
         }).toList();
 
     }
+
+
+
 
     //    USER Role functions
     @Override
