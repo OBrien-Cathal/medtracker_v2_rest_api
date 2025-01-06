@@ -175,10 +175,4 @@ public class PatientsService {
                 ds.toString().charAt(0) + ds.toString().substring(1).toLowerCase())).toList();
     }
 
-    public void importDoseFile(MultipartFile file, UserModel userModel) {
-        new DoseFileImporter(userModel, evaluationDataService, prescriptionsService, doseService).processMultipartFile(file);
-    }
-    public void importBloodPressureFile(MultipartFile file, UserModel userModel) {
-        new BloodPressureFileImporter(userModel,evaluationDataService, this).processMultipartFile(file);
-    }
 }

@@ -3,6 +3,7 @@ package com.cathalob.medtracker.fileupload;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.DAYSTAGE;
 import com.cathalob.medtracker.model.tracking.BloodPressureReading;
+import com.cathalob.medtracker.service.api.impl.PatientsServiceApi;
 import com.cathalob.medtracker.service.impl.EvaluationDataService;
 import com.cathalob.medtracker.service.impl.PatientsService;
 import lombok.extern.slf4j.Slf4j;
@@ -19,24 +20,26 @@ import java.util.List;
 
 @Slf4j
 public class BloodPressureFileImporter extends FileImporter {
-    private final PatientsService patientsService;
     private final EvaluationDataService evaluationDataService;
 
+    private final PatientsServiceApi patientsServiceApi;
 
-    public BloodPressureFileImporter(UserModel userModel, EvaluationDataService evaluationDataService, PatientsService patientsService) {
+
+
+    public BloodPressureFileImporter(UserModel userModel, EvaluationDataService evaluationDataService, PatientsServiceApi patientsService) {
         super(new ImportCache());
         importCache.setUserModel(userModel);
 
         this.evaluationDataService = evaluationDataService;
-        this.patientsService = patientsService;
+        this.patientsServiceApi = patientsService;
         importCache.loadDailyEvaluations(this.evaluationDataService);
 
     }
 
-    public BloodPressureFileImporter(EvaluationDataService evaluationDataService, PatientsService patientsService) {
+    public BloodPressureFileImporter(EvaluationDataService evaluationDataService, PatientsServiceApi patientsService) {
         super();
         this.evaluationDataService = evaluationDataService;
-        this.patientsService = patientsService;
+        this.patientsServiceApi = patientsService;
     }
 
     public void processWorkbook(XSSFWorkbook workbook) {
@@ -97,7 +100,7 @@ public class BloodPressureFileImporter extends FileImporter {
                 dose.setDailyEvaluation(importCache.getDailyEvaluation(dose.getReadingTime().toLocalDate()))
         );
 
-        patientsService.saveBloodPressureReadings(newBloodPressureReadings);
+        patientsServiceApi.saveBloodPressureReadings(newBloodPressureReadings);
     }
 
 

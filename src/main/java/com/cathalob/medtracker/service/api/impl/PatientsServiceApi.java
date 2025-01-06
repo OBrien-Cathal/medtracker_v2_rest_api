@@ -1,10 +1,13 @@
 package com.cathalob.medtracker.service.api.impl;
 
 import com.cathalob.medtracker.exception.validation.PatientRegistrationException;
+import com.cathalob.medtracker.fileupload.BloodPressureFileImporter;
+import com.cathalob.medtracker.fileupload.DoseFileImporter;
 import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.factories.PatientRegistrationFactory;
+import com.cathalob.medtracker.model.tracking.BloodPressureReading;
 import com.cathalob.medtracker.model.userroles.RoleChange;
 import com.cathalob.medtracker.payload.data.PatientRegistrationData;
 import com.cathalob.medtracker.payload.data.factories.PatientRegistrationDataFactory;
@@ -15,10 +18,15 @@ import com.cathalob.medtracker.payload.response.factories.PatientRegistrationRes
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.service.UserService;
+import com.cathalob.medtracker.service.impl.BloodPressureDataService;
+import com.cathalob.medtracker.service.impl.DoseService;
+import com.cathalob.medtracker.service.impl.EvaluationDataService;
+import com.cathalob.medtracker.service.impl.PrescriptionsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -33,6 +41,10 @@ public class PatientsServiceApi {
     private final UserService userService;
     private final RoleChangeRepository roleChangeRepository;
     private final PatientRegistrationRepository patientRegistrationRepository;
+    private final PrescriptionsService prescriptionsService;
+    private final BloodPressureDataService bloodPressureDataService;
+    private final DoseService doseService;
+    private final EvaluationDataService evaluationDataService;
 
     //    @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
     public List<UserModel> getPatientUserModelsForPractitioner(String username) {
@@ -133,6 +145,26 @@ public class PatientsServiceApi {
         }
         return patientRegistrations.stream().map((PatientRegistrationDataFactory::From
         )).toList();
+    }
+
+    public void importDoseFile(MultipartFile file, String username) {
+        new DoseFileImporter(
+                userService.findByLogin(username),
+                evaluationDataService,
+                prescriptionsService,
+                doseService)
+                .processMultipartFile(file);
+    }
+
+    public void importBloodPressureFile(MultipartFile file, String username) {
+        new BloodPressureFileImporter(
+                userService.findByLogin(username),
+                evaluationDataService,
+                this)
+                .processMultipartFile(file);
+    }
+    public void saveBloodPressureReadings(List<BloodPressureReading> bloodPressureReadings) {
+        bloodPressureDataService.saveBloodPressureReadings(bloodPressureReadings);
     }
 
 }

@@ -5,6 +5,7 @@ import com.cathalob.medtracker.payload.data.PatientRegistrationData;
 import com.cathalob.medtracker.payload.request.ApprovePatientRegistrationRequest;
 import com.cathalob.medtracker.payload.request.PatientRegistrationRequest;
 import com.cathalob.medtracker.payload.response.ApprovePatientRegistrationResponse;
+import com.cathalob.medtracker.payload.response.GenericRequestResponse;
 import com.cathalob.medtracker.payload.response.PatientRegistrationResponse;
 import com.cathalob.medtracker.service.api.impl.PatientsServiceApi;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -46,5 +48,15 @@ public class PatientsControllerApi {
         return ResponseEntity.ok(patientsService.approvePatientRegistration(authentication.getName(), request.getPatientRegistrationId()));
     }
 
+    @PostMapping("/upload/dose-upload")
+    public ResponseEntity<GenericRequestResponse> reapDoseDataFromExcelUpload(@RequestParam("dosesFile") MultipartFile reapExcelDataFile, Authentication authentication) {
+        patientsService.importDoseFile(reapExcelDataFile, (authentication.getName()));
+        return ResponseEntity.ok(new GenericRequestResponse());
+    }
 
+    @PostMapping("/upload/blood-pressure-upload")
+    public ResponseEntity<GenericRequestResponse> reapBloodPressureDataFromExcelUpload(@RequestParam("bloodPressureFile") MultipartFile reapExcelDataFile, Authentication authentication) {
+        patientsService.importBloodPressureFile(reapExcelDataFile, (authentication.getName()));
+        return ResponseEntity.ok(new GenericRequestResponse());
+    }
 }

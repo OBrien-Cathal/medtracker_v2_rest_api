@@ -38,17 +38,6 @@ public class PatientController {
         return "patient/upload";
     }
 
-    @PostMapping("/patient/upload/doseUpload")
-    public String reapDoseDataFromExcelUpload(@RequestParam("dosesFile") MultipartFile reapExcelDataFile, Authentication authentication) {
-        patientsService.importDoseFile(reapExcelDataFile, getUserModel(authentication));
-        return "redirect:/patient/upload";
-    }
-
-    @PostMapping("/patient/upload/bloodPressureUpload")
-    public String reapBloodPressureDataFromExcelUpload(@RequestParam("bloodPressureFile") MultipartFile reapExcelDataFile, Authentication authentication) {
-        patientsService.importBloodPressureFile(reapExcelDataFile, getUserModel(authentication));
-        return "redirect:/patient/upload";
-    }
 
     private UserModel getUserModel(Authentication authentication) {
         return userService.findByLogin(authentication.getName());

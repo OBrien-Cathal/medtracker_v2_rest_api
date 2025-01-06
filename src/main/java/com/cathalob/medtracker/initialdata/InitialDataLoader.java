@@ -9,6 +9,7 @@ import com.cathalob.medtracker.model.prescription.Medication;
 import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
 
+import com.cathalob.medtracker.service.api.impl.PatientsServiceApi;
 import com.cathalob.medtracker.service.impl.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.EncryptedDocumentException;
@@ -29,12 +30,12 @@ import java.util.*;
 public class InitialDataLoader implements ApplicationRunner {
     private final ImportCache importCache;
     private final EvaluationDataService evaluationDataService;
-    private final PatientsService patientsService;
+    private final PatientsServiceApi patientsService;
     private final PrescriptionsService prescriptionsService;
     private final UserServiceImpl userService;
     private final DoseService doseService;
 
-    public InitialDataLoader(EvaluationDataService evaluationDataService, PatientsService patientsService, PrescriptionsService prescriptionsService, UserServiceImpl userService, DoseService doseService) {
+    public InitialDataLoader(EvaluationDataService evaluationDataService, PatientsServiceApi patientsService, PrescriptionsService prescriptionsService, UserServiceImpl userService, DoseService doseService) {
         this.importCache = new ImportCache();
         this.evaluationDataService = evaluationDataService;
         this.patientsService = patientsService;
