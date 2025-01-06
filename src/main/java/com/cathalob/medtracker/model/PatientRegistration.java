@@ -16,7 +16,7 @@ public class PatientRegistration {
     private Long id;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "USERMODEL_ID", nullable = false)
     private UserModel userModel;
 

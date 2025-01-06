@@ -1,5 +1,6 @@
 package com.cathalob.medtracker.service.api.impl;
 
+import com.cathalob.medtracker.exception.validation.PatientRegistrationException;
 import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
@@ -16,7 +17,6 @@ import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,14 +34,13 @@ public class PatientsServiceApi {
     private final RoleChangeRepository roleChangeRepository;
     private final PatientRegistrationRepository patientRegistrationRepository;
 
-    @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
-    public List<UserModel> getPatientUserModels(String username) {
+    //    @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
+    public List<UserModel> getPatientUserModelsForPractitioner(String username) {
         UserModel userModel = userService.findByLogin(username);
         if (userModel == null || !userModel.getRole().equals(USERROLE.PRACTITIONER)) return List.of();
-        List<Long> patientUserModelIds = patientRegistrationRepository.findByPractitionerUserModel(userModel)
+        return patientRegistrationRepository.findByPractitionerUserModel(userModel)
                 .stream()
-                .map((patientRegistration -> patientRegistration.getUserModel().getId())).toList();
-        return userService.findUserModelsById(patientUserModelIds);
+                .map((PatientRegistration::getUserModel)).toList();
     }
 
 
@@ -49,32 +48,60 @@ public class PatientsServiceApi {
         UserModel toRegister = userService.findByLogin(username);
         Optional<UserModel> maybePractitioner = userService.findUserModelById(practitionerId);
 
-        if (maybePractitioner.isEmpty()) {
-            return PatientRegistrationResponseFactory.Failed(List.of("Practitioner does not exist"));
+        UserModel practitioner = maybePractitioner.orElse(null);
+        try {
+            validatePatientRegistration(toRegister, practitioner);
+        } catch (Exception e) {
+            return PatientRegistrationResponseFactory.Failed(List.of(e.getMessage()));
         }
 
-        if (!toRegister.getRole().equals(USERROLE.USER)) {
-            return PatientRegistrationResponseFactory.Failed(List.of("User does not have USER role"));
-        }
-        PatientRegistration patientRegistration = PatientRegistrationFactory.PatientRegistration(toRegister,maybePractitioner.get(),false);
+        PatientRegistration patientRegistration = PatientRegistrationFactory.PatientRegistration(toRegister, practitioner, false);
         PatientRegistration saved = patientRegistrationRepository.save(patientRegistration);
 
         return PatientRegistrationResponseFactory.Successful(saved);
     }
 
+    private void validatePatientRegistration(UserModel toRegister, UserModel practitioner) {
+        if (practitioner == null) {
+            throw new PatientRegistrationException("Practitioner does not exist");
+        }
+        if (!List.of(USERROLE.USER, USERROLE.PATIENT).contains(toRegister.getRole())) {
+            throw new PatientRegistrationException("User does not have allowed role to register as a patient (allowed: USER, PATIENT), current: " +
+                    toRegister.getRole());
+        }
+        List<PatientRegistration> existingReg = patientRegistrationRepository.findByUserModelAndPractitionerUserModel(toRegister, practitioner);
+        if (!existingReg.isEmpty()) {
+            throw new PatientRegistrationException("Registration for practitioner and patient already exists");
+        }
+    }
+
 
     public ApprovePatientRegistrationResponse approvePatientRegistration(String username, Long patientRegistrationId) {
-
+        UserModel shouldBePractitionerUserModel = userService.findByLogin(username);
         Optional<PatientRegistration> reg = patientRegistrationRepository.findById(patientRegistrationId);
 
         ArrayList<String> errors = new ArrayList<>();
+        if (shouldBePractitionerUserModel == null) {
+            errors.add("Only users with PRACTITIONER role can approve patient registrations");
+            return ApprovePatientRegistrationResponseFactory.Failed(errors);
+        }
         if (reg.isEmpty()) {
             errors.add("Registration with id " + patientRegistrationId + " does not exist");
             return ApprovePatientRegistrationResponseFactory.Failed(errors);
         }
         PatientRegistration patientRegistration = reg.get();
-        if (patientRegistration.isRegistered())
+        if (shouldBePractitionerUserModel.getId().equals(patientRegistration.getPractitionerUserModel().getId())) {
+            errors.add("Approval of requests for other users not allowed");
+            return ApprovePatientRegistrationResponseFactory.Failed(errors);
+        }
+        if (patientRegistration.isRegistered()) {
             errors.add("Registration is already approved for reg id: " + patientRegistrationId);
+            return ApprovePatientRegistrationResponseFactory.Failed(errors);
+        }
+        if (!List.of(USERROLE.USER, USERROLE.PATIENT).contains(patientRegistration.getUserModel().getRole())) {
+            errors.add("Cannot approve registration of user with role: " + patientRegistration.getUserModel().getRole());
+            return ApprovePatientRegistrationResponseFactory.Failed(errors);
+        }
 
         UserModel toRegister = patientRegistration.getUserModel();
         if (toRegister.getRole().equals(USERROLE.USER)) {

@@ -18,7 +18,8 @@ public interface UserService {
 
     UserModel findByLogin(String login) throws UserNotFound;
 
-    List<UserModel> findUserModelsById(List<Long> ids);
+
+    List<UserModel> findByUserModelIds(List<Long> ids);
 
     Optional<UserModel> findUserModelById(Long id);
 

@@ -8,8 +8,8 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 @RequiredArgsConstructor
 public class PatientRegistrationData {
-    private Long practitionerId;
-    private Long userModelId;
     private Long id;
+    private Long userModelId;
+    private Long practitionerId;
     private boolean approved;
 }

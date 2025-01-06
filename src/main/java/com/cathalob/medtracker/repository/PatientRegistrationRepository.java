@@ -8,5 +8,10 @@ import java.util.List;
 
 public interface PatientRegistrationRepository extends JpaRepository<PatientRegistration, Long> {
     List<PatientRegistration> findByPractitionerUserModel(UserModel practitioner);
+
     List<PatientRegistration> findByUserModel(UserModel patient);
+
+    List<PatientRegistration> findByUserModelAndPractitionerUserModel(UserModel patient, UserModel practitioner);
+
+
 }

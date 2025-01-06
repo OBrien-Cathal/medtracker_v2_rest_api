@@ -3,6 +3,7 @@ package com.cathalob.medtracker.repository;
 import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -43,7 +44,7 @@ class PatientRegistrationRepositoryTests {
         // then - verify the output
         assertThat(saved.getId()).isGreaterThan(0L);
     }
-
+    @DisplayName("Only return patient registrations for the given practitioner UserModel (findByPractitionerUserModel)")
     @Test
     public void givenSavedPatientRegistrationsForMultiplePractitioners_whenFindByPractitioner_thenReturnPatientRegistrationForOnlyOnePractitioner() {
         //given - precondition or setup
@@ -64,7 +65,7 @@ class PatientRegistrationRepositoryTests {
                 e.getPractitionerUserModel().getId().equals(practitioner.getId())
                         && e.getPractitionerUserModel().getRole().equals(USERROLE.PRACTITIONER));
     }
-
+@DisplayName("Return only patient registrations for the given UserModel (findByUserModel)")
     @Test
     public void givenSavedPatientRegistrationsForMultiplePatients_whenFindByPatient_thenReturnPatientRegistrationsForThatPatientOnly() {
         //given - precondition or setup
@@ -90,6 +91,33 @@ class PatientRegistrationRepositoryTests {
         assertThat(byPractitionerUserModel).allMatch((e) ->
                 e.getUserModel().getId().equals(requestingPatient.getId())
                         && !e.isRegistered());
+    }
+
+    @DisplayName("Return one patient registration for combination of practitioner and patient user")
+    @Test
+    public void givenSavedPatientRegistrations_whenFindByUserModelAndPractitionerUserModel_thenReturnValuesForThatCombination() {
+        //given - precondition or setup
+
+        UserModel practitioner = aUserModel().withRole(USERROLE.PRACTITIONER).build();
+        UserModel practitioner2 = aUserModel().withRole(USERROLE.PRACTITIONER).build();
+        UserModel requestingPatient = aUserModel().build();
+        UserModel otherPatient = aUserModel().build();
+
+        testEntityManager.persist(practitioner);
+        testEntityManager.persist(practitioner2);
+        testEntityManager.persist(requestingPatient);
+        testEntityManager.persist(otherPatient);
+        createAndPersistPatientRegistrationAndPersistPractitioner(practitioner, requestingPatient);
+        createAndPersistPatientRegistrationAndPersistPractitioner(practitioner2, requestingPatient);
+        createAndPersistPatientRegistrationAndPersistPractitioner(practitioner2, otherPatient);
+
+        // when - action or the behaviour that we are going test
+        List<PatientRegistration> byPractitionerUserModel = patientRegistrationRepository.findByUserModelAndPractitionerUserModel(requestingPatient,practitioner);
+        // then - verify the output
+        assertThat(byPractitionerUserModel).size().isEqualTo(1);
+        assertThat(byPractitionerUserModel).allMatch((e) ->
+                e.getUserModel().getId().equals(requestingPatient.getId())
+                        && e.getPractitionerUserModel().getId().equals(practitioner.getId()));
     }
 
     private void createAndPersistPatientRegistrationAndUserModelAndPersistPractitioner(UserModel practitioner) {

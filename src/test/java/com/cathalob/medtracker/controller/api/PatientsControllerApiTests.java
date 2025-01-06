@@ -54,7 +54,7 @@ class PatientsControllerApiTests {
                 aUserModel().withRole(USERROLE.PATIENT).withId(1L).build(),
                 aUserModel().withRole(USERROLE.PATIENT).withId(2L).build());
 
-        BDDMockito.given(patientsService.getPatientUserModels("user@user.com")).willReturn(users);
+        BDDMockito.given(patientsService.getPatientUserModelsForPractitioner("user@user.com")).willReturn(users);
         // when - action or the behaviour that we are going test
         ResultActions usersResponse = mockMvc.perform(get(patientsURL()));
 

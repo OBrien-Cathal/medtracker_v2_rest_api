@@ -1,6 +1,5 @@
 package com.cathalob.medtracker.controller.api;
 
-import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.payload.data.PatientRegistrationData;
 import com.cathalob.medtracker.payload.request.ApprovePatientRegistrationRequest;
@@ -27,7 +26,7 @@ public class PatientsControllerApi {
     @GetMapping
     @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
     public ResponseEntity<List<UserModel>> getPatientUserModels(Authentication authentication) {
-        return ResponseEntity.ok(patientsService.getPatientUserModels(authentication.getName()));
+        return ResponseEntity.ok(patientsService.getPatientUserModelsForPractitioner(authentication.getName()));
     }
 
     @GetMapping("/registrations")

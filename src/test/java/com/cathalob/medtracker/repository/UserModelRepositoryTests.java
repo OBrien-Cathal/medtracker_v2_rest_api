@@ -8,12 +8,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.cathalob.medtracker.model.enums.USERROLE;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
+
 
 import java.util.List;
 
@@ -45,24 +46,37 @@ class UserModelRepositoryTests {
         assertThat(saved.getPassword()).isEqualTo("abc");
     }
 
+    @Disabled("Select a set of user models based on a collection of ids")
+    @Test
+    public void given_when_then() {
+        //given - precondition or setup
+
+        // when - action or the behaviour that we are going test
+
+        // then - verify the output
+    }
+
     @Test
     public void givenUSERROLE_USER_whenFindRole_thenReturnExistingUserModelsWithRoleUSER() {
         setupUserPerRoleAndFindByRole(USERROLE.USER);
     }
+
     @Test
     public void givenUSERROLE_PATIENT_whenFindRole_thenReturnExistingUserModelsWithRolePATIENT() {
         setupUserPerRoleAndFindByRole(USERROLE.PATIENT);
     }
+
     @Test
     public void givenUSERROLE_PRACT_whenFindRole_thenReturnExistingUserModelsWithRolePRACTITIONER() {
         setupUserPerRoleAndFindByRole(USERROLE.PRACTITIONER);
     }
+
     @Test
     public void givenUSERROLE_ADMIN_whenFindRole_thenReturnExistingUserModelsWithRoleADMIN() {
         setupUserPerRoleAndFindByRole(USERROLE.ADMIN);
     }
 
-    private void setupUserPerRoleAndFindByRole(USERROLE roleToFind){
+    private void setupUserPerRoleAndFindByRole(USERROLE roleToFind) {
         //given - precondition or setup
         persistUserForAllRoles();
         // when - action or the behaviour that we are going test

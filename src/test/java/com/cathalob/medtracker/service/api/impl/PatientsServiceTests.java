@@ -4,13 +4,10 @@ import com.cathalob.medtracker.config.SecurityConfig;
 import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
-import com.cathalob.medtracker.model.userroles.RoleChange;
 import com.cathalob.medtracker.payload.data.PatientRegistrationData;
 import com.cathalob.medtracker.payload.response.PatientRegistrationResponse;
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
-import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.service.UserService;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,7 +19,6 @@ import org.springframework.context.annotation.Import;
 import java.util.List;
 import java.util.Optional;
 
-import static com.cathalob.medtracker.testdata.RoleChangeBuilder.aRoleChange;
 import static com.cathalob.medtracker.testdata.UserModelBuilder.aUserModel;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,8 +27,7 @@ import static org.mockito.BDDMockito.given;
 @ExtendWith(MockitoExtension.class)
 @Import(SecurityConfig.class)
 class PatientsServiceTests {
-    @Mock
-    RoleChangeRepository roleChangeRepository;
+
     @Mock
     private PatientRegistrationRepository patientRegistrationRepository;
     @Mock
@@ -40,32 +35,6 @@ class PatientsServiceTests {
     @InjectMocks
     private PatientsServiceApi patientsService;
 
-    @Disabled("Move to integration tests")
-    @DisplayName("Get Patients returns  ")
-    @Test
-    public void givenExistingPatient_whenGetPatientAsPractitioner_thenReturnPatientUserModels() {
-        //given - precondition or setup
-//        missing role, test still passes and should not
-        List<UserModel> patients = List.of(
-                aUserModel().withRole(USERROLE.PATIENT).withId(1L).build(),
-                aUserModel().withRole(USERROLE.PATIENT).withId(2L).build());
-        UserModel practitioner = aUserModel().withId(2L).withRole(USERROLE.PRACTITIONER).build();
-        UserModel practitioner2 = aUserModel().withId(2L).withRole(USERROLE.PRACTITIONER).build();
-        List<PatientRegistration> patientRegistrations = List.of(
-                new PatientRegistration(1L, patients.get(0), practitioner, false),
-                new PatientRegistration(2L, patients.get(1), practitioner2, false));
-        given(userService.findByLogin(practitioner.getUsername())).willReturn(practitioner);
-        given(patientRegistrationRepository.findByPractitionerUserModel(practitioner)).willReturn(patientRegistrations.subList(0, 2));
-        given(userService.findUserModelsById(patientRegistrations
-                .stream().
-                map((patientRegistration -> patientRegistration
-                        .getUserModel().getId())).toList()))
-                .willReturn(patients);
-        // when - action or the behaviour that we are going test
-        List<UserModel> patientUserModels = patientsService.getPatientUserModels(practitioner.getUsername());
-        // then - verify the output
-        assertThat(patientUserModels).size().isEqualTo(2);
-    }
 
     @DisplayName("Get patient registrations returns items based on Role of requester ")
     @Test
@@ -92,20 +61,20 @@ class PatientsServiceTests {
     @Test
     public void givenPatientRegistrationRequest_whenRegisterPatient_thenReturnPatientRegistrationResponse() {
         //given - precondition or setup
-        String usernameToRegister = "user@user.com";
-        RoleChange roleChange = aRoleChange().withNewRole(USERROLE.PATIENT).build();
+
+        UserModel toRegister = aUserModel().build();
         UserModel practitioner = aUserModel().withId(1L).withRole(USERROLE.PRACTITIONER).build();
-        given(userService.findByLogin(usernameToRegister)).willReturn(roleChange.getUserModel());
+        given(userService.findByLogin(toRegister.getUsername())).willReturn(toRegister);
         PatientRegistration patientRegistration = new PatientRegistration(
                 1L,
-                roleChange.getUserModel(),
+                toRegister,
                 practitioner,
                 false);
         given(userService.findUserModelById(1L)).willReturn(Optional.of(practitioner));
         given(patientRegistrationRepository.save(any(PatientRegistration.class))).willReturn(patientRegistration);
 
         // when - action or the behaviour that we are going test
-        PatientRegistrationResponse patientRegistrationResponse = patientsService.registerPatient(usernameToRegister, practitioner.getId());
+        PatientRegistrationResponse patientRegistrationResponse = patientsService.registerPatient(toRegister.getUsername(), practitioner.getId());
 
         // then - verify the output
         assertThat(patientRegistrationResponse.getData().getPractitionerId()).isEqualTo(practitioner.getId());
@@ -113,7 +82,82 @@ class PatientsServiceTests {
         assertThat(patientRegistrationResponse.getData().getId()).isEqualTo(1L);
         assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Success");
         assertThat(patientRegistrationResponse.getErrors()).isEmpty();
+    }
 
+    @DisplayName("Fail validation: (registerPatient) due to non existent practitioner user")
+    @Test
+    public void givenPatientRegistrationRequestWithBogusPractitionerId_whenRegisterPatient_thenReturnFailedPatientRegistrationResponse() {
+        //given - precondition or setup
+        UserModel toRegister = aUserModel().build();
+        UserModel practitioner = aUserModel().withId(1L).withRole(USERROLE.PRACTITIONER).build();
+        given(userService.findByLogin(toRegister.getUsername())).willReturn(toRegister);
+        given(userService.findUserModelById(practitioner.getId())).willReturn(Optional.empty());
+
+        // when - action or the behaviour that we are going test
+        PatientRegistrationResponse patientRegistrationResponse = patientsService.registerPatient(toRegister.getUsername(), practitioner.getId());
+
+        // then - verify the output
+        assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Failed");
+        assertThat(patientRegistrationResponse.getErrors()).isNotEmpty();
+    }
+
+
+    @DisplayName("Fail validation: (registerPatient) - already existing registration for combination")
+    @Test
+    public void givenPatientRegistrationRequestAndExistingPatientRegistration_whenRegisterPatient_thenReturnFailedPatientRegistrationResponse() {
+        //given - precondition or setup
+        UserModel toRegister = aUserModel().build();
+        UserModel practitioner = aUserModel().withId(1L).withRole(USERROLE.PRACTITIONER).build();
+        given(userService.findByLogin(toRegister.getUsername())).willReturn(toRegister);
+        given(userService.findUserModelById(practitioner.getId())).willReturn(Optional.of(practitioner));
+        PatientRegistration patientRegistration = new PatientRegistration(1L, toRegister, practitioner, false);
+        given(patientRegistrationRepository.findByUserModelAndPractitionerUserModel(toRegister, practitioner)).willReturn(List.of(patientRegistration));
+
+        // when - action or the behaviour that we are going test
+        PatientRegistrationResponse patientRegistrationResponse = patientsService.registerPatient(toRegister.getUsername(), practitioner.getId());
+
+        // then - verify the output
+        assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Failed");
+        assertThat(patientRegistrationResponse.getErrors()).isNotEmpty();
+    }
+
+    @DisplayName("Fail validation: (registerPatient) - user to register has wrong role")
+    @Test
+    public void givenPatientRegistrationRequestForADMIN_whenRegisterPatient_thenReturnFailedPatientRegistrationResponse() {
+        //given - precondition or setup
+        UserModel toRegister = aUserModel().withRole(USERROLE.ADMIN).build();
+        UserModel practitioner = aUserModel().withId(1L).withRole(USERROLE.PRACTITIONER).build();
+        given(userService.findByLogin(toRegister.getUsername())).willReturn(toRegister);
+        given(userService.findUserModelById(practitioner.getId())).willReturn(Optional.of(practitioner));
+        PatientRegistration patientRegistration = new PatientRegistration(1L, toRegister, practitioner, false);
+//        given(patientRegistrationRepository.findByUserModelAndPractitionerUserModel(toRegister, practitioner)).willReturn(List.of(patientRegistration));
+
+        // when - action or the behaviour that we are going test
+        PatientRegistrationResponse patientRegistrationResponse = patientsService.registerPatient(toRegister.getUsername(), practitioner.getId());
+
+        // then - verify the output
+        assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Failed");
+        assertThat(patientRegistrationResponse.getErrors()).isNotEmpty();
+    }
+
+
+    @DisplayName("Fail validation: (approvePatientRegistration) - user to register has wrong role")
+    @Test
+    public void givenApprovePatientRegistrationRequest_whenRegisterPatient_thenReturnFailedPatientRegistrationResponse() {
+        //given - precondition or setup
+        UserModel toRegister = aUserModel().withRole(USERROLE.ADMIN).build();
+        UserModel practitioner = aUserModel().withId(1L).withRole(USERROLE.PRACTITIONER).build();
+        given(userService.findByLogin(toRegister.getUsername())).willReturn(toRegister);
+        given(userService.findUserModelById(practitioner.getId())).willReturn(Optional.of(practitioner));
+        PatientRegistration patientRegistration = new PatientRegistration(1L, toRegister, practitioner, false);
+//        given(patientRegistrationRepository.findByUserModelAndPractitionerUserModel(toRegister, practitioner)).willReturn(List.of(patientRegistration));
+
+        // when - action or the behaviour that we are going test
+        PatientRegistrationResponse patientRegistrationResponse = patientsService.registerPatient(toRegister.getUsername(), practitioner.getId());
+
+        // then - verify the output
+        assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Failed");
+        assertThat(patientRegistrationResponse.getErrors()).isNotEmpty();
     }
 
 

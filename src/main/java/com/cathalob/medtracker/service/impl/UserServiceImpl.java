@@ -48,8 +48,8 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
     }
 
     @Override
-    public List<UserModel> findUserModelsById(List<Long> ids) {
-        return userModelRepository.findAllById(ids);
+    public List<UserModel> findByUserModelIds(List<Long> ids) {
+        return userModelRepository.findAll();
     }
     @Override
     public Optional<UserModel> findUserModelById(Long id) {
@@ -57,7 +57,7 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
     }
     @Override
     public List<UserModel> getUserModels() {
-        return userModelRepository.findAll();
+        return findByUserModelIds(List.of());
     }
 
 
