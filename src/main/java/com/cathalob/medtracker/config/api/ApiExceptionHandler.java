@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -33,12 +34,23 @@ public class ApiExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> getServerExceptionHandler(@NotNull Exception exception) {
 
-        if (exception instanceof ExpiredJwtException || exception instanceof AuthorizationDeniedException) {
-
+        if (exception instanceof ExpiredJwtException || exception instanceof AuthorizationDeniedException ) {
             ApiAuthenticationExceptionModel apiAuthenticationExceptionModel = new ApiAuthenticationExceptionModel(
                     HttpStatus.UNAUTHORIZED.value(),
                     HttpStatus.UNAUTHORIZED,
                     "Authentication failed",
+                    exception.getMessage(),
+                    httpServletRequest.getRequestURL().toString(),
+                    ZonedDateTime.now(ZoneId.of("Z"))
+            );
+
+            return new ResponseEntity<>(apiAuthenticationExceptionModel, HttpStatus.UNAUTHORIZED);
+
+        } if ( exception instanceof BadCredentialsException) {
+            ApiAuthenticationExceptionModel apiAuthenticationExceptionModel = new ApiAuthenticationExceptionModel(
+                    HttpStatus.UNAUTHORIZED.value(),
+                    HttpStatus.UNAUTHORIZED,
+                    "Authentication failed: this combination of username and password does not exist",
                     exception.getMessage(),
                     httpServletRequest.getRequestURL().toString(),
                     ZonedDateTime.now(ZoneId.of("Z"))

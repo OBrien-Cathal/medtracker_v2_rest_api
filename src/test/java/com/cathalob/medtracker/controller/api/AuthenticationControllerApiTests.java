@@ -16,12 +16,14 @@ import com.cathalob.medtracker.service.api.impl.JwtServiceImpl;
 import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
 import com.cathalob.medtracker.testdata.SignInRequestBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -91,6 +93,7 @@ class AuthenticationControllerApiTests {
                                 UserAlreadyExistsException.errorCode()))));
     }
 
+    @DisplayName("Test successful sign in ")
     @Test
     public void givenSignInRequest_whenSignIn_thenReturnOk() throws Exception {
         //given - precondition or setup
@@ -111,6 +114,26 @@ class AuthenticationControllerApiTests {
                 .andExpect(jsonPath("$.token", is(jwtResponse.getToken())))
                 .andExpect(jsonPath("$.currentUserRole", is(jwtResponse.getCurrentUserRole())))
                 .andExpect(jsonPath("$.message", is(jwtResponse.getMessage())));
+    }
+
+    @DisplayName("Sign in with bad password returns 401")
+    @Test
+    public void givenSignInRequestWithWrongPassword_whenSignIn_thenReturnUnauthorized() throws Exception {
+        //given - precondition or setup
+        SignInRequest signInRequest = SignInRequestBuilder.aSignInRequest().build();
+        JwtAuthenticationResponse jwtResponse = JwtAuthenticationResponse.builder().build();
+        given(authenticationServiceApi.signIn(any(SignInRequest.class)))
+                .willThrow(BadCredentialsException.class);
+
+        // when - action or the behaviour that we are going test
+        ResultActions response = mockMvc.perform(post("/api/v1/auth/signin")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(signInRequest)));
+
+        // then - verify the output
+        response
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

@@ -90,7 +90,7 @@ public class PatientsServiceApi {
             return ApprovePatientRegistrationResponseFactory.Failed(errors);
         }
         PatientRegistration patientRegistration = reg.get();
-        if (shouldBePractitionerUserModel.getId().equals(patientRegistration.getPractitionerUserModel().getId())) {
+        if (!shouldBePractitionerUserModel.getId().equals(patientRegistration.getPractitionerUserModel().getId())) {
             errors.add("Approval of requests for other users not allowed");
             return ApprovePatientRegistrationResponseFactory.Failed(errors);
         }
