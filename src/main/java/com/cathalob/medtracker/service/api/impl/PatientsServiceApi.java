@@ -24,6 +24,7 @@ import com.cathalob.medtracker.service.impl.EvaluationDataService;
 import com.cathalob.medtracker.service.impl.PrescriptionsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -46,7 +47,7 @@ public class PatientsServiceApi {
     private final DoseService doseService;
     private final EvaluationDataService evaluationDataService;
 
-    //    @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
+    @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
     public List<UserModel> getPatientUserModelsForPractitioner(String username) {
         UserModel userModel = userService.findByLogin(username);
         if (userModel == null || !userModel.getRole().equals(USERROLE.PRACTITIONER)) return List.of();
@@ -163,6 +164,7 @@ public class PatientsServiceApi {
                 this)
                 .processMultipartFile(file);
     }
+
     public void saveBloodPressureReadings(List<BloodPressureReading> bloodPressureReadings) {
         bloodPressureDataService.saveBloodPressureReadings(bloodPressureReadings);
     }

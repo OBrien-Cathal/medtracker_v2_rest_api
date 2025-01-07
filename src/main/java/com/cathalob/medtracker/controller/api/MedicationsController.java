@@ -1,34 +1,33 @@
 package com.cathalob.medtracker.controller.api;
 
+import com.cathalob.medtracker.model.prescription.Medication;
 import com.cathalob.medtracker.payload.response.GenericRequestResponse;
+import com.cathalob.medtracker.service.api.impl.MedicationsService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
 @RequestMapping("/api/v1/medications")
 @RequiredArgsConstructor
 public class MedicationsController {
+    private final MedicationsService medicationsService;
 
     @GetMapping
-    public ResponseEntity<GenericRequestResponse> getMedications(
-            Authentication authentication) {
-        GenericRequestResponse requestResponse = new GenericRequestResponse(
-                true,
-                "Stub");
-        return ResponseEntity.ok(requestResponse);
+    @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
+    public ResponseEntity<List<Medication>> getMedications() {
+        return ResponseEntity.ok(medicationsService.getMedications());
     }
-    @PostMapping("/addMedication")
-    public ResponseEntity<GenericRequestResponse> addMedication(
-            Authentication authentication) {
-        GenericRequestResponse requestResponse = new GenericRequestResponse(
-                true,
-                "Stub");
+
+    @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
+    @PostMapping("/add")
+    public ResponseEntity<GenericRequestResponse> addMedication(@RequestBody @Valid Medication medication) {
+        GenericRequestResponse requestResponse = medicationsService.addMedication(medication);
         return ResponseEntity.ok(requestResponse);
     }
 }
