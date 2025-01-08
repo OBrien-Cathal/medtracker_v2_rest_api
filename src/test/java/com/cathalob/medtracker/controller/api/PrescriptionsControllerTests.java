@@ -1,17 +1,15 @@
 package com.cathalob.medtracker.controller.api;
 
 import com.cathalob.medtracker.config.SecurityConfig;
+import com.cathalob.medtracker.mapper.PrescriptionMapper;
 import com.cathalob.medtracker.model.UserModel;
-import com.cathalob.medtracker.payload.response.Response;
 import com.cathalob.medtracker.service.api.impl.AuthenticationServiceApi;
 import com.cathalob.medtracker.service.api.impl.JwtServiceImpl;
 import com.cathalob.medtracker.service.api.impl.PrescriptionsService;
 import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
 import com.cathalob.medtracker.testdata.PrescriptionBuilder;
 import com.cathalob.medtracker.testdata.UserModelBuilder;
-import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
@@ -49,13 +47,10 @@ class PrescriptionsControllerTests {
     @WithMockUser(value = "user@user.com", roles = {"PRACTITIONER"})
     public void givenGetPrescriptionsRequestAsPRACTITIONER_whenGetPrescriptions_thenReturnPrescriptions() throws Exception {
         //given - precondition or setup
-        Response response = new Response(
-                true,
-                "Stub");
         UserModel userModel = UserModelBuilder.aUserModel().build();
-
         BDDMockito.given(prescriptionsService.getPrescriptions(userModel.getUsername()))
-                .willReturn(List.of(PrescriptionBuilder.aPrescription().build()));
+                .willReturn(List.of(PrescriptionMapper.Overview(PrescriptionBuilder.aPrescription().build())));
+
         // when - action or the behaviour that we are going test
         ResultActions usersResponse = mockMvc.perform(get("/api/v1/prescriptions"));
 

@@ -1,11 +1,13 @@
 package com.cathalob.medtracker.service.api.impl;
 
+import com.cathalob.medtracker.mapper.PrescriptionMapper;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.DAYSTAGE;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.prescription.Medication;
 import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
+import com.cathalob.medtracker.payload.data.PrescriptionData;
 import com.cathalob.medtracker.repository.MedicationRepository;
 import com.cathalob.medtracker.repository.PrescriptionScheduleEntryRepository;
 import com.cathalob.medtracker.repository.PrescriptionsRepository;
@@ -40,18 +42,20 @@ public class PrescriptionsService {
                 .stream().collect(Collectors.toMap(Medication::getId, Function.identity()));
     }
 
-    public List<Prescription> getPrescriptions(String username) {
+    public List<PrescriptionData> getPrescriptions(String username) {
         UserModel userModel = userService.findByLogin(username);
-        if (userModel != null) {
-            if (userModel.getRole().equals(USERROLE.PRACTITIONER)) {
-                prescriptionsRepository.findByPractitioner(userModel);
-            } else if (userModel.getRole().equals(USERROLE.PATIENT)) {
-                prescriptionsRepository.findByPatient(userModel);
-            }
-            return List.of();
-        }
+        if (userModel == null) return List.of();
 
-        return prescriptionsRepository.findAll();
+        return getPrescriptions(userModel).stream().map((PrescriptionMapper::Overview)).toList();
+    }
+
+    public List<Prescription> getPrescriptions(UserModel userModel) {
+        if (userModel.getRole().equals(USERROLE.PRACTITIONER)) {
+            return prescriptionsRepository.findByPractitioner(userModel);
+        } else if (userModel.getRole().equals(USERROLE.PATIENT)) {
+            return prescriptionsRepository.findByPatient(userModel);
+        }
+        return List.of();
     }
 
     public List<Prescription> getPrescriptions() {

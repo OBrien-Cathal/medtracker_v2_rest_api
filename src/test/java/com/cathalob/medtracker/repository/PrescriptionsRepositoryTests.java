@@ -1,6 +1,7 @@
 package com.cathalob.medtracker.repository;
 
 
+import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.prescription.Prescription;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,12 +10,13 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
+import java.util.List;
+
 import static com.cathalob.medtracker.testdata.PrescriptionBuilder.aPrescription;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @ActiveProfiles("test")
-
 class PrescriptionsRepositoryTests {
     @Autowired
     private PrescriptionsRepository prescriptionsRepository;
@@ -36,5 +38,41 @@ class PrescriptionsRepositoryTests {
 
 //        then
         assertThat(savedPrescription.getId()).isEqualTo(1);
+    }
+
+    @Test
+    public void givenSavedPrescriptions_whenFindByPatient_thenReturnSavedPrescriptionsForThePatient() {
+
+//        given
+        Prescription prescription = aPrescription().build();
+        persistPrescriptionAndDependencies(prescription);
+        UserModel patientToFindBy = prescription.getPatient();
+
+        persistPrescriptionAndDependencies(aPrescription().build());
+        persistPrescriptionAndDependencies(aPrescription().build());
+        persistPrescriptionAndDependencies(aPrescription().build());
+
+        Prescription otherPrescription = aPrescription().build();
+        otherPrescription.setPatient(patientToFindBy);
+        persistPrescriptionAndDependencies(otherPrescription);
+
+//        when
+        System.out.println(patientToFindBy.getId());
+        List<Prescription> byPatient = prescriptionsRepository.findByPatient(patientToFindBy);
+
+//        then
+        assertThat(byPatient.size()).isEqualTo(2);
+    }
+
+    private void persistPrescriptionDependencies(Prescription prescription) {
+        testEntityManager.persist(prescription.getPatient());
+        testEntityManager.persist(prescription.getPractitioner());
+        testEntityManager.persist(prescription.getMedication());
+
+    }
+    private void persistPrescriptionAndDependencies(Prescription prescription) {
+        persistPrescriptionDependencies(prescription);
+        testEntityManager.persist(prescription);
+
     }
 }
