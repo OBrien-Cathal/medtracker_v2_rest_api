@@ -1,7 +1,7 @@
 package com.cathalob.medtracker.controller.api;
 
 import com.cathalob.medtracker.config.SecurityConfig;
-import com.cathalob.medtracker.payload.response.GenericRequestResponse;
+import com.cathalob.medtracker.payload.response.Response;
 import com.cathalob.medtracker.service.api.impl.AuthenticationServiceApi;
 import com.cathalob.medtracker.service.api.impl.JwtServiceImpl;
 import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
@@ -38,7 +38,7 @@ class PrescriptionsControllerTests {
     @WithMockUser("user@user.com")
     public void givenGetPrescriptionsRequest_whenGetPrescriptions_then() throws Exception {
         //given - precondition or setup
-        GenericRequestResponse genericRequestResponse = new GenericRequestResponse(
+        Response response = new Response(
                 true,
                 "Stub");
 
@@ -49,7 +49,7 @@ class PrescriptionsControllerTests {
         usersResponse
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.requestSucceeded", CoreMatchers.is(genericRequestResponse.isRequestSucceeded())))
-                .andExpect(jsonPath("$.message", CoreMatchers.is(genericRequestResponse.getMessage())));
+                .andExpect(jsonPath("$.successful", CoreMatchers.is(response.isSuccessful())))
+                .andExpect(jsonPath("$.message", CoreMatchers.is(response.getMessage())));
     }
 }

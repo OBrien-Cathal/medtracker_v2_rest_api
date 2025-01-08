@@ -9,7 +9,7 @@ import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.userroles.RoleChange;
 import com.cathalob.medtracker.payload.data.RoleChangeData;
-import com.cathalob.medtracker.payload.response.GenericRequestResponse;
+import com.cathalob.medtracker.payload.response.Response;
 import com.cathalob.medtracker.payload.response.RoleChangeStatusResponse;
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.PractitionerRoleRequestRepository;
@@ -73,8 +73,8 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
 
     //    NEW ROLE functions
     @Override
-    public GenericRequestResponse submitRoleChange(USERROLE newRole, String submitterUserName) {
-        GenericRequestResponse requestResponse = new GenericRequestResponse();
+    public Response submitRoleChange(USERROLE newRole, String submitterUserName) {
+        Response requestResponse = new Response();
 
         UserModel subbmiterUserModel = findByLogin(submitterUserName);
         RoleChange roleChange = new RoleChange();
@@ -109,11 +109,11 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
     }
 
     @Override
-    public GenericRequestResponse approveRoleChange(Long roleChangeId, String approvedByUserName) {
+    public Response approveRoleChange(Long roleChangeId, String approvedByUserName) {
 
         UserModel approvedBy = findByLogin(approvedByUserName);
 //    replace line below when adding method security
-        GenericRequestResponse response = new GenericRequestResponse(false);
+        Response response = new Response(false);
         if (approvedBy == null || approvedBy.getRole() != USERROLE.ADMIN) {
             response.setMessage("insufficient privileges");
             return response;

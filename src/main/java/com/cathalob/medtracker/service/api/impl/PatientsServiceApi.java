@@ -10,11 +10,8 @@ import com.cathalob.medtracker.model.factories.PatientRegistrationFactory;
 import com.cathalob.medtracker.model.tracking.BloodPressureReading;
 import com.cathalob.medtracker.model.userroles.RoleChange;
 import com.cathalob.medtracker.payload.data.PatientRegistrationData;
-import com.cathalob.medtracker.payload.data.factories.PatientRegistrationDataFactory;
 import com.cathalob.medtracker.payload.response.ApprovePatientRegistrationResponse;
 import com.cathalob.medtracker.payload.response.PatientRegistrationResponse;
-import com.cathalob.medtracker.payload.response.factories.ApprovePatientRegistrationResponseFactory;
-import com.cathalob.medtracker.payload.response.factories.PatientRegistrationResponseFactory;
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.service.UserService;
@@ -65,13 +62,13 @@ public class PatientsServiceApi {
         try {
             validatePatientRegistration(toRegister, practitioner);
         } catch (Exception e) {
-            return PatientRegistrationResponseFactory.Failed(List.of(e.getMessage()));
+            return PatientRegistrationResponse.Failed(List.of(e.getMessage()));
         }
 
         PatientRegistration patientRegistration = PatientRegistrationFactory.PatientRegistration(toRegister, practitioner, false);
         PatientRegistration saved = patientRegistrationRepository.save(patientRegistration);
 
-        return PatientRegistrationResponseFactory.Successful(saved);
+        return PatientRegistrationResponse.Success(saved);
     }
 
     private void validatePatientRegistration(UserModel toRegister, UserModel practitioner) {
@@ -96,24 +93,24 @@ public class PatientsServiceApi {
         ArrayList<String> errors = new ArrayList<>();
         if (shouldBePractitionerUserModel == null) {
             errors.add("Only users with PRACTITIONER role can approve patient registrations");
-            return ApprovePatientRegistrationResponseFactory.Failed(errors);
+            return ApprovePatientRegistrationResponse.Failed(patientRegistrationId, errors);
         }
         if (reg.isEmpty()) {
             errors.add("Registration with id " + patientRegistrationId + " does not exist");
-            return ApprovePatientRegistrationResponseFactory.Failed(errors);
+            return ApprovePatientRegistrationResponse.Failed(patientRegistrationId, errors);
         }
         PatientRegistration patientRegistration = reg.get();
         if (!shouldBePractitionerUserModel.getId().equals(patientRegistration.getPractitionerUserModel().getId())) {
             errors.add("Approval of requests for other users not allowed");
-            return ApprovePatientRegistrationResponseFactory.Failed(errors);
+            return ApprovePatientRegistrationResponse.Failed(patientRegistrationId, errors);
         }
         if (patientRegistration.isRegistered()) {
             errors.add("Registration is already approved for reg id: " + patientRegistrationId);
-            return ApprovePatientRegistrationResponseFactory.Failed(errors);
+            return ApprovePatientRegistrationResponse.Failed(patientRegistrationId, errors);
         }
         if (!List.of(USERROLE.USER, USERROLE.PATIENT).contains(patientRegistration.getUserModel().getRole())) {
             errors.add("Cannot approve registration of user with role: " + patientRegistration.getUserModel().getRole());
-            return ApprovePatientRegistrationResponseFactory.Failed(errors);
+            return ApprovePatientRegistrationResponse.Failed(patientRegistrationId, errors);
         }
 
         UserModel toRegister = patientRegistration.getUserModel();
@@ -131,7 +128,7 @@ public class PatientsServiceApi {
 
         patientRegistration.setRegistered(true);
         patientRegistrationRepository.save(patientRegistration);
-        return ApprovePatientRegistrationResponseFactory.Successful(patientRegistration.getId());
+        return ApprovePatientRegistrationResponse.Success(patientRegistration.getId());
     }
 
 
@@ -144,7 +141,7 @@ public class PatientsServiceApi {
         if (userModel.getRole().equals(USERROLE.PATIENT) || userModel.getRole().equals(USERROLE.USER)) {
             patientRegistrations = patientRegistrationRepository.findByUserModel(userModel);
         }
-        return patientRegistrations.stream().map((PatientRegistrationDataFactory::From
+        return patientRegistrations.stream().map((PatientRegistrationData::From
         )).toList();
     }
 

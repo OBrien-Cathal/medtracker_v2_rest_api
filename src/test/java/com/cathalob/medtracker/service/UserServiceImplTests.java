@@ -8,7 +8,7 @@ import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.userroles.RoleChange;
 import com.cathalob.medtracker.payload.data.RoleChangeData;
-import com.cathalob.medtracker.payload.response.GenericRequestResponse;
+import com.cathalob.medtracker.payload.response.Response;
 import com.cathalob.medtracker.payload.response.RoleChangeStatusResponse;
 import com.cathalob.medtracker.repository.PractitionerRoleRequestRepository;
 import com.cathalob.medtracker.repository.RoleChangeRepository;
@@ -209,10 +209,10 @@ class UserServiceImplTests {
         given(roleChangeRepository.save(any(RoleChange.class))).willReturn(roleChange);
 
         // when - action or the behaviour that we are going test
-        GenericRequestResponse genericRequestResponse = userService.submitRoleChange(newRole,
+        Response response = userService.submitRoleChange(newRole,
                 userModel.getUsername());
         // then - verify the output
-        assertThat(genericRequestResponse.isRequestSucceeded()).isTrue();
+        assertThat(response.isSuccessful()).isTrue();
         verify(roleChangeRepository, times(1)).save(any(RoleChange.class));
     }
 
@@ -271,13 +271,13 @@ class UserServiceImplTests {
                 .willReturn(Optional.of(roleChange));
 
         given(roleChangeRepository.save(roleChange)).willReturn(roleChange);
-        GenericRequestResponse expectedResponse = new GenericRequestResponse(true);
+        Response expectedResponse = new Response(true);
         // when - action or the behaviour that we are going test
-        GenericRequestResponse genericRequestResponse = userService.approveRoleChange(roleChange.getId(), approvedBy.getUsername());
+        Response response = userService.approveRoleChange(roleChange.getId(), approvedBy.getUsername());
         // then - verify the output
-        assertThat(genericRequestResponse.isRequestSucceeded()).isTrue();
-        assertThat(genericRequestResponse.getMessage()).isEqualTo(expectedResponse.getMessage());
-        assertThat(genericRequestResponse.getErrors()).size().isEqualTo(0);
+        assertThat(response.isSuccessful()).isTrue();
+        assertThat(response.getMessage()).isEqualTo(expectedResponse.getMessage());
+        assertThat(response.getErrors()).size().isEqualTo(0);
         verify(roleChangeRepository, times(1)).save(any(RoleChange.class));
     }
 

@@ -1,6 +1,7 @@
 package com.cathalob.medtracker.controller.api;
 
-import com.cathalob.medtracker.payload.response.GenericRequestResponse;
+import com.cathalob.medtracker.payload.response.Response;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -12,17 +13,17 @@ import org.springframework.web.bind.annotation.*;
 public class PrescriptionsController {
 
     @GetMapping
-    public ResponseEntity<GenericRequestResponse> getPrescriptions(
+    public ResponseEntity<Response> getPrescriptions(
             Authentication authentication) {
-        GenericRequestResponse requestResponse = new GenericRequestResponse(
+        Response requestResponse = new Response(
                 true,
                 "Stub");
         return ResponseEntity.ok(requestResponse);
     }
     @PostMapping("/addPrescription")
-    public ResponseEntity<GenericRequestResponse> addPrescription(
+    public ResponseEntity<Response> addPrescription(
             Authentication authentication) {
-        GenericRequestResponse requestResponse = new GenericRequestResponse(
+        Response requestResponse = new Response(
                 true,
                 "Stub");
         return ResponseEntity.ok(requestResponse);

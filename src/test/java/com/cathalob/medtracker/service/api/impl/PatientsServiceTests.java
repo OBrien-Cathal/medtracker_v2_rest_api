@@ -80,7 +80,8 @@ class PatientsServiceTests {
         assertThat(patientRegistrationResponse.getData().getPractitionerId()).isEqualTo(practitioner.getId());
         assertThat(patientRegistrationResponse.getData()).isNotNull();
         assertThat(patientRegistrationResponse.getData().getId()).isEqualTo(1L);
-        assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Success");
+        assertThat(patientRegistrationResponse.isSuccessful()).isTrue();
+        assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Succeeded");
         assertThat(patientRegistrationResponse.getErrors()).isEmpty();
     }
 
@@ -97,7 +98,8 @@ class PatientsServiceTests {
         PatientRegistrationResponse patientRegistrationResponse = patientsService.registerPatient(toRegister.getUsername(), practitioner.getId());
 
         // then - verify the output
-        assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Failed");
+        assertThat(patientRegistrationResponse.isSuccessful()).isFalse();
+        assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Failed Validation");
         assertThat(patientRegistrationResponse.getErrors()).isNotEmpty();
     }
 
@@ -117,7 +119,8 @@ class PatientsServiceTests {
         PatientRegistrationResponse patientRegistrationResponse = patientsService.registerPatient(toRegister.getUsername(), practitioner.getId());
 
         // then - verify the output
-        assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Failed");
+        assertThat(patientRegistrationResponse.isSuccessful()).isFalse();
+        assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Failed Validation");
         assertThat(patientRegistrationResponse.getErrors()).isNotEmpty();
     }
 
@@ -136,7 +139,8 @@ class PatientsServiceTests {
         PatientRegistrationResponse patientRegistrationResponse = patientsService.registerPatient(toRegister.getUsername(), practitioner.getId());
 
         // then - verify the output
-        assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Failed");
+        assertThat(patientRegistrationResponse.isSuccessful()).isFalse();
+        assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Failed Validation");
         assertThat(patientRegistrationResponse.getErrors()).isNotEmpty();
     }
 
@@ -156,7 +160,8 @@ class PatientsServiceTests {
         PatientRegistrationResponse patientRegistrationResponse = patientsService.registerPatient(toRegister.getUsername(), practitioner.getId());
 
         // then - verify the output
-        assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Failed");
+        assertThat(patientRegistrationResponse.isSuccessful()).isFalse();
+        assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Failed Validation");
         assertThat(patientRegistrationResponse.getErrors()).isNotEmpty();
     }
 
