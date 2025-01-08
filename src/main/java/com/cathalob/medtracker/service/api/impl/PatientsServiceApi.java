@@ -18,7 +18,6 @@ import com.cathalob.medtracker.service.UserService;
 import com.cathalob.medtracker.service.impl.BloodPressureDataService;
 import com.cathalob.medtracker.service.impl.DoseService;
 import com.cathalob.medtracker.service.impl.EvaluationDataService;
-import com.cathalob.medtracker.service.impl.PrescriptionsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;

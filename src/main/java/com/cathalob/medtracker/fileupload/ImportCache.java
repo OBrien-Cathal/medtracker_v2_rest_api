@@ -10,7 +10,7 @@ import com.cathalob.medtracker.model.tracking.Dose;
 import com.cathalob.medtracker.service.impl.DoseService;
 import com.cathalob.medtracker.service.impl.EvaluationDataService;
 
-import com.cathalob.medtracker.service.impl.PrescriptionsService;
+import com.cathalob.medtracker.service.api.impl.PrescriptionsService;
 import com.cathalob.medtracker.service.impl.UserServiceImpl;
 import lombok.Getter;
 import lombok.Setter;

@@ -1,16 +1,12 @@
 package com.cathalob.medtracker.service.impl;
 
-import com.cathalob.medtracker.dto.PrescriptionDTO;
-import com.cathalob.medtracker.dto.PrescriptionsDTO;
-import com.cathalob.medtracker.fileupload.BloodPressureFileImporter;
-import com.cathalob.medtracker.fileupload.DoseFileImporter;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.DAYSTAGE;
 import com.cathalob.medtracker.model.prescription.Medication;
 import com.cathalob.medtracker.model.tracking.BloodPressureReading;
 import com.cathalob.medtracker.model.tracking.Dose;
+import com.cathalob.medtracker.service.api.impl.PrescriptionsService;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -22,32 +18,11 @@ import java.util.stream.Stream;
 @Service
 public class PatientsService {
     private final PrescriptionsService prescriptionsService;
-    private final BloodPressureDataService bloodPressureDataService;
     private final DoseService doseService;
-    private final EvaluationDataService evaluationDataService;
 
-    public PatientsService(PrescriptionsService prescriptionsService, BloodPressureDataService bloodPressureDataService, DoseService doseService, EvaluationDataService evaluationDataService) {
+    public PatientsService(PrescriptionsService prescriptionsService, DoseService doseService) {
         this.prescriptionsService = prescriptionsService;
-        this.bloodPressureDataService = bloodPressureDataService;
         this.doseService = doseService;
-        this.evaluationDataService = evaluationDataService;
-    }
-
-    public PrescriptionsDTO getPrescriptionsDTO(UserModel patient) {
-        PrescriptionsDTO prescriptionsDTO = new PrescriptionsDTO(new ArrayList<>());
-        prescriptionsService.getPrescriptions().stream()
-                .filter(prescription -> prescription.getPatient().getId().equals(patient.getId()))
-                .forEach(prescription -> {
-            PrescriptionDTO prescriptionDTO = new PrescriptionDTO();
-            prescriptionDTO.setMedication(prescription.getMedication());
-            prescriptionDTO.setDoseMg(prescription.getDoseMg());
-            prescriptionsDTO.getPrescriptions().add(prescriptionDTO);
-        });
-        return prescriptionsDTO;
-    }
-
-    public void saveBloodPressureReadings(List<BloodPressureReading> bloodPressureReadings) {
-        bloodPressureDataService.saveBloodPressureReadings(bloodPressureReadings);
     }
 
     public List<List<Object>> getDoseGraphData(UserModel userModel) {
@@ -111,16 +86,16 @@ public class PatientsService {
     }
 
     public List<List<Object>> getSystoleGraphData(List<BloodPressureReading> bloodPressureReadings) {
-        return this.getBloodPressureGraphData(BloodPressureReading::getSystole, List.of(140,130,120), bloodPressureReadings);
+        return this.getBloodPressureGraphData(BloodPressureReading::getSystole, List.of(140, 130, 120), bloodPressureReadings);
 
     }
 
-    public List<List<Object>> getDiastoleGraphData (List<BloodPressureReading> bloodPressureReadings) {
+    public List<List<Object>> getDiastoleGraphData(List<BloodPressureReading> bloodPressureReadings) {
         return this.getBloodPressureGraphData(BloodPressureReading::getDiastole, List.of(90, 80), bloodPressureReadings);
     }
 
     public List<List<Object>> getHeartRateGraphData(List<BloodPressureReading> bloodPressureReadings) {
-        return this.getBloodPressureGraphData(BloodPressureReading::getHeartRate, List.of(100,90,80), bloodPressureReadings);
+        return this.getBloodPressureGraphData(BloodPressureReading::getHeartRate, List.of(100, 90, 80), bloodPressureReadings);
 
     }
 

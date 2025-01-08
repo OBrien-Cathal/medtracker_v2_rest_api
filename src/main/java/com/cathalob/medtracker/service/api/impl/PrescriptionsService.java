@@ -1,13 +1,15 @@
-package com.cathalob.medtracker.service.impl;
+package com.cathalob.medtracker.service.api.impl;
 
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.DAYSTAGE;
+import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.prescription.Medication;
 import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
 import com.cathalob.medtracker.repository.MedicationRepository;
 import com.cathalob.medtracker.repository.PrescriptionScheduleEntryRepository;
 import com.cathalob.medtracker.repository.PrescriptionsRepository;
+import com.cathalob.medtracker.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,7 +25,7 @@ import java.util.stream.Stream;
 @Slf4j
 @AllArgsConstructor
 public class PrescriptionsService {
-
+    private final UserService userService;
     private final MedicationRepository medicationRepository;
     private final PrescriptionScheduleEntryRepository prescriptionScheduleEntryRepository;
     private final PrescriptionsRepository prescriptionsRepository;
@@ -33,13 +35,23 @@ public class PrescriptionsService {
 
     }
 
-    public List<Medication> getMedications() {
-        return medicationRepository.findAll();
-    }
-
     public Map<Long, Medication> getMedicationsById() {
         return medicationRepository.findAll()
                 .stream().collect(Collectors.toMap(Medication::getId, Function.identity()));
+    }
+
+    public List<Prescription> getPrescriptions(String username) {
+        UserModel userModel = userService.findByLogin(username);
+        if (userModel != null) {
+            if (userModel.getRole().equals(USERROLE.PRACTITIONER)) {
+                prescriptionsRepository.findByPractitioner(userModel);
+            } else if (userModel.getRole().equals(USERROLE.PATIENT)) {
+                prescriptionsRepository.findByPatient(userModel);
+            }
+            return List.of();
+        }
+
+        return prescriptionsRepository.findAll();
     }
 
     public List<Prescription> getPrescriptions() {

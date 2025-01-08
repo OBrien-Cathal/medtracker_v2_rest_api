@@ -10,6 +10,7 @@ import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
 
 import com.cathalob.medtracker.service.api.impl.PatientsServiceApi;
+import com.cathalob.medtracker.service.api.impl.PrescriptionsService;
 import com.cathalob.medtracker.service.impl.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.EncryptedDocumentException;

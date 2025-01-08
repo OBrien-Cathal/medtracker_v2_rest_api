@@ -27,22 +27,11 @@ public class PatientController {
         this.bloodPressureDataService = bloodPressureDataService;
         this.userService = userService;
     }
-    @GetMapping("/patient/prescriptions")
-    public String getPatients(Model model, Authentication authentication) {
-        model.addAttribute("prescriptionsDTO", patientsService.getPrescriptionsDTO(getUserModel(authentication)));
-        return "patient/prescriptionsList";
-    }
-
-    @GetMapping("/patient/upload")
-    public String upload() {
-        return "patient/upload";
-    }
 
 
     private UserModel getUserModel(Authentication authentication) {
         return userService.findByLogin(authentication.getName());
     }
-
     @GetMapping("/patient/graphs")
     public String graphs(Model model, Authentication authentication) {
         {
