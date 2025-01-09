@@ -33,18 +33,37 @@ public class BloodPressureDataService {
     }
 
     public TimeSeriesGraphDataResponse getSystoleGraphData(String username) {
-        UserModel userModel = userService.findByLogin(username);
-        return TimeSeriesGraphDataResponse.Success(getSystoleGraphData(userModel));
+        return getSystoleGraphData(userService.findByLogin(username));
     }
 
-    public GraphData getSystoleGraphData(UserModel userModel) {
-        List<BloodPressureReading> bloodPressureReadings = getBloodPressureReadings(userModel);
-        GraphData graphData = new GraphData(
-                getSortedDataColumnNames(bloodPressureReadings),
-                getBloodPressureGraphData(BloodPressureReading::getSystole, bloodPressureReadings));
-        System.out.println(graphData.getDataRows());
-        return graphData;
+    public TimeSeriesGraphDataResponse getDiastoleGraphData(String username) {
+        return getDiastoleGraphData(userService.findByLogin(username));
     }
+
+    public TimeSeriesGraphDataResponse getHeartRateGraphData(String username) {
+        return getHeartRateGraphData(userService.findByLogin(username));
+    }
+
+    private TimeSeriesGraphDataResponse getSystoleGraphData(UserModel userModel) {
+        return getBloodPressureGraphData(BloodPressureReading::getSystole, userModel);
+    }
+
+    private TimeSeriesGraphDataResponse getDiastoleGraphData(UserModel userModel) {
+        return getBloodPressureGraphData(BloodPressureReading::getDiastole, userModel);
+    }
+
+    private TimeSeriesGraphDataResponse getHeartRateGraphData(UserModel userModel) {
+        return getBloodPressureGraphData(BloodPressureReading::getHeartRate, userModel);
+    }
+
+    private TimeSeriesGraphDataResponse getBloodPressureGraphData(ToIntFunction<BloodPressureReading> bpDataAccessorFunction, UserModel userModel) {
+        List<BloodPressureReading> bloodPressureReadings = getBloodPressureReadings(userModel);
+        return TimeSeriesGraphDataResponse.Success(
+                new GraphData(
+                        getSortedDataColumnNames(bloodPressureReadings),
+                        getBloodPressureGraphData(bpDataAccessorFunction, bloodPressureReadings)));
+    }
+
 
     private List<String> getSortedDataColumnNames(List<BloodPressureReading> bloodPressureReadings) {
         List<DAYSTAGE> daystageList = bloodPressureReadings.stream().map(BloodPressureReading::getDayStage)
@@ -58,7 +77,7 @@ public class BloodPressureDataService {
         return strings;
     }
 
-    public List<List<Object>> getBloodPressureGraphData(ToIntFunction<BloodPressureReading> getBpValueFunction, List<BloodPressureReading> bloodPressureReadings) {
+    private List<List<Object>> getBloodPressureGraphData(ToIntFunction<BloodPressureReading> getBpValueFunction, List<BloodPressureReading> bloodPressureReadings) {
         List<List<Object>> listData = new ArrayList<>();
 
         TreeMap<LocalDate, List<BloodPressureReading>> byDate = bloodPressureReadings.stream().sorted(Comparator.comparing(bloodPressureReading -> bloodPressureReading.getReadingTime().toLocalDate()))
