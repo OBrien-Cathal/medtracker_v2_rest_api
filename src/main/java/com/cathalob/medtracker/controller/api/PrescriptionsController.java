@@ -1,6 +1,5 @@
 package com.cathalob.medtracker.controller.api;
 
-import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.payload.data.PrescriptionData;
 import com.cathalob.medtracker.payload.response.Response;
 
@@ -21,11 +20,19 @@ public class PrescriptionsController {
     private final PrescriptionsService prescriptionsService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ROLE_PRACTITIONER') || hasRole('ROLE_PATIENT')")
+    @PreAuthorize("hasRole('ROLE_PATIENT')")
     public ResponseEntity<List<PrescriptionData>> getPrescriptions(
             Authentication authentication) {
         List<PrescriptionData> prescriptions =
                 prescriptionsService.getPrescriptions(authentication.getName());
+        return ResponseEntity.ok(prescriptions);
+    }
+
+    @GetMapping("/patient")
+    @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
+    public ResponseEntity<List<PrescriptionData>> getPatientPrescriptions(@RequestParam(required = false, name = "id") Long patientId, Authentication authentication) {
+        List<PrescriptionData> prescriptions =
+                prescriptionsService.getPatientPrescriptions(authentication.getName(), patientId);
         return ResponseEntity.ok(prescriptions);
     }
 

@@ -3,7 +3,6 @@ package com.cathalob.medtracker.service.api.impl;
 import com.cathalob.medtracker.mapper.PrescriptionMapper;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.DAYSTAGE;
-import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.prescription.Medication;
 import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
@@ -32,16 +31,8 @@ public class PrescriptionsService {
     private final PrescriptionScheduleEntryRepository prescriptionScheduleEntryRepository;
     private final PrescriptionsRepository prescriptionsRepository;
 
-    public void saveMedications(List<Medication> medicationList) {
-        medicationRepository.saveAll(medicationList);
 
-    }
-
-    public Map<Long, Medication> getMedicationsById() {
-        return medicationRepository.findAll()
-                .stream().collect(Collectors.toMap(Medication::getId, Function.identity()));
-    }
-
+    //    Used by controller!!
     public List<PrescriptionData> getPrescriptions(String username) {
         UserModel userModel = userService.findByLogin(username);
         if (userModel == null) return List.of();
@@ -49,21 +40,36 @@ public class PrescriptionsService {
         return getPrescriptions(userModel).stream().map((PrescriptionMapper::Overview)).toList();
     }
 
-    public List<Prescription> getPrescriptions(UserModel userModel) {
-        if (userModel.getRole().equals(USERROLE.PRACTITIONER)) {
-            return prescriptionsRepository.findByPractitioner(userModel);
-        } else if (userModel.getRole().equals(USERROLE.PATIENT)) {
-            return prescriptionsRepository.findByPatient(userModel);
-        }
-        return List.of();
+    public List<PrescriptionData> getPatientPrescriptions(String practitionerUsername, Long userModelId) {
+        Optional<UserModel> maybeUserModel = userService.findUserModelById(userModelId);
+        if (maybeUserModel.isEmpty()) return List.of();
+        UserModel practitioner = userService.findByLogin(practitionerUsername);
+//        check if the pract can see these prescriptions, send error that user does not exist instead of empty list, subclass response
+
+        return getPrescriptions(maybeUserModel.get()).stream().map((PrescriptionMapper::Overview)).toList();
     }
 
-    public List<Prescription> getPrescriptions() {
+
+    //    Internal use
+    public void saveMedications(List<Medication> medicationList) {
+        medicationRepository.saveAll(medicationList);
+    }
+
+    public Map<Long, Medication> getMedicationsById() {
+        return medicationRepository.findAll()
+                .stream().collect(Collectors.toMap(Medication::getId, Function.identity()));
+    }
+
+    public List<Prescription> getPrescriptions(UserModel userModel) {
+        return prescriptionsRepository.findByPatient(userModel);
+    }
+
+    public List<Prescription> getAllPrescriptions() {
         return prescriptionsRepository.findAll();
     }
 
     public Map<Long, Prescription> getPrescriptionsById() {
-        return getPrescriptions()
+        return getAllPrescriptions()
                 .stream().collect(Collectors.toMap(Prescription::getId, Function.identity()));
     }
 
@@ -75,20 +81,14 @@ public class PrescriptionsService {
         return prescriptionScheduleEntryRepository.findAll().stream().collect(Collectors.toMap(PrescriptionScheduleEntry::getId, Function.identity()));
     }
 
-
     public List<PrescriptionScheduleEntry> getPatientPrescriptionScheduleEntries(UserModel userModel) {
         return prescriptionScheduleEntryRepository.findAll().stream().filter(pse -> pse.getPrescription().getPatient().getId().equals(userModel.getId()))
                 .distinct().toList();
     }
 
-    public List<Prescription> getPatientPrescriptions(UserModel userModel) {
-        return this.getPrescriptions().stream()
-                .filter(m -> m.getPatient().getId().equals(userModel.getId())).toList();
-
-    }
 
     public List<Medication> getPatientMedications(UserModel userModel) {
-        return getPatientPrescriptions(userModel).stream()
+        return getPrescriptions(userModel).stream()
                 .map(Prescription::getMedication)
                 .distinct()
                 .toList();
@@ -100,7 +100,7 @@ public class PrescriptionsService {
 
     public HashMap<Medication, HashSet<LocalDate>> getPatientPrescriptionDatesByMedication(UserModel userModel) {
         HashMap<Medication, HashSet<LocalDate>> medDates = new HashMap<>();
-        this.getPatientPrescriptions(userModel)
+        this.getPrescriptions(userModel)
                 .stream()
                 .collect(Collectors.groupingBy(Prescription::getMedication))
                 .forEach((medication, prescriptions) ->
