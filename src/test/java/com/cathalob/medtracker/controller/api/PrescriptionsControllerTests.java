@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.List;
 
+import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -48,11 +49,14 @@ class PrescriptionsControllerTests {
     public void givenGetPrescriptionsRequestAsPRACTITIONER_whenGetPrescriptions_thenReturnPrescriptions() throws Exception {
         //given - precondition or setup
         UserModel userModel = UserModelBuilder.aUserModel().build();
-        BDDMockito.given(prescriptionsService.getPrescriptions(userModel.getUsername()))
+
+        given(prescriptionsService.getPatientPrescriptions(userModel.getUsername(), 1L))
                 .willReturn(List.of(PrescriptionMapper.Overview(PrescriptionBuilder.aPrescription().build())));
 
         // when - action or the behaviour that we are going test
-        ResultActions usersResponse = mockMvc.perform(get("/api/v1/prescriptions"));
+        ResultActions usersResponse = mockMvc.perform(
+                get("/api/v1/prescriptions/patient")
+                        .param("id","1"));
 
         // then - verify the output
         usersResponse

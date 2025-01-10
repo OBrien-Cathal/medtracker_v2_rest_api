@@ -1,11 +1,15 @@
 package com.cathalob.medtracker.service.api.impl;
 
 import com.cathalob.medtracker.config.SecurityConfig;
+import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.prescription.Prescription;
+import com.cathalob.medtracker.payload.data.PrescriptionData;
+import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.PrescriptionsRepository;
 
+import com.cathalob.medtracker.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,10 +20,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.annotation.Import;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.cathalob.medtracker.testdata.PrescriptionBuilder.aPrescription;
 import static com.cathalob.medtracker.testdata.UserModelBuilder.aUserModel;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -27,10 +33,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PrescriptionsServiceTests {
     @Mock
     private PrescriptionsRepository prescriptionsRepository;
+    @Mock
+    private UserService userService;
     @InjectMocks
     private PrescriptionsService prescriptionsService;
+    @Mock
+    private PatientRegistrationRepository patientRegistrationRepository;
 
-    @DisplayName("Get prescriptions for a PATIENT returns prescriptions for patient role")
+    @DisplayName("(GetPrescriptions) Returns prescriptions for the requesting user")
     @Test
     public void givenExistingPrescription_whenGetPrescriptions_thenReturnForPatientRole() {
         //given - precondition or setup
@@ -43,35 +53,45 @@ class PrescriptionsServiceTests {
                         .withId(2L)
                         .withRole(USERROLE.PATIENT))
                 .build();
-        BDDMockito.given(prescriptionsRepository.findByPatient(prescription.getPatient())).willReturn(List.of(prescription));
+        given(prescriptionsRepository.findByPatient(prescription.getPatient())).willReturn(List.of(prescription));
         // when - action or the behaviour that we are going test
         List<Prescription> prescriptions = prescriptionsService.getPrescriptions(prescription.getPatient());
         // then - verify the output
         assertThat(prescriptions.size()).isEqualTo(1);
         assertThat(prescriptions.get(0).getPatient().getId().equals(prescription.getPatient().getId()));
     }
-    @DisplayName("Get prescriptions for a PRACTITIONER returns prescriptions for practitioner role")
+    @DisplayName("(GetPatientPrescriptions) Returns prescriptions for the patient param when requested by USERROLE_PRACTITIONER")
     @Test
-    public void givenExistingPrescription_whenGetPrescriptions_thenReturnForPRACTITIONERRole() {
+    public void givenExistingPrescription_whenGetPatientPrescriptions_thenReturnForPRACTITIONERRole() {
         //given - precondition or setup
         Prescription prescription = aPrescription()
                 .withPractitioner(
                         aUserModel()
+                                .withUsername("pat")
                                 .withId(1L)
                                 .withRole(USERROLE.PRACTITIONER))
                 .withPatient(aUserModel()
                         .withId(2L)
                         .withRole(USERROLE.PATIENT))
                 .build();
-        BDDMockito.given(prescriptionsRepository.findByPractitioner(prescription.getPractitioner())).willReturn(List.of(prescription));
+        UserModel patient = prescription.getPatient();
+        UserModel practitioner = prescription.getPractitioner();
+        given(userService.findUserModelById(patient.getId())).willReturn(Optional.of(patient));
+        given(userService.findByLogin(practitioner.getUsername())).willReturn(practitioner);
+        given(patientRegistrationRepository.findByUserModelAndPractitionerUserModel(patient,practitioner))
+                .willReturn(List.of(new PatientRegistration()));
+        given(prescriptionsRepository.findByPatient(patient)).willReturn(List.of(prescription));
+
         // when - action or the behaviour that we are going test
-        List<Prescription> prescriptions = prescriptionsService.getPrescriptions(prescription.getPractitioner());
+        List<PrescriptionData> prescriptions = prescriptionsService.getPatientPrescriptions(
+                practitioner.getUsername(),
+                patient.getId());
         // then - verify the output
         assertThat(prescriptions.size()).isEqualTo(1);
-        assertThat(prescriptions.get(0).getPatient().getId().equals(prescription.getPatient().getId()));
+        assertThat(prescriptions.get(0).getPatientUsername().equals(patient.getUsername()));
     }
 
-    @DisplayName("Get prescriptions for a USER returns no prescriptions")
+    @DisplayName("Return empty prescriptions when requested by USERROLE_USER")
     @Test
     public void givenExistingPrescription_whenGetPrescriptions_thenReturnEmptyForUSERRole() {
         //given - precondition or setup

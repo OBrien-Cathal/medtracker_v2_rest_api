@@ -41,16 +41,15 @@ public class PrescriptionsService {
         return getPrescriptions(userModel).stream().map((PrescriptionMapper::Overview)).toList();
     }
 
-    public List<PrescriptionData> getPatientPrescriptions(String practitionerUsername, Long userModelId) {
-        Optional<UserModel> maybeUserModel = userService.findUserModelById(userModelId);
-        if (maybeUserModel.isEmpty()) return List.of();
+    public List<PrescriptionData> getPatientPrescriptions(String practitionerUsername, Long patientId) {
+        Optional<UserModel> maybePatient = userService.findUserModelById(patientId);
+        if (maybePatient.isEmpty()) return List.of();
         UserModel practitioner = userService.findByLogin(practitionerUsername);
-        if (patientRegistrationRepository.findByUserModelAndPractitionerUserModel(maybeUserModel.get(),practitioner).isEmpty()){
+        if (patientRegistrationRepository.findByUserModelAndPractitionerUserModel(maybePatient.get(),practitioner).isEmpty()){
             return List.of();
         }
 //        check if the pract can see these prescriptions, send error that user does not exist instead of empty list, subclass response
-
-        return getPrescriptions(maybeUserModel.get()).stream().map((PrescriptionMapper::Overview)).toList();
+        return getPrescriptions(maybePatient.get()).stream().map((PrescriptionMapper::Overview)).toList();
     }
 
 

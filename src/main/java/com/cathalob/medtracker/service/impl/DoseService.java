@@ -7,6 +7,7 @@ import com.cathalob.medtracker.model.tracking.Dose;
 import com.cathalob.medtracker.payload.data.GraphData;
 import com.cathalob.medtracker.payload.response.TimeSeriesGraphDataResponse;
 import com.cathalob.medtracker.repository.DoseRepository;
+import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.service.UserService;
 import com.cathalob.medtracker.service.api.impl.PrescriptionsService;
 import lombok.AllArgsConstructor;
@@ -27,6 +28,7 @@ public class DoseService {
     private final PrescriptionsService prescriptionsService;
     private final DoseRepository doseRepository;
     private final UserService userService;
+    private final PatientRegistrationRepository patientRegistrationRepository;
 
     public List<Dose> getDoses(UserModel userModel) {
         return doseRepository.findDosesForUserId(userModel.getId());
@@ -41,7 +43,23 @@ public class DoseService {
     }
 
     public TimeSeriesGraphDataResponse getDoseGraphData(String patientUsername) {
-        UserModel patient = userService.findByLogin(patientUsername);
+        return getDoseGraphDataResponse(userService.findByLogin(patientUsername));
+    }
+
+    public TimeSeriesGraphDataResponse getPatientDoseGraphData(Long patientUserModelId, String practitionerUsername) {
+        UserModel practitioner = userService.findByLogin(practitionerUsername);
+        Optional<UserModel> maybePatient = userService.findUserModelById(patientUserModelId);
+        if (maybePatient.isEmpty()) return TimeSeriesGraphDataResponse.Failure();
+        UserModel patient = maybePatient.get();
+//        validate that the practitioner is a doc of the patient, and allowed to see the patient data
+        if (patientRegistrationRepository.findByUserModelAndPractitionerUserModel(patient,practitioner).isEmpty()) {
+            TimeSeriesGraphDataResponse failure = TimeSeriesGraphDataResponse.Failure();
+            failure.setErrors(List.of("Only registered practitioners can view this patients data"));
+            return failure;
+        }
+        return getDoseGraphDataResponse(patient);
+    }
+    private TimeSeriesGraphDataResponse getDoseGraphDataResponse(UserModel patient){
         return TimeSeriesGraphDataResponse.Success(
                 new GraphData(
                         getDoseGraphColumnNames(patient),
