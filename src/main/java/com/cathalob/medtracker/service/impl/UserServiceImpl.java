@@ -7,8 +7,6 @@ import com.cathalob.medtracker.model.userroles.RoleChange;
 import com.cathalob.medtracker.payload.data.RoleChangeData;
 import com.cathalob.medtracker.payload.response.Response;
 import com.cathalob.medtracker.payload.response.RoleChangeStatusResponse;
-import com.cathalob.medtracker.repository.PatientRegistrationRepository;
-import com.cathalob.medtracker.repository.PractitionerRoleRequestRepository;
 import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.repository.UserModelRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,9 +30,7 @@ import java.util.stream.Collectors;
 @EnableMethodSecurity
 public class UserServiceImpl implements com.cathalob.medtracker.service.UserService {
     private final UserModelRepository userModelRepository;
-    private final PractitionerRoleRequestRepository practitionerRoleRequestRepository;
     private final RoleChangeRepository roleChangeRepository;
-    private final PatientRegistrationRepository patientRegistrationRepository;
 
     @Override
     public UserModel findByLogin(String username) throws UserNotFound {

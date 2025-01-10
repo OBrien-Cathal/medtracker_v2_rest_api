@@ -1,16 +1,12 @@
 package com.cathalob.medtracker.service;
 
 import com.cathalob.medtracker.config.SecurityConfig;
-import com.cathalob.medtracker.exception.PractitionerRoleRequestValidationFailed;
-import com.cathalob.medtracker.exception.UserNotFound;
-import com.cathalob.medtracker.model.PractitionerRoleRequest;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.userroles.RoleChange;
 import com.cathalob.medtracker.payload.data.RoleChangeData;
 import com.cathalob.medtracker.payload.response.Response;
 import com.cathalob.medtracker.payload.response.RoleChangeStatusResponse;
-import com.cathalob.medtracker.repository.PractitionerRoleRequestRepository;
 import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.repository.UserModelRepository;
 import com.cathalob.medtracker.service.impl.UserServiceImpl;
@@ -31,7 +27,6 @@ import java.util.Optional;
 import static com.cathalob.medtracker.testdata.RoleChangeBuilder.aRoleChange;
 import static com.cathalob.medtracker.testdata.UserModelBuilder.aUserModel;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -41,8 +36,7 @@ import static org.mockito.Mockito.*;
 class UserServiceImplTests {
     @Mock
     private UserModelRepository userModelRepository;
-    @Mock
-    private PractitionerRoleRequestRepository practitionerRoleRequestRepository;
+
     @Mock
     private RoleChangeRepository roleChangeRepository;
     @InjectMocks
