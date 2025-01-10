@@ -14,7 +14,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -63,23 +62,6 @@ public class SecurityConfig {
                 .build();
     }
 
-    @Bean
-    @Order(3)
-    SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.authorizeHttpRequests(request -> request
-                        .requestMatchers("/", "/css/*", "/registration", "/login", "/about").permitAll()
-                        .requestMatchers("/admin/**").hasAnyRole("ADMIN")
-                        .requestMatchers("/user/**").hasAnyRole("USER")
-                        .requestMatchers("/patient/**").hasAnyRole("USER")
-                        .requestMatchers("/practitioner/**").hasAnyRole("PRACT")
-                        .anyRequest().authenticated())
-                .formLogin(form -> form.loginPage("/login")
-                        .defaultSuccessUrl("/", true).permitAll())
-                .logout(LogoutConfigurer::permitAll);
-        return httpSecurity.build();
-
-
-    }
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

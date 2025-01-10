@@ -35,18 +35,6 @@ public interface UserService {
     List<RoleChangeData> getUnapprovedRoleChanges();
 
 
-    boolean submitPractitionerRoleRequest(String username);
-
-    PractitionerRoleRequest savePractitionerRoleRequest(PractitionerRoleRequest practitionerRoleRequest, UserModel userModel);
-
-    Optional<PractitionerRoleRequest> getPractitionerRoleRequest(String username);
-
-    Optional<PractitionerRoleRequest> getPractitionerRoleRequest(Long userModelId);
-
-    //ADMIN user functions
-    List<PractitionerRoleRequest> getPractitionerRoleRequests();
-
-    boolean approvePractitionerRoleRequests(List<PractitionerRoleRequest> requests);
 
     boolean submitPasswordChangeRequest();
 }
