@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.service.api.impl;
+package com.cathalob.medtracker.service.impl;
 
 import com.cathalob.medtracker.payload.request.AccountVerificationRequest;
 import com.cathalob.medtracker.payload.request.AuthenticationVerificationRequest;
@@ -12,7 +12,7 @@ import com.cathalob.medtracker.exception.UserNotFound;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.repository.UserModelRepository;
-import com.cathalob.medtracker.service.api.JwtService;
+import com.cathalob.medtracker.service.JwtService;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,7 +26,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class AuthenticationServiceApi implements com.cathalob.medtracker.service.api.AuthenticationServiceApi {
+public class AuthenticationServiceApi implements com.cathalob.medtracker.service.AuthenticationServiceApi {
     private final UserModelRepository userModelRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;

@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.controller.api;
+package com.cathalob.medtracker.controller;
 
 import com.cathalob.medtracker.payload.request.AccountVerificationRequest;
 import com.cathalob.medtracker.payload.request.AuthenticationVerificationRequest;
@@ -7,7 +7,7 @@ import com.cathalob.medtracker.payload.request.SignUpRequest;
 import com.cathalob.medtracker.payload.response.AccountVerificationResponse;
 import com.cathalob.medtracker.payload.response.AuthenticationVerificationResponse;
 import com.cathalob.medtracker.payload.response.JwtAuthenticationResponse;
-import com.cathalob.medtracker.service.api.impl.AuthenticationServiceApi;
+import com.cathalob.medtracker.service.impl.AuthenticationServiceApi;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

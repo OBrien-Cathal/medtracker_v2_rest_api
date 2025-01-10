@@ -1,6 +1,7 @@
 package com.cathalob.medtracker.controller.api;
 
 import com.cathalob.medtracker.config.SecurityConfig;
+import com.cathalob.medtracker.controller.UsersControllerApi;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.payload.data.RoleChangeData;
@@ -9,8 +10,8 @@ import com.cathalob.medtracker.payload.request.RoleChangeRequest;
 import com.cathalob.medtracker.payload.response.Response;
 import com.cathalob.medtracker.payload.response.RoleChangeStatusResponse;
 import com.cathalob.medtracker.service.UserService;
-import com.cathalob.medtracker.service.api.impl.AuthenticationServiceApi;
-import com.cathalob.medtracker.service.api.impl.JwtServiceImpl;
+import com.cathalob.medtracker.service.impl.AuthenticationServiceApi;
+import com.cathalob.medtracker.service.impl.JwtServiceImpl;
 import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.CoreMatchers;

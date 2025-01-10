@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.service.api.impl;
+package com.cathalob.medtracker.service.impl;
 
 import com.cathalob.medtracker.exception.validation.PatientRegistrationException;
 import com.cathalob.medtracker.fileupload.BloodPressureFileImporter;
@@ -15,9 +15,6 @@ import com.cathalob.medtracker.payload.response.PatientRegistrationResponse;
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.service.UserService;
-import com.cathalob.medtracker.service.impl.BloodPressureDataService;
-import com.cathalob.medtracker.service.impl.DoseService;
-import com.cathalob.medtracker.service.impl.EvaluationDataService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;

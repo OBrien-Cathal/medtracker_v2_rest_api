@@ -1,18 +1,18 @@
 package com.cathalob.medtracker.controller.api;
 
 import com.cathalob.medtracker.config.SecurityConfig;
+import com.cathalob.medtracker.controller.PrescriptionsController;
 import com.cathalob.medtracker.mapper.PrescriptionMapper;
 import com.cathalob.medtracker.model.UserModel;
-import com.cathalob.medtracker.service.api.impl.AuthenticationServiceApi;
-import com.cathalob.medtracker.service.api.impl.JwtServiceImpl;
-import com.cathalob.medtracker.service.api.impl.PrescriptionsService;
+import com.cathalob.medtracker.service.impl.AuthenticationServiceApi;
+import com.cathalob.medtracker.service.impl.JwtServiceImpl;
+import com.cathalob.medtracker.service.impl.PrescriptionsService;
 import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
 import com.cathalob.medtracker.testdata.PrescriptionBuilder;
 import com.cathalob.medtracker.testdata.UserModelBuilder;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;

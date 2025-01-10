@@ -1,7 +1,7 @@
-package com.cathalob.medtracker.config.api;
+package com.cathalob.medtracker.config;
 
-import com.cathalob.medtracker.exception.api.ApiAuthenticationExceptionModel;
-import com.cathalob.medtracker.exception.api.ApiExceptionModel;
+import com.cathalob.medtracker.exception.model.ApiAuthenticationExceptionModel;
+import com.cathalob.medtracker.exception.model.ApiExceptionModel;
 import com.cathalob.medtracker.exception.ExternalException;
 import com.cathalob.medtracker.exception.InternalException;
 import io.jsonwebtoken.ExpiredJwtException;

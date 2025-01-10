@@ -1,6 +1,6 @@
-package com.cathalob.medtracker.config.api;
+package com.cathalob.medtracker.config;
 
-import com.cathalob.medtracker.service.api.JwtService;
+import com.cathalob.medtracker.service.JwtService;
 import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;

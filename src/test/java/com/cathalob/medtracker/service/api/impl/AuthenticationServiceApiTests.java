@@ -11,6 +11,8 @@ import com.cathalob.medtracker.exception.UserAlreadyExistsException;
 import com.cathalob.medtracker.exception.UserNotFound;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.repository.UserModelRepository;
+import com.cathalob.medtracker.service.impl.AuthenticationServiceApi;
+import com.cathalob.medtracker.service.impl.JwtServiceImpl;
 import com.cathalob.medtracker.testdata.UserModelBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

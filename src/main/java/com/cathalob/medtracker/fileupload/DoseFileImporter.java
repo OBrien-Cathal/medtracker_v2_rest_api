@@ -5,7 +5,7 @@ import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
 import com.cathalob.medtracker.model.tracking.Dose;
 import com.cathalob.medtracker.service.impl.DoseService;
 import com.cathalob.medtracker.service.impl.EvaluationDataService;
-import com.cathalob.medtracker.service.api.impl.PrescriptionsService;
+import com.cathalob.medtracker.service.impl.PrescriptionsService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;

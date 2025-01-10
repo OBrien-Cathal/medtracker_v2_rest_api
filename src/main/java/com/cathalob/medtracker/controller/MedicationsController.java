@@ -1,8 +1,8 @@
-package com.cathalob.medtracker.controller.api;
+package com.cathalob.medtracker.controller;
 
 import com.cathalob.medtracker.model.prescription.Medication;
 import com.cathalob.medtracker.payload.response.Response;
-import com.cathalob.medtracker.service.api.impl.MedicationsService;
+import com.cathalob.medtracker.service.impl.MedicationsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.controller.api;
+package com.cathalob.medtracker.controller;
 
 import com.cathalob.medtracker.service.UserService;
 import lombok.RequiredArgsConstructor;

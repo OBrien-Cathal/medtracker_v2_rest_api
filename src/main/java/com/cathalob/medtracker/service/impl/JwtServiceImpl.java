@@ -1,6 +1,6 @@
-package com.cathalob.medtracker.service.api.impl;
+package com.cathalob.medtracker.service.impl;
 
-import com.cathalob.medtracker.service.api.JwtService;
+import com.cathalob.medtracker.service.JwtService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;

@@ -1,9 +1,9 @@
-package com.cathalob.medtracker.controller.api;
+package com.cathalob.medtracker.controller;
 
 import com.cathalob.medtracker.payload.data.PrescriptionData;
 import com.cathalob.medtracker.payload.response.Response;
 
-import com.cathalob.medtracker.service.api.impl.PrescriptionsService;
+import com.cathalob.medtracker.service.impl.PrescriptionsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

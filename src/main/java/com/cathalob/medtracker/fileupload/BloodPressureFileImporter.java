@@ -3,9 +3,8 @@ package com.cathalob.medtracker.fileupload;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.DAYSTAGE;
 import com.cathalob.medtracker.model.tracking.BloodPressureReading;
-import com.cathalob.medtracker.service.api.impl.PatientsServiceApi;
+import com.cathalob.medtracker.service.impl.PatientsServiceApi;
 import com.cathalob.medtracker.service.impl.EvaluationDataService;
-import com.cathalob.medtracker.service.impl.PatientsService;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.poi.ss.usermodel.Row;

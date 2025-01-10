@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.service.api;
+package com.cathalob.medtracker.service;
 
 import org.springframework.security.core.userdetails.UserDetails;
 

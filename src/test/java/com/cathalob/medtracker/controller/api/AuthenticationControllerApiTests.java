@@ -1,6 +1,7 @@
 package com.cathalob.medtracker.controller.api;
 
 import com.cathalob.medtracker.config.SecurityConfig;
+import com.cathalob.medtracker.controller.AuthenticationControllerApi;
 import com.cathalob.medtracker.payload.request.AccountVerificationRequest;
 import com.cathalob.medtracker.payload.request.AuthenticationVerificationRequest;
 import com.cathalob.medtracker.payload.request.SignInRequest;
@@ -11,8 +12,8 @@ import com.cathalob.medtracker.payload.response.JwtAuthenticationResponse;
 import com.cathalob.medtracker.exception.ExternalException;
 import com.cathalob.medtracker.exception.UserAlreadyExistsException;
 import com.cathalob.medtracker.exception.UserNotFound;
-import com.cathalob.medtracker.service.api.impl.AuthenticationServiceApi;
-import com.cathalob.medtracker.service.api.impl.JwtServiceImpl;
+import com.cathalob.medtracker.service.impl.AuthenticationServiceApi;
+import com.cathalob.medtracker.service.impl.JwtServiceImpl;
 import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
 import com.cathalob.medtracker.testdata.SignInRequestBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;

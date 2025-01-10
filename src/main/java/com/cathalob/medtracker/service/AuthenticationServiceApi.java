@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.service.api;
+package com.cathalob.medtracker.service;
 
 import com.cathalob.medtracker.payload.request.SignInRequest;
 import com.cathalob.medtracker.payload.request.SignUpRequest;

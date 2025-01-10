@@ -1,11 +1,12 @@
 package com.cathalob.medtracker.controller.api;
 
 import com.cathalob.medtracker.config.SecurityConfig;
+import com.cathalob.medtracker.controller.PatientsControllerApi;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
-import com.cathalob.medtracker.service.api.impl.AuthenticationServiceApi;
-import com.cathalob.medtracker.service.api.impl.JwtServiceImpl;
-import com.cathalob.medtracker.service.api.impl.PatientsServiceApi;
+import com.cathalob.medtracker.service.impl.AuthenticationServiceApi;
+import com.cathalob.medtracker.service.impl.JwtServiceImpl;
+import com.cathalob.medtracker.service.impl.PatientsServiceApi;
 import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;

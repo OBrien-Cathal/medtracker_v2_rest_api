@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.controller.api;
+package com.cathalob.medtracker.controller;
 
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.payload.data.PatientRegistrationData;
@@ -7,7 +7,7 @@ import com.cathalob.medtracker.payload.request.PatientRegistrationRequest;
 import com.cathalob.medtracker.payload.response.Response;
 import com.cathalob.medtracker.payload.response.ApprovePatientRegistrationResponse;
 import com.cathalob.medtracker.payload.response.PatientRegistrationResponse;
-import com.cathalob.medtracker.service.api.impl.PatientsServiceApi;
+import com.cathalob.medtracker.service.impl.PatientsServiceApi;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 

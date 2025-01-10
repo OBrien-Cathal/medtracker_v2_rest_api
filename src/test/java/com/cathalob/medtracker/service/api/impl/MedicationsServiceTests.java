@@ -5,6 +5,7 @@ import com.cathalob.medtracker.model.prescription.Medication;
 import com.cathalob.medtracker.payload.response.Response;
 import com.cathalob.medtracker.repository.MedicationRepository;
 
+import com.cathalob.medtracker.service.impl.MedicationsService;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
