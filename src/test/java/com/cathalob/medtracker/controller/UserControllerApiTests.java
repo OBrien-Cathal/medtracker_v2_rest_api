@@ -1,7 +1,6 @@
-package com.cathalob.medtracker.controller.api;
+package com.cathalob.medtracker.controller;
 
 import com.cathalob.medtracker.config.SecurityConfig;
-import com.cathalob.medtracker.controller.UsersControllerApi;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.payload.data.RoleChangeData;
@@ -10,7 +9,7 @@ import com.cathalob.medtracker.payload.request.RoleChangeRequest;
 import com.cathalob.medtracker.payload.response.Response;
 import com.cathalob.medtracker.payload.response.RoleChangeStatusResponse;
 import com.cathalob.medtracker.service.UserService;
-import com.cathalob.medtracker.service.impl.AuthenticationServiceApi;
+import com.cathalob.medtracker.service.impl.AuthenticationServiceImpl;
 import com.cathalob.medtracker.service.impl.JwtServiceImpl;
 import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Import(SecurityConfig.class)
-@WebMvcTest(controllers = UsersControllerApi.class)
+@WebMvcTest(controllers = UsersController.class)
 class UserControllerApiTests {
     @MockBean
     private UserService userService;
@@ -52,7 +51,7 @@ class UserControllerApiTests {
     @MockBean
     private JwtServiceImpl jwtService;
     @MockBean
-    private AuthenticationServiceApi authenticationServiceApi;
+    private AuthenticationServiceImpl authenticationService;
     @MockBean
     private CustomUserDetailsService customUserDetailsService;
     @Value("${api.url}")

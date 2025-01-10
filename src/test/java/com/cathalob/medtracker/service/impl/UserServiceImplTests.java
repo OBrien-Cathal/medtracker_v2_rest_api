@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.service;
+package com.cathalob.medtracker.service.impl;
 
 import com.cathalob.medtracker.config.SecurityConfig;
 import com.cathalob.medtracker.model.UserModel;

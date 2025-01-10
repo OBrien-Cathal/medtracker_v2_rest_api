@@ -7,7 +7,7 @@ import com.cathalob.medtracker.payload.request.PatientRegistrationRequest;
 import com.cathalob.medtracker.payload.response.Response;
 import com.cathalob.medtracker.payload.response.ApprovePatientRegistrationResponse;
 import com.cathalob.medtracker.payload.response.PatientRegistrationResponse;
-import com.cathalob.medtracker.service.impl.PatientsServiceApi;
+import com.cathalob.medtracker.service.impl.PatientsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 
@@ -21,9 +21,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/patients")
 @RequiredArgsConstructor
-public class PatientsControllerApi {
+public class PatientsController {
 
-    private final PatientsServiceApi patientsService;
+    private final PatientsService patientsService;
 
     @GetMapping
     @PreAuthorize("hasRole('ROLE_PRACTITIONER')")

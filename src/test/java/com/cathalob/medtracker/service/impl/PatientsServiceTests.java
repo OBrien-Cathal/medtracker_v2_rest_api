@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.service.api.impl;
+package com.cathalob.medtracker.service.impl;
 
 import com.cathalob.medtracker.config.SecurityConfig;
 import com.cathalob.medtracker.model.PatientRegistration;
@@ -8,7 +8,7 @@ import com.cathalob.medtracker.payload.data.PatientRegistrationData;
 import com.cathalob.medtracker.payload.response.PatientRegistrationResponse;
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.service.UserService;
-import com.cathalob.medtracker.service.impl.PatientsServiceApi;
+import com.cathalob.medtracker.service.impl.PatientsService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,7 +34,7 @@ class PatientsServiceTests {
     @Mock
     private UserService userService;
     @InjectMocks
-    private PatientsServiceApi patientsService;
+    private PatientsService patientsService;
 
 
     @DisplayName("Get patient registrations returns items based on Role of requester ")

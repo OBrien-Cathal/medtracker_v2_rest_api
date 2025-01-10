@@ -26,7 +26,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class AuthenticationServiceApi implements com.cathalob.medtracker.service.AuthenticationServiceApi {
+public class AuthenticationServiceImpl implements com.cathalob.medtracker.service.AuthenticationService {
     private final UserModelRepository userModelRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;

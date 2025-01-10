@@ -1,7 +1,6 @@
-package com.cathalob.medtracker.controller.api;
+package com.cathalob.medtracker.controller;
 
 import com.cathalob.medtracker.config.SecurityConfig;
-import com.cathalob.medtracker.controller.AuthenticationControllerApi;
 import com.cathalob.medtracker.payload.request.AccountVerificationRequest;
 import com.cathalob.medtracker.payload.request.AuthenticationVerificationRequest;
 import com.cathalob.medtracker.payload.request.SignInRequest;
@@ -12,7 +11,7 @@ import com.cathalob.medtracker.payload.response.JwtAuthenticationResponse;
 import com.cathalob.medtracker.exception.ExternalException;
 import com.cathalob.medtracker.exception.UserAlreadyExistsException;
 import com.cathalob.medtracker.exception.UserNotFound;
-import com.cathalob.medtracker.service.impl.AuthenticationServiceApi;
+import com.cathalob.medtracker.service.impl.AuthenticationServiceImpl;
 import com.cathalob.medtracker.service.impl.JwtServiceImpl;
 import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
 import com.cathalob.medtracker.testdata.SignInRequestBuilder;
@@ -39,8 +38,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Import(SecurityConfig.class)
-@WebMvcTest(controllers = AuthenticationControllerApi.class)
-class AuthenticationControllerApiTests {
+@WebMvcTest(controllers = AuthenticationController.class)
+class AuthenticationControllerTests {
 
 
     @Autowired
@@ -48,7 +47,7 @@ class AuthenticationControllerApiTests {
     @MockBean
     private JwtServiceImpl jwtService;
     @MockBean
-    private AuthenticationServiceApi authenticationServiceApi;
+    private AuthenticationServiceImpl authenticationService;
     @MockBean
     private CustomUserDetailsService customUserDetailsService;
     @Autowired
@@ -59,7 +58,7 @@ class AuthenticationControllerApiTests {
         //given - precondition or setup
         SignUpRequest signUpRequest = aSignUpRequest().build();
         JwtAuthenticationResponse jwtResponse = JwtAuthenticationResponse.builder().build();
-        given(authenticationServiceApi.signUp(any(SignUpRequest.class)))
+        given(authenticationService.signUp(any(SignUpRequest.class)))
                 .willReturn(jwtResponse);
 
         // when - action or the behaviour that we are going test
@@ -79,7 +78,7 @@ class AuthenticationControllerApiTests {
     public void givenSignUpRequestForExistingUsername_whenSignUp_thenThrowUserAlreadyExists() throws Exception {
         //given - precondition or setup
         SignUpRequest signUpRequest = aSignUpRequest().build();
-        given(authenticationServiceApi.signUp(any(SignUpRequest.class)))
+        given(authenticationService.signUp(any(SignUpRequest.class)))
                 .willThrow(new UserAlreadyExistsException(signUpRequest.getUsername()));
 
         // when - action or the behaviour that we are going test
@@ -100,7 +99,7 @@ class AuthenticationControllerApiTests {
         //given - precondition or setup
         SignInRequest signInRequest = SignInRequestBuilder.aSignInRequest().build();
         JwtAuthenticationResponse jwtResponse = JwtAuthenticationResponse.builder().build();
-        given(authenticationServiceApi.signIn(any(SignInRequest.class)))
+        given(authenticationService.signIn(any(SignInRequest.class)))
                 .willReturn(jwtResponse);
 
         // when - action or the behaviour that we are going test
@@ -123,7 +122,7 @@ class AuthenticationControllerApiTests {
         //given - precondition or setup
         SignInRequest signInRequest = SignInRequestBuilder.aSignInRequest().build();
         JwtAuthenticationResponse jwtResponse = JwtAuthenticationResponse.builder().build();
-        given(authenticationServiceApi.signIn(any(SignInRequest.class)))
+        given(authenticationService.signIn(any(SignInRequest.class)))
                 .willThrow(BadCredentialsException.class);
 
         // when - action or the behaviour that we are going test
@@ -141,7 +140,7 @@ class AuthenticationControllerApiTests {
     public void givenSignInRequestForNonExistentUsername_whenSignIn_thenThrowUserNotFound() throws Exception {
         //given - precondition or setup
         SignInRequest signInRequest = SignInRequestBuilder.aSignInRequest().build();
-        given(authenticationServiceApi.signIn(any(SignInRequest.class)))
+        given(authenticationService.signIn(any(SignInRequest.class)))
                 .willThrow(new UserNotFound(signInRequest.getUsername()));
 
         // when - action or the behaviour that we are going test
@@ -176,7 +175,7 @@ class AuthenticationControllerApiTests {
 //        given
         AuthenticationVerificationRequest authenticationVerificationRequest =
                 AuthenticationVerificationRequest.builder().token("aTokenString").build();
-        given(authenticationServiceApi.verifyAuthentication(any(AuthenticationVerificationRequest.class)))
+        given(authenticationService.verifyAuthentication(any(AuthenticationVerificationRequest.class)))
                 .willReturn(AuthenticationVerificationResponse.builder().authenticated(authenticated).build());
 
         // when - action or the behaviour that we are going test
@@ -209,7 +208,7 @@ class AuthenticationControllerApiTests {
     private void checkAccountExists(boolean accountExists) throws Exception {
         //given
         AccountVerificationRequest accountVerificationRequest = AccountVerificationRequest.builder().username("user@user.com").build();
-        given(authenticationServiceApi.checkAccountExists(any(AccountVerificationRequest.class)))
+        given(authenticationService.checkAccountExists(any(AccountVerificationRequest.class)))
                 .willReturn(AccountVerificationResponse.builder().accountExists(accountExists).build());
 
         // when - action or the behaviour that we are going test

@@ -1,9 +1,8 @@
-package com.cathalob.medtracker.controller.api;
+package com.cathalob.medtracker.controller;
 
 import com.cathalob.medtracker.config.SecurityConfig;
-import com.cathalob.medtracker.controller.MedicationsController;
 import com.cathalob.medtracker.model.prescription.Medication;
-import com.cathalob.medtracker.service.impl.AuthenticationServiceApi;
+import com.cathalob.medtracker.service.impl.AuthenticationServiceImpl;
 import com.cathalob.medtracker.service.impl.JwtServiceImpl;
 import com.cathalob.medtracker.service.impl.MedicationsService;
 import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
@@ -35,7 +34,7 @@ class MedicationsControllerTests {
     @MockBean
     private JwtServiceImpl jwtService;
     @MockBean
-    private AuthenticationServiceApi authenticationServiceApi;
+    private AuthenticationServiceImpl authenticationService;
     @MockBean
     private CustomUserDetailsService customUserDetailsService;
 

@@ -1,10 +1,9 @@
-package com.cathalob.medtracker.controller.api;
+package com.cathalob.medtracker.controller;
 
 import com.cathalob.medtracker.config.SecurityConfig;
-import com.cathalob.medtracker.controller.PrescriptionsController;
 import com.cathalob.medtracker.mapper.PrescriptionMapper;
 import com.cathalob.medtracker.model.UserModel;
-import com.cathalob.medtracker.service.impl.AuthenticationServiceApi;
+import com.cathalob.medtracker.service.impl.AuthenticationServiceImpl;
 import com.cathalob.medtracker.service.impl.JwtServiceImpl;
 import com.cathalob.medtracker.service.impl.PrescriptionsService;
 import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
@@ -41,7 +40,7 @@ class PrescriptionsControllerTests {
     @MockBean
     private JwtServiceImpl jwtService;
     @MockBean
-    private AuthenticationServiceApi authenticationServiceApi;
+    private AuthenticationServiceImpl authenticationService;
 
     @DisplayName("Get prescriptions returns prescriptions when requested by Practitioner")
     @Test

@@ -1,12 +1,11 @@
-package com.cathalob.medtracker.controller.api;
+package com.cathalob.medtracker.controller;
 
 import com.cathalob.medtracker.config.SecurityConfig;
-import com.cathalob.medtracker.controller.PatientsControllerApi;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
-import com.cathalob.medtracker.service.impl.AuthenticationServiceApi;
+import com.cathalob.medtracker.service.impl.AuthenticationServiceImpl;
 import com.cathalob.medtracker.service.impl.JwtServiceImpl;
-import com.cathalob.medtracker.service.impl.PatientsServiceApi;
+import com.cathalob.medtracker.service.impl.PatientsService;
 import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
@@ -30,16 +29,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 @Import(SecurityConfig.class)
-@WebMvcTest(controllers = PatientsControllerApi.class)
-class PatientsControllerApiTests {
+@WebMvcTest(controllers = PatientsController.class)
+class PatientsControllerTests {
     @MockBean
-    private PatientsServiceApi patientsService;
+    private PatientsService patientsService;
     @Autowired
     private MockMvc mockMvc;
     @MockBean
     private JwtServiceImpl jwtService;
     @MockBean
-    private AuthenticationServiceApi authenticationServiceApi;
+    private AuthenticationServiceImpl authenticationService;
     @MockBean
     private CustomUserDetailsService customUserDetailsService;
 

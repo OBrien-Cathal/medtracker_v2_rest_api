@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.service.api.impl;
+package com.cathalob.medtracker.service.impl;
 
 import com.cathalob.medtracker.payload.request.AccountVerificationRequest;
 import com.cathalob.medtracker.payload.request.AuthenticationVerificationRequest;
@@ -11,8 +11,6 @@ import com.cathalob.medtracker.exception.UserAlreadyExistsException;
 import com.cathalob.medtracker.exception.UserNotFound;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.repository.UserModelRepository;
-import com.cathalob.medtracker.service.impl.AuthenticationServiceApi;
-import com.cathalob.medtracker.service.impl.JwtServiceImpl;
 import com.cathalob.medtracker.testdata.UserModelBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,7 +32,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AuthenticationServiceApiTests {
+class AuthenticationServiceImplTests {
     @Mock
     private UserModelRepository userModelRepository;
     @Mock
@@ -45,7 +43,7 @@ class AuthenticationServiceApiTests {
     @Mock
     private AuthenticationManager authenticationManager;
     @InjectMocks
-    private AuthenticationServiceApi authenticationServiceApi;
+    private AuthenticationServiceImpl authenticationService;
 
     @DisplayName("Sign Up request returns jwtAuthenticationResponse")
     @Test
@@ -64,7 +62,7 @@ class AuthenticationServiceApiTests {
         given(jwtService.generateToken(getUserDetails(userModel))).willReturn(tokenString);
 
         // when - action or the behaviour that we are going test
-        JwtAuthenticationResponse jwtAuthenticationResponse = authenticationServiceApi.signUp(signUpRequest);
+        JwtAuthenticationResponse jwtAuthenticationResponse = authenticationService.signUp(signUpRequest);
 
         // then - verify the output
         verify(userModelRepository, times(1)).save(any(UserModel.class));
@@ -87,7 +85,7 @@ class AuthenticationServiceApiTests {
                 .willReturn(Optional.of(userModel));
 
         // when - action or the behaviour that we are going test
-        assertThrows(UserAlreadyExistsException.class, () -> authenticationServiceApi.signUp(signUpRequest));
+        assertThrows(UserAlreadyExistsException.class, () -> authenticationService.signUp(signUpRequest));
 
         // then - verify the output
         verify(userModelRepository, never()).save(any(UserModel.class));
@@ -108,7 +106,7 @@ class AuthenticationServiceApiTests {
         given(jwtService.generateToken(getUserDetails(userModel))).willReturn(tokenString);
 
         // when - action or the behaviour that we are going test
-        JwtAuthenticationResponse jwtAuthenticationResponse = authenticationServiceApi.signIn(signInRequest);
+        JwtAuthenticationResponse jwtAuthenticationResponse = authenticationService.signIn(signInRequest);
 
         // then - verify the output
         assertThat(jwtAuthenticationResponse).isNotNull();
@@ -130,7 +128,7 @@ class AuthenticationServiceApiTests {
                 .willReturn(Optional.empty());
 
         // when - action or the behaviour that we are going test
-        assertThrows(UserNotFound.class, () -> authenticationServiceApi.signIn(signInRequest));
+        assertThrows(UserNotFound.class, () -> authenticationService.signIn(signInRequest));
 
         // then - verify the output
         verify(jwtService, never()).generateToken(any(UserDetails.class));
@@ -148,7 +146,7 @@ class AuthenticationServiceApiTests {
                 .willReturn(Optional.of(userModel));
 
         // when - action or the behaviour that we are going test
-        AccountVerificationResponse accountVerificationResponse = authenticationServiceApi.checkAccountExists(accountVerificationRequest);
+        AccountVerificationResponse accountVerificationResponse = authenticationService.checkAccountExists(accountVerificationRequest);
 
         // then - verify the output
         assertThat(accountVerificationResponse).isNotNull();
@@ -167,7 +165,7 @@ class AuthenticationServiceApiTests {
                 .willReturn(Optional.empty());
 
         // when - action or the behaviour that we are going test
-        AccountVerificationResponse accountVerificationResponse = authenticationServiceApi.checkAccountExists(accountVerificationRequest);
+        AccountVerificationResponse accountVerificationResponse = authenticationService.checkAccountExists(accountVerificationRequest);
 
         // then - verify the output
         assertThat(accountVerificationResponse).isNotNull();
@@ -199,7 +197,7 @@ class AuthenticationServiceApiTests {
         given(jwtService.isTokenValid(tokenString, getUserDetails(userModel))).willReturn(tokenValid);
 
         // when - action or the behaviour that we are going test
-        AuthenticationVerificationResponse authenticationVerificationResponse = authenticationServiceApi.verifyAuthentication(authenticationVerificationRequest);
+        AuthenticationVerificationResponse authenticationVerificationResponse = authenticationService.verifyAuthentication(authenticationVerificationRequest);
 
         // then - verify the output
         assertThat(authenticationVerificationResponse).isNotNull();

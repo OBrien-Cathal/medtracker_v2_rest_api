@@ -7,7 +7,7 @@ import com.cathalob.medtracker.payload.request.SignUpRequest;
 import com.cathalob.medtracker.payload.response.AccountVerificationResponse;
 import com.cathalob.medtracker.payload.response.AuthenticationVerificationResponse;
 import com.cathalob.medtracker.payload.response.JwtAuthenticationResponse;
-import com.cathalob.medtracker.service.impl.AuthenticationServiceApi;
+import com.cathalob.medtracker.service.impl.AuthenticationServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
-public class AuthenticationControllerApi {
-    private final AuthenticationServiceApi authenticationService;
+public class AuthenticationController {
+    private final AuthenticationServiceImpl authenticationService;
     @PostMapping("/signup")
     public ResponseEntity<JwtAuthenticationResponse> signUp(@RequestBody @Valid SignUpRequest request){
         return ResponseEntity.ok(authenticationService.signUp(request));

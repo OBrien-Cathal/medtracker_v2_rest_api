@@ -1,107 +1,165 @@
 package com.cathalob.medtracker.service.impl;
 
+import com.cathalob.medtracker.exception.validation.PatientRegistrationException;
+import com.cathalob.medtracker.fileupload.BloodPressureFileImporter;
+import com.cathalob.medtracker.fileupload.DoseFileImporter;
+import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.model.UserModel;
-import com.cathalob.medtracker.model.enums.DAYSTAGE;
-import com.cathalob.medtracker.model.prescription.Medication;
-import com.cathalob.medtracker.model.tracking.Dose;
+import com.cathalob.medtracker.model.enums.USERROLE;
+import com.cathalob.medtracker.model.factories.PatientRegistrationFactory;
+import com.cathalob.medtracker.model.tracking.BloodPressureReading;
+import com.cathalob.medtracker.model.userroles.RoleChange;
+import com.cathalob.medtracker.payload.data.PatientRegistrationData;
+import com.cathalob.medtracker.payload.response.ApprovePatientRegistrationResponse;
+import com.cathalob.medtracker.payload.response.PatientRegistrationResponse;
+import com.cathalob.medtracker.repository.PatientRegistrationRepository;
+import com.cathalob.medtracker.repository.RoleChangeRepository;
+import com.cathalob.medtracker.service.UserService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
+@RequiredArgsConstructor
 @Service
+@Slf4j
+@Transactional
 public class PatientsService {
+    private final UserService userService;
+    private final RoleChangeRepository roleChangeRepository;
+    private final PatientRegistrationRepository patientRegistrationRepository;
     private final PrescriptionsService prescriptionsService;
+    private final BloodPressureDataService bloodPressureDataService;
     private final DoseService doseService;
+    private final EvaluationDataService evaluationDataService;
 
-    public PatientsService(PrescriptionsService prescriptionsService, DoseService doseService) {
-        this.prescriptionsService = prescriptionsService;
-        this.doseService = doseService;
-    }
-
-    public List<List<Object>> getDoseGraphData(UserModel userModel) {
-        List<List<Object>> listData = new ArrayList<>();
-        List<Dose> doses = doseService.getDoses(userModel);
-
-        TreeMap<LocalDate, List<Dose>> byDate = doses.stream()
-                .sorted(Comparator.comparing(dose -> dose.getDoseTime().toLocalDate()))
-                .collect(Collectors.groupingBy(dose -> dose.getDoseTime().toLocalDate(), TreeMap::new, Collectors.toList()));
-
-        List<Medication> medicationList = prescriptionsService.getPatientMedications(userModel).stream().sorted(Comparator.comparing(Medication::getName)).toList();
-        List<DAYSTAGE> daystageList = prescriptionsService.getPatientPrescriptionDayStages(userModel).stream().sorted(Comparator.comparing(DAYSTAGE::ordinal)).toList();
-        HashMap<Medication, HashSet<LocalDate>> patientPrescriptionDatesByMedication = prescriptionsService.getPatientPrescriptionDatesByMedication(userModel);
-
-        Optional<LocalDate> start = byDate.keySet().stream().distinct().min(LocalDate::compareTo);
-
-        Optional<LocalDate> endDose = byDate.keySet().stream().distinct().max(LocalDate::compareTo);
-        LocalDate now = LocalDate.now().plusDays(1);
-        LocalDate end = endDose.isPresent() && endDose.get().isAfter(now) ? endDose.get() : now;
-
-        List<LocalDate> daysRange = new ArrayList<>();
-        if (start.isPresent()) {
-            long numDays = ChronoUnit.DAYS.between(start.get(), end);
-            daysRange.addAll(Stream.iterate(start.get(), date -> date.plusDays(1)).limit(numDays).toList());
-        }
-
-        for (LocalDate date : daysRange) {
-            List<Dose> dosesByDate = (byDate.get(date) == null) ? new ArrayList<>() : byDate.get(date);
-
-            List<Object> dayDoseData = new ArrayList<>();
-            Map<Medication, List<Dose>> byMedication = dosesByDate.stream()
-                    .collect(Collectors.groupingBy(dose -> dose.getPrescriptionScheduleEntry().getPrescription().getMedication()));
-
-            dayDoseData.add(date);
-            for (Medication medication : medicationList) {
-                for (DAYSTAGE daystage : daystageList) {
-                    boolean isPrescribedOnDate = patientPrescriptionDatesByMedication.containsKey(medication) && patientPrescriptionDatesByMedication.get(medication).contains(date);
-
-                    if (byMedication.containsKey(medication)) {
-                        Map<DAYSTAGE, List<Dose>> byDayStage = byMedication.get(medication).stream()
-                                .collect(Collectors.groupingBy(dose -> dose.getPrescriptionScheduleEntry().getDayStage()));
-                        List<Dose> doseEntriesForDayStage = byDayStage
-                                .get(daystage);
-                        if (byDayStage.containsKey(daystage)) {
-                            if (doseEntriesForDayStage.stream().filter(Dose::isTaken).toList().isEmpty()) {
-                                dayDoseData.add(0);
-                            } else {
-                                dayDoseData.add(doseEntriesForDayStage.stream().filter(Dose::isTaken).mapToInt(value -> value.getPrescriptionScheduleEntry().getPrescription().getDoseMg()).sum());
-                            }
-                        } else {
-                            dayDoseData.add(isPrescribedOnDate ? 0 : null);
-                        }
-                    } else {
-                        dayDoseData.add(isPrescribedOnDate ? 0 : null);
-                    }
-                }
-            }
-            listData.add(dayDoseData);
-        }
-        return listData;
+    @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
+    public List<UserModel> getPatientUserModelsForPractitioner(String username) {
+        UserModel userModel = userService.findByLogin(username);
+        if (userModel == null || !userModel.getRole().equals(USERROLE.PRACTITIONER)) return List.of();
+        return patientRegistrationRepository.findByPractitionerUserModel(userModel)
+                .stream()
+                .map((PatientRegistration::getUserModel)).toList();
     }
 
 
+    public PatientRegistrationResponse registerPatient(String username, Long practitionerId) {
+        UserModel toRegister = userService.findByLogin(username);
+        Optional<UserModel> maybePractitioner = userService.findUserModelById(practitionerId);
 
-
-
-
-    public List<List<String>> getDoseGraphColumnNames(UserModel userModel) {
-        List<String> names = new ArrayList<>();
-        List<String> dayStageNames = this.prettifiedDayStageNames(prescriptionsService.getPatientPrescriptionDayStages(userModel));
-
-        for (String medication : prescriptionsService.getPatientMedications(userModel).stream().map(Medication::getName).sorted().toList()) {
-            for (String dayStage : dayStageNames) {
-                names.add(medication + " (" + dayStage + ')');
-            }
+        UserModel practitioner = maybePractitioner.orElse(null);
+        try {
+            validatePatientRegistration(toRegister, practitioner);
+        } catch (Exception e) {
+            return PatientRegistrationResponse.Failed(List.of(e.getMessage()));
         }
-        return List.of(names);
+
+        PatientRegistration patientRegistration = PatientRegistrationFactory.PatientRegistration(toRegister, practitioner, false);
+        PatientRegistration saved = patientRegistrationRepository.save(patientRegistration);
+
+        return PatientRegistrationResponse.Success(saved);
     }
 
-    private List<String> prettifiedDayStageNames(List<DAYSTAGE> dayStages) {
-        return dayStages.stream().map(ds -> (
-                ds.toString().charAt(0) + ds.toString().substring(1).toLowerCase())).toList();
+    private void validatePatientRegistration(UserModel toRegister, UserModel practitioner) {
+        if (practitioner == null) {
+            throw new PatientRegistrationException("Practitioner does not exist");
+        }
+        if (!List.of(USERROLE.USER, USERROLE.PATIENT).contains(toRegister.getRole())) {
+            throw new PatientRegistrationException("User does not have allowed role to register as a patient (allowed: USER, PATIENT), current: " +
+                    toRegister.getRole());
+        }
+        List<PatientRegistration> existingReg = patientRegistrationRepository.findByUserModelAndPractitionerUserModel(toRegister, practitioner);
+        if (!existingReg.isEmpty()) {
+            throw new PatientRegistrationException("Registration for practitioner and patient already exists");
+        }
+    }
+
+
+    public ApprovePatientRegistrationResponse approvePatientRegistration(String username, Long patientRegistrationId) {
+        UserModel shouldBePractitionerUserModel = userService.findByLogin(username);
+        Optional<PatientRegistration> reg = patientRegistrationRepository.findById(patientRegistrationId);
+
+        ArrayList<String> errors = new ArrayList<>();
+        if (shouldBePractitionerUserModel == null) {
+            errors.add("Only users with PRACTITIONER role can approve patient registrations");
+            return ApprovePatientRegistrationResponse.Failed(patientRegistrationId, errors);
+        }
+        if (reg.isEmpty()) {
+            errors.add("Registration with id " + patientRegistrationId + " does not exist");
+            return ApprovePatientRegistrationResponse.Failed(patientRegistrationId, errors);
+        }
+        PatientRegistration patientRegistration = reg.get();
+        if (!shouldBePractitionerUserModel.getId().equals(patientRegistration.getPractitionerUserModel().getId())) {
+            errors.add("Approval of requests for other users not allowed");
+            return ApprovePatientRegistrationResponse.Failed(patientRegistrationId, errors);
+        }
+        if (patientRegistration.isRegistered()) {
+            errors.add("Registration is already approved for reg id: " + patientRegistrationId);
+            return ApprovePatientRegistrationResponse.Failed(patientRegistrationId, errors);
+        }
+        if (!List.of(USERROLE.USER, USERROLE.PATIENT).contains(patientRegistration.getUserModel().getRole())) {
+            errors.add("Cannot approve registration of user with role: " + patientRegistration.getUserModel().getRole());
+            return ApprovePatientRegistrationResponse.Failed(patientRegistrationId, errors);
+        }
+
+        UserModel toRegister = patientRegistration.getUserModel();
+        if (toRegister.getRole().equals(USERROLE.USER)) {
+//            Add role change if this is the first time a user has requested a patient registration
+            RoleChange roleChange = new RoleChange();
+            roleChange.setNewRole(USERROLE.PATIENT);
+            roleChange.setUserModel(toRegister);
+            roleChange.setOldRole(toRegister.getRole());
+            roleChange.setRequestTime(LocalDateTime.now());
+            roleChange.setApprovedBy(patientRegistration.getPractitionerUserModel());
+            roleChange.setApprovalTime(LocalDateTime.now());
+            roleChangeRepository.save(roleChange);
+        }
+
+        patientRegistration.setRegistered(true);
+        patientRegistrationRepository.save(patientRegistration);
+        return ApprovePatientRegistrationResponse.Success(patientRegistration.getId());
+    }
+
+
+    public List<PatientRegistrationData> getPatientRegistrations(String username) {
+        UserModel userModel = userService.findByLogin(username);
+        List<PatientRegistration> patientRegistrations = new ArrayList<>();
+        if (userModel.getRole().equals(USERROLE.PRACTITIONER)) {
+            patientRegistrations = patientRegistrationRepository.findByPractitionerUserModel(userModel);
+        }
+        if (userModel.getRole().equals(USERROLE.PATIENT) || userModel.getRole().equals(USERROLE.USER)) {
+            patientRegistrations = patientRegistrationRepository.findByUserModel(userModel);
+        }
+        return patientRegistrations.stream().map((PatientRegistrationData::From
+        )).toList();
+    }
+
+    public void importDoseFile(MultipartFile file, String username) {
+        new DoseFileImporter(
+                userService.findByLogin(username),
+                evaluationDataService,
+                prescriptionsService,
+                doseService)
+                .processMultipartFile(file);
+    }
+
+    public void importBloodPressureFile(MultipartFile file, String username) {
+        new BloodPressureFileImporter(
+                userService.findByLogin(username),
+                evaluationDataService,
+                this)
+                .processMultipartFile(file);
+    }
+
+    public void saveBloodPressureReadings(List<BloodPressureReading> bloodPressureReadings) {
+        bloodPressureDataService.saveBloodPressureReadings(bloodPressureReadings);
     }
 
 }
