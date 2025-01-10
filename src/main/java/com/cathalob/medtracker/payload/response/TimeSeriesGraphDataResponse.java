@@ -13,7 +13,14 @@ public class TimeSeriesGraphDataResponse extends Response {
         super(successful);
         this.graphData = graphData;
     }
+    public TimeSeriesGraphDataResponse(boolean successful) {
+        super(successful);
+        this.graphData = new GraphData();
+    }
     public static TimeSeriesGraphDataResponse Success(GraphData graphData){
         return new TimeSeriesGraphDataResponse(true, graphData);
+    }
+    public static TimeSeriesGraphDataResponse Failure(){
+        return new TimeSeriesGraphDataResponse(false);
     }
 }

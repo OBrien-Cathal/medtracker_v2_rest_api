@@ -6,6 +6,7 @@ import com.cathalob.medtracker.model.tracking.BloodPressureReading;
 import com.cathalob.medtracker.payload.data.GraphData;
 import com.cathalob.medtracker.payload.response.TimeSeriesGraphDataResponse;
 import com.cathalob.medtracker.repository.BloodPressureReadingRepository;
+import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 public class BloodPressureDataService {
     private final BloodPressureReadingRepository bloodPressureReadingRepository;
     private final UserService userService;
+    private final PatientRegistrationRepository patientRegistrationRepository;
 
     public void saveBloodPressureReadings(List<BloodPressureReading> bloodPressureReadings) {
         bloodPressureReadingRepository.saveAll(bloodPressureReadings);
@@ -34,6 +36,19 @@ public class BloodPressureDataService {
 
     public TimeSeriesGraphDataResponse getSystoleGraphData(String username) {
         return getSystoleGraphData(userService.findByLogin(username));
+    }
+
+    public TimeSeriesGraphDataResponse getPatientSystoleGraphData(Long patientUserModelId, String practitionerUsername) {
+        UserModel practitioner = userService.findByLogin(practitionerUsername);
+//        validate that the practitioner is a doc of the patient, and allowed to see the patient data
+        Optional<UserModel> maybePatient = userService.findUserModelById(patientUserModelId);
+        if (maybePatient.isEmpty()) return TimeSeriesGraphDataResponse.Failure();
+        if (patientRegistrationRepository.findByUserModelAndPractitionerUserModel(maybePatient.get(),practitioner).isEmpty()) {
+            TimeSeriesGraphDataResponse failure = TimeSeriesGraphDataResponse.Failure();
+            failure.setErrors(List.of("Only registered practitioners can view this patients data"));
+            return failure;
+        }
+        return maybePatient.map(this::getSystoleGraphData).orElseGet(TimeSeriesGraphDataResponse::Failure);
     }
 
     public TimeSeriesGraphDataResponse getDiastoleGraphData(String username) {

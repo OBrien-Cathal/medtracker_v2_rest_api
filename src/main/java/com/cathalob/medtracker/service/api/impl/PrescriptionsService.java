@@ -8,6 +8,7 @@ import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
 import com.cathalob.medtracker.payload.data.PrescriptionData;
 import com.cathalob.medtracker.repository.MedicationRepository;
+import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.PrescriptionScheduleEntryRepository;
 import com.cathalob.medtracker.repository.PrescriptionsRepository;
 import com.cathalob.medtracker.service.UserService;
@@ -30,13 +31,13 @@ public class PrescriptionsService {
     private final MedicationRepository medicationRepository;
     private final PrescriptionScheduleEntryRepository prescriptionScheduleEntryRepository;
     private final PrescriptionsRepository prescriptionsRepository;
+    private final PatientRegistrationRepository patientRegistrationRepository;
 
 
     //    Used by controller!!
     public List<PrescriptionData> getPrescriptions(String username) {
         UserModel userModel = userService.findByLogin(username);
         if (userModel == null) return List.of();
-
         return getPrescriptions(userModel).stream().map((PrescriptionMapper::Overview)).toList();
     }
 
@@ -44,6 +45,9 @@ public class PrescriptionsService {
         Optional<UserModel> maybeUserModel = userService.findUserModelById(userModelId);
         if (maybeUserModel.isEmpty()) return List.of();
         UserModel practitioner = userService.findByLogin(practitionerUsername);
+        if (patientRegistrationRepository.findByUserModelAndPractitionerUserModel(maybeUserModel.get(),practitioner).isEmpty()){
+            return List.of();
+        }
 //        check if the pract can see these prescriptions, send error that user does not exist instead of empty list, subclass response
 
         return getPrescriptions(maybeUserModel.get()).stream().map((PrescriptionMapper::Overview)).toList();
