@@ -15,6 +15,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -59,6 +60,20 @@ public class ApiExceptionHandler {
             return new ResponseEntity<>(apiAuthenticationExceptionModel, HttpStatus.UNAUTHORIZED);
 
         }
+        if (exception instanceof NoResourceFoundException) {
+            ApiAuthenticationExceptionModel apiAuthenticationExceptionModel = new ApiAuthenticationExceptionModel(
+                    HttpStatus.NOT_FOUND.value(),
+                    HttpStatus.NOT_FOUND,
+                    exception.getMessage(),
+                    exception.getMessage(),
+                    httpServletRequest.getRequestURL().toString(),
+                    ZonedDateTime.now(ZoneId.of("Z"))
+            );
+
+            return new ResponseEntity<>(apiAuthenticationExceptionModel, HttpStatus.NOT_FOUND);
+
+        }
+
 
         if (exception instanceof InternalException) {
             logger.error("Internal: ", exception);

@@ -85,53 +85,10 @@ public class PatientsService {
         return listData;
     }
 
-    public List<List<Object>> getSystoleGraphData(List<BloodPressureReading> bloodPressureReadings) {
-        return this.getBloodPressureGraphData(BloodPressureReading::getSystole, List.of(140, 130, 120), bloodPressureReadings);
 
-    }
 
-    public List<List<Object>> getDiastoleGraphData(List<BloodPressureReading> bloodPressureReadings) {
-        return this.getBloodPressureGraphData(BloodPressureReading::getDiastole, List.of(90, 80), bloodPressureReadings);
-    }
 
-    public List<List<Object>> getHeartRateGraphData(List<BloodPressureReading> bloodPressureReadings) {
-        return this.getBloodPressureGraphData(BloodPressureReading::getHeartRate, List.of(100, 90, 80), bloodPressureReadings);
 
-    }
-
-    public List<List<Object>> getBloodPressureGraphData(ToIntFunction<BloodPressureReading> getBpValueFunction, List<Integer> warningLevels, List<BloodPressureReading> bloodPressureReadings) {
-        List<List<Object>> listData = new ArrayList<>();
-
-        TreeMap<LocalDate, List<BloodPressureReading>> byDate = bloodPressureReadings.stream().sorted(Comparator.comparing(bloodPressureReading -> bloodPressureReading.getReadingTime().toLocalDate()))
-                .collect(Collectors.groupingBy(bloodPressureReading -> bloodPressureReading.getReadingTime().toLocalDate(), TreeMap::new, Collectors.toList()));
-
-        List<DAYSTAGE> sortedDayStages = bloodPressureReadings.stream().map(BloodPressureReading::getDayStage).distinct().sorted(Comparator.comparing(DAYSTAGE::ordinal)).toList();
-
-        byDate.forEach((date, bloodPressureReadingsByDate) -> {
-            ArrayList<Object> dayList = new ArrayList<>();
-            dayList.add(date);
-            dayList.addAll(warningLevels);
-            Map<DAYSTAGE, List<BloodPressureReading>> bprMap = bloodPressureReadingsByDate.stream().collect(Collectors.groupingBy(BloodPressureReading::getDayStage));
-
-            for (DAYSTAGE dayStage : sortedDayStages) {
-                if (bprMap.containsKey(dayStage)) {
-                    OptionalDouble average = bprMap.get(dayStage).stream().mapToInt(getBpValueFunction).average();
-                    dayList.add(average.isEmpty() ? null : ((int) average.getAsDouble()));
-                } else {
-                    dayList.add(null);
-                }
-            }
-            listData.add(dayList);
-        });
-        return listData;
-    }
-
-    public List<List<String>> getBloodPressureGraphColumnNames(List<DAYSTAGE> daystageList, List<String> warningLabels) {
-        List<String> names = new ArrayList<>();
-        names.addAll(warningLabels);
-        names.addAll(this.prettifiedDayStageNames(daystageList.stream().sorted(Comparator.comparing(DAYSTAGE::ordinal)).toList()));
-        return List.of(names);
-    }
 
     public List<List<String>> getDoseGraphColumnNames(UserModel userModel) {
         List<String> names = new ArrayList<>();
