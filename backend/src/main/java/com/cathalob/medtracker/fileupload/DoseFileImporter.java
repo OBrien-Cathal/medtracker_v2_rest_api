@@ -87,7 +87,10 @@ public class DoseFileImporter extends FileImporter {
         importCache.ensureDailyEvaluations(dates, evaluationDataService);
 
         newDoses.forEach(dose ->
-                dose.setEvaluation(importCache.getDailyEvaluation(dose.getDoseTime().toLocalDate()))
+                {
+                    System.out.println(dose);
+                    dose.setEvaluation(importCache.getDailyEvaluation(dose.getDoseTime().toLocalDate()));
+                }
         );
 
         doseService.saveDoses(newDoses);

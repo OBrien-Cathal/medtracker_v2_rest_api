@@ -3,27 +3,26 @@ server:
 website:
   origin: http://192.168.1.162:5173
   localOrigin: http://localhost:5173
+initialData:
+  loadFromFile: false
 api:
   url: /api/v1/
 token:
   signing:
     key: EBE23F1FD75A89A9355F1A81D194EUEISJDLJg23455jjuriu43387kjksfgjlkiuRDDRTGFDXVRXFBERJLIUMLSIhhYLCISL
 spring:
+  profiles:
+    active: dev
   application:
     name: MedTracker
-  h2:
-    console:
-      enabled: true
   jpa:
     generate-ddl: false
-    show-sql: false
-    hibernate:
-      ddl-auto: none
+    show-sql: true
   sql:
     init:
       mode: always
-  datasource:
-    driverClassName: org.h2.Driver
-    url: jdbc:h2:file:~/h2DBs/medtracker;AUTO_SERVER=TRUE
+      continue-on-error: true
+
+
 
 

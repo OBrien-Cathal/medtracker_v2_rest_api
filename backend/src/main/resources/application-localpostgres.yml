@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/medtracker
+    username: postgres
+    password: admin
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        show_sql: true
+        ddl-auto: none
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:/schema.sql
+      data-locations: classpath:/data.sql

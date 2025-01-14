@@ -37,7 +37,7 @@ class PrescriptionsRepositoryTests {
         Prescription savedPrescription = prescriptionsRepository.save(prescription);
 
 //        then
-        assertThat(savedPrescription.getId()).isEqualTo(1);
+        assertThat(savedPrescription.getId()).isGreaterThan(0);
     }
 
     @Test

@@ -33,6 +33,6 @@ class PrescriptionScheduleEntryRepositoryTests {
         testEntityManager.persist(prescription);
 
         PrescriptionScheduleEntry saved = prescriptionScheduleEntryRepository.save(prescriptionScheduleEntry);
-        assertThat(saved.getId()).isEqualTo(1);
+        assertThat(saved.getId()).isGreaterThan(0);
     }
 }

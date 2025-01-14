@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -44,9 +45,11 @@ public class InitialDataLoader implements ApplicationRunner {
         this.userService = userService;
         this.doseService = doseService;
     }
-
+    @Value("${initialData.loadFromFile}")
+    private boolean loadFromFile;
     @Override
     public void run(ApplicationArguments args) {
+        if (!loadFromFile) return;
         importCache.loadMedications(prescriptionsService);
 //        basic data from data.sql only contains one medication, if more than one is present then we should not load from file again
         if (importCache.getMedications().containsKey(2L)) return;
@@ -72,7 +75,7 @@ public class InitialDataLoader implements ApplicationRunner {
 
         try {
 
-            FileInputStream fileInputStream = new FileInputStream("./src/main/resources/initialDataFiles/medications.xlsx");
+            FileInputStream fileInputStream = new FileInputStream("./backend/src/main/resources/initialDataFiles/medications.xlsx");
             workbook = new XSSFWorkbook(fileInputStream);
 //            log.info("Number of sheets: " + workbook.getNumberOfSheets());
 
@@ -111,7 +114,7 @@ public class InitialDataLoader implements ApplicationRunner {
         XSSFWorkbook workbook = null;
 
         try {
-            FileInputStream fileInputStream = new FileInputStream("./src/main/resources/initialDataFiles/prescriptions.xlsx");
+            FileInputStream fileInputStream = new FileInputStream("./backend/src/main/resources/initialDataFiles/prescriptions.xlsx");
             workbook = new XSSFWorkbook(fileInputStream);
 //            log.info("Number of sheets: " + workbook.getNumberOfSheets());
 
@@ -174,7 +177,7 @@ public class InitialDataLoader implements ApplicationRunner {
         XSSFWorkbook workbook = null;
 
         try {
-            FileInputStream fileInputStream = new FileInputStream("./src/main/resources/initialDataFiles/prescriptionScheduleEntries.xlsx");
+            FileInputStream fileInputStream = new FileInputStream("./backend/src/main/resources/initialDataFiles/prescriptionScheduleEntries.xlsx");
             workbook = new XSSFWorkbook(fileInputStream);
 //            log.info("Number of sheets: " + workbook.getNumberOfSheets());
 
@@ -214,13 +217,13 @@ public class InitialDataLoader implements ApplicationRunner {
         DoseFileImporter doseFileImporter = new DoseFileImporter(evaluationDataService, prescriptionsService, doseService);
         doseFileImporter.setImportCache(importCache);
         doseFileImporter
-                .processFileNamed("./src/main/resources/initialDataFiles/doses.xlsx");
+                .processFileNamed("./backend/src/main/resources/initialDataFiles/doses.xlsx");
     }
 
     public void processBloodPressureReadingsExcelFile() {
         BloodPressureFileImporter bloodPressureFileImporter = new BloodPressureFileImporter(evaluationDataService, patientsService);
         bloodPressureFileImporter.setImportCache(importCache);
         bloodPressureFileImporter
-                .processFileNamed("./src/main/resources/initialDataFiles/bloodPressureReadings.xlsx");
+                .processFileNamed("./backend/src/main/resources/initialDataFiles/bloodPressureReadings.xlsx");
     }
 }
