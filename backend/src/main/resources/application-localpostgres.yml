@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/medtracker
+    url: jdbc:postgresql://localhost:5433/medtracker?stringtype=unspecified
     username: postgres
     password: admin
     driver-class-name: org.postgresql.Driver
@@ -14,3 +14,5 @@ spring:
       mode: always
       schema-locations: classpath:/schema.sql
       data-locations: classpath:/data.sql
+initialData:
+  loadFromFile: true
