@@ -1,6 +1,3 @@
-website:
-  origin: http://192.168.1.162:5173
-  localOrigin: http://localhost:5173
 api:
   url: /api/v1/
 token:
@@ -13,13 +10,11 @@ spring:
     console:
       enabled: true
   jpa:
-    generate-ddl: false
     show-sql: false
     hibernate:
       ddl-auto: none
   sql:
     init:
-      mode: always
       schema-locations: classpath:/sql/h2/schema.sql
       data-locations: classpath:/sql/h2/data.sql
   datasource:
@@ -27,5 +22,8 @@ spring:
     url: jdbc:h2:file:~/h2DBs/medtracker;AUTO_SERVER=TRUE
 initialData:
   loadFromFile: true
+website:
+  origin: http://192.168.1.162:5173
+  localOrigin: http://localhost:5173
 
 

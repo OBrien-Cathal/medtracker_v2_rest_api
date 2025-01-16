@@ -11,8 +11,10 @@ spring:
         ddl-auto: none
   sql:
     init:
-      mode: always
       schema-locations: classpath:/schema.sql
       data-locations: classpath:/data.sql
 initialData:
   loadFromFile: true
+website:
+  origin: http://192.168.1.162:5173
+  localOrigin: http://localhost:5173

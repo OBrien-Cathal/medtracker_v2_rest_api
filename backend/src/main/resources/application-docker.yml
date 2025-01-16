@@ -7,11 +7,12 @@ spring:
     properties:
       hibernate:
         ddl-auto: none
-        show_sql: true
+        show_sql: false
   sql:
     init:
       mode: always
       schema-locations: classpath:/schema.sql
-      continue-on-error: true
+      data-locations: classpath:/data.sql
 initialData:
   loadFromFile: false
+

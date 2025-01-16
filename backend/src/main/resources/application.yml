@@ -1,10 +1,5 @@
 server:
   port: 8080
-website:
-  origin: http://192.168.1.162:80
-  localOrigin: http://localhost:80
-initialData:
-  loadFromFile: false
 api:
   url: /api/v1/
 token:
@@ -22,6 +17,11 @@ spring:
     init:
       mode: always
       continue-on-error: true
+initialData:
+  loadFromFile: false
+website:
+  origin: ''
+  localOrigin: ''
 
 
 
