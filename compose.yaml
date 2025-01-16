@@ -2,12 +2,12 @@ services:
   backend:
     build: backend
     ports:
-      - 3100:3100
+      - "8080"
     environment:
       - POSTGRES_DB=example
       - "SPRING_PROFILES_ACTIVE=docker"
     networks:
-      - spring-postgres
+      - shared-network
   db:
     image: postgres
     restart: always
@@ -16,7 +16,7 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
     networks:
-      - spring-postgres
+      - shared-network
     environment:
       - POSTGRES_DB=example
       - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
@@ -28,4 +28,6 @@ secrets:
   db-password:
     file: db/password.txt
 networks:
-  spring-postgres:
+  shared-network:
+    name: medtracker-network
+    driver: bridge
