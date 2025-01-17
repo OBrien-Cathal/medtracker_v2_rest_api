@@ -1,5 +1,6 @@
 services:
   backend:
+    container_name: mtbackend
     build: backend
     ports:
       - "8080"
@@ -10,6 +11,7 @@ services:
       - shared-network
   db:
     image: postgres
+    container_name: mtdb
     restart: always
     secrets:
       - db-password

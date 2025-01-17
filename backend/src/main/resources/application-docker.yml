@@ -15,4 +15,7 @@ spring:
       data-locations: classpath:/data.sql
 initialData:
   loadFromFile: false
+website:
+  origin: http://ec2-34-247-155-30.eu-west-1.compute.amazonaws.com:80
+  localOrigin: http://ec2-34-247-155-30.eu-west-1.compute.amazonaws.com
 
