@@ -1,14 +1,22 @@
 # MedTracker
+## Live version
+A running version of the api and front end can be reached at http://ec2-34-247-155-30.eu-west-1.compute.amazonaws.com/
+
+
 ## Description
 
 Web app to track and visualize the effects of medication prescriptions.\
-This project also exposes a rest api that can be reached with the react app found in the medtracker-react-frontend repo
+This project also exposes a rest api that can be reached with the React app found in the medtracker-react-frontend repo
 https://github.com/OBrien-Cathal/medtracker-react-frontend
 
 Technologies used:
 - Spring Boot
-- DB: H2
-- Front-end: Initially static pages created using Thymeleaf templating engine, this has now been removed. 
+- DB:
+  - H2
+  - Postgres
+- Front-end: React app, initially static pages created using Thymeleaf templating engine, this has now been removed.
+- AWS - Hosted on EC2 instance
+- Docker - Multiple containers running on AWS
 - File Upload processing: Apache POI XSSF
 
 ## Initial setup
@@ -21,7 +29,7 @@ A rest api is exposed on port 3100
 ## Authentication
 
 
-Username and password posted via http to localhost:3100/api/v1/auth/signin will provide a JWT that can be provided 
+Username and password posted via http to localhost:3100/api/v1/auth/signin will provide a JWT that can be provided
 as a bearer token in the header of subsequent authenticated requests.
 
 ## Developer notes
@@ -36,12 +44,12 @@ On startup of the application two sources of initial data may be loaded
   - ``` 
       src/main/resources/InitialDataFiles
       ```
-    
+
 ### Object Model Diagram
 ```
 requirements/objectModel.graphml
 ```
- 
+
 
 ### Backend Testing
 - Repository Tests for basic queries
