@@ -32,32 +32,25 @@ WHERE NOT EXISTS (SELECT NULL FROM USERMODEL);
 
 INSERT INTO ROLECHANGE (NEW_ROLE, OLD_ROLE, USERMODEL_ID, REQUEST_TIME, APPROVED_BY_ID, APPROVAL_TIME)
 SELECT *
-FROM (VALUES (cast('PATIENT' as USER_ROLE), cast('PATIENT' as USER_ROLE), 1, {ts '2024-12-01 10:34:53'}, 1,
+FROM (VALUES (cast('ADMIN' as USER_ROLE), cast('USER' as USER_ROLE), 1, {ts '2024-12-01 10:34:53'}, 1,
               {ts '2024-12-01 10:34:53'}),
-             (cast('PATIENT' as USER_ROLE), cast('PATIENT' as USER_ROLE), 2, {ts '2024-12-01 10:34:53'}, 1,
+             (cast('PRACTITIONER' as USER_ROLE), cast('USER' as USER_ROLE), 2, {ts '2024-12-01 10:34:53'}, 1,
+              {ts '2024-12-01 10:34:53'}),
+             (cast('PATIENT' as USER_ROLE), cast('USER' as USER_ROLE), 3, {ts '2024-12-01 10:34:53'}, 2,
+              {ts '2024-12-01 10:34:53'}),
+             (cast('PATIENT' as USER_ROLE), cast('USER' as USER_ROLE), 4, {ts '2024-12-01 10:34:53'}, 2,
               {ts '2024-12-01 10:34:53'}),
 
-             (cast('PATIENT' as USER_ROLE), cast('PATIENT' as USER_ROLE), 3, {ts '2024-12-01 10:34:53'}, 2,
+             (cast('ADMIN' as USER_ROLE), cast('USER' as USER_ROLE), 8, {ts '2024-12-01 10:34:53'}, NULL, NULL),
+             (cast('PRACTITIONER' as USER_ROLE), cast('USER' as USER_ROLE), 8, {ts '2024-12-01 10:34:53'}, NULL, NULL),
+
+             (cast('PRACTITIONER' as USER_ROLE), cast('USER' as USER_ROLE), 9, {ts '2024-12-01 10:34:53'}, NULL, NULL),
+
+             (cast('ADMIN' as USER_ROLE), cast('USER' as USER_ROLE), 10, {ts '2024-12-01 10:34:53'}, NULL, NULL),
+
+             (cast('PRACTITIONER' as USER_ROLE), cast('USER' as USER_ROLE), 11, {ts '2024-12-01 10:34:53'}, 1,
               {ts '2024-12-01 10:34:53'}),
-             (cast('PATIENT' as USER_ROLE), cast('PATIENT' as USER_ROLE), 4, {ts '2024-12-01 10:34:53'}, 2,
-              {ts '2024-12-01 10:34:53'}),
-             (cast('PATIENT' as USER_ROLE), cast('PATIENT' as USER_ROLE), 5, {ts '2024-12-01 10:34:53'}, NULL, NULL),
-             (cast('PATIENT' as USER_ROLE), cast('PATIENT' as USER_ROLE), 5, {ts '2024-12-01 10:34:53'}, NULL, NULL),
-             (cast('PATIENT' as USER_ROLE), cast('PATIENT' as USER_ROLE), 6, {ts '2024-12-01 10:34:53'}, NULL, NULL),
-             (cast('PATIENT' as USER_ROLE), cast('PATIENT' as USER_ROLE), 6, {ts '2024-12-01 10:34:53'}, NULL, NULL),
-             (cast('PATIENT' as USER_ROLE), cast('PATIENT' as USER_ROLE), 6, {ts '2024-12-01 10:34:53'}, NULL, NULL),
-             (cast('PATIENT' as USER_ROLE), cast('PATIENT' as USER_ROLE), 6, {ts '2024-12-01 10:34:53'}, NULL, NULL),
-             (cast('PATIENT' as USER_ROLE), cast('PATIENT' as USER_ROLE), 7, {ts '2024-12-01 10:34:53'}, NULL, NULL),
-             (cast('PATIENT' as USER_ROLE), cast('PATIENT' as USER_ROLE), 7, {ts '2024-12-01 10:34:53'}, NULL, NULL),
-             (cast('PATIENT' as USER_ROLE), cast('PATIENT' as USER_ROLE), 8, {ts '2024-12-01 10:34:53'}, NULL, NULL),
-             (cast('PATIENT' as USER_ROLE), cast('PATIENT' as USER_ROLE), 8, {ts '2024-12-01 10:34:53'}, NULL, NULL),
-             (cast('PATIENT' as USER_ROLE), cast('PATIENT' as USER_ROLE), 8, {ts '2024-12-01 10:34:53'}, NULL, NULL),
-             (cast('PATIENT' as USER_ROLE), cast('PATIENT' as USER_ROLE), 9, {ts '2024-12-01 10:34:53'}, NULL, NULL),
-             (cast('PATIENT' as USER_ROLE), cast('PATIENT' as USER_ROLE), 10, {ts '2024-12-01 10:34:53'}, NULL, NULL),
-             (cast('PATIENT' as USER_ROLE), cast('PATIENT' as USER_ROLE), 10, {ts '2024-12-01 10:34:53'}, NULL, NULL),
-             (cast('PATIENT' as USER_ROLE), cast('PATIENT' as USER_ROLE), 11, {ts '2024-12-01 10:34:53'}, 1,
-              {ts '2024-12-01 10:34:53'}),
-             (cast('PATIENT' as USER_ROLE), cast('PATIENT' as USER_ROLE), 12, {ts '2024-12-01 10:34:53'}, 1,
+             (cast('PRACTITIONER' as USER_ROLE), cast('USER' as USER_ROLE), 12, {ts '2024-12-01 10:34:53'}, 1,
               {ts '2024-12-01 10:34:53'})) source_data
 WHERE NOT EXISTS (SELECT NULL FROM ROLECHANGE);
 
@@ -66,8 +59,7 @@ SELECT *
 FROM (VALUES (3, 2, cast(1 as boolean)),
              (4, 2, cast(1 as boolean)),
              (11, 2, cast(0 as boolean)),
-             (12, 2, cast(0 as boolean))
-         ) source_data
+             (12, 2, cast(0 as boolean))) source_data
 WHERE NOT EXISTS (SELECT NULL FROM PATIENT_REGISTRATION);
 
 
