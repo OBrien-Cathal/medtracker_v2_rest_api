@@ -6,7 +6,9 @@ import com.cathalob.medtracker.model.enums.DAYSTAGE;
 import com.cathalob.medtracker.model.prescription.Medication;
 import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
-import com.cathalob.medtracker.payload.data.PrescriptionData;
+import com.cathalob.medtracker.payload.data.PrescriptionDetailsData;
+import com.cathalob.medtracker.payload.data.PrescriptionOverviewData;
+import com.cathalob.medtracker.payload.response.Response;
 import com.cathalob.medtracker.repository.MedicationRepository;
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.PrescriptionScheduleEntryRepository;
@@ -35,13 +37,13 @@ public class PrescriptionsService {
 
 
     //    Used by controller!!
-    public List<PrescriptionData> getPrescriptions(String username) {
+    public List<PrescriptionOverviewData> getPrescriptions(String username) {
         UserModel userModel = userService.findByLogin(username);
         if (userModel == null) return List.of();
         return getPrescriptions(userModel).stream().map((PrescriptionMapper::Overview)).toList();
     }
 
-    public List<PrescriptionData> getPatientPrescriptions(String practitionerUsername, Long patientId) {
+    public List<PrescriptionOverviewData> getPatientPrescriptions(String practitionerUsername, Long patientId) {
         Optional<UserModel> maybePatient = userService.findUserModelById(patientId);
         if (maybePatient.isEmpty()) return List.of();
         UserModel practitioner = userService.findByLogin(practitionerUsername);
@@ -51,7 +53,15 @@ public class PrescriptionsService {
 //        check if the pract can see these prescriptions, send error that user does not exist instead of empty list, subclass response
         return getPrescriptions(maybePatient.get()).stream().map((PrescriptionMapper::Overview)).toList();
     }
-
+    public Response addPrescriptionDetails(PrescriptionDetailsData prescriptionDetailsData) {
+        System.out.println(prescriptionDetailsData);
+        Prescription prescription = PrescriptionMapper.Prescription(prescriptionDetailsData);
+        prescription.setPatient(userService.findUserModelById(prescriptionDetailsData.getPatientId()).orElse(null));
+        prescription.setPractitioner(userService.findUserModelById(prescriptionDetailsData.getPractitionerId()).orElse(null));
+        prescription.setMedication(medicationRepository.findById(prescriptionDetailsData.getMedicationId()).orElse(null));
+        System.out.println(prescription);
+        return new Response(true);
+    }
 
     //    Internal use
     public void saveMedications(List<Medication> medicationList) {

@@ -5,12 +5,11 @@ import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.prescription.Prescription;
-import com.cathalob.medtracker.payload.data.PrescriptionData;
+import com.cathalob.medtracker.payload.data.PrescriptionOverviewData;
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.PrescriptionsRepository;
 
 import com.cathalob.medtracker.service.UserService;
-import com.cathalob.medtracker.service.impl.PrescriptionsService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -83,7 +82,7 @@ class PrescriptionsServiceTests {
         given(prescriptionsRepository.findByPatient(patient)).willReturn(List.of(prescription));
 
         // when - action or the behaviour that we are going test
-        List<PrescriptionData> prescriptions = prescriptionsService.getPatientPrescriptions(
+       List<PrescriptionOverviewData> prescriptions = prescriptionsService.getPatientPrescriptions(
                 practitioner.getUsername(),
                 patient.getId());
         // then - verify the output

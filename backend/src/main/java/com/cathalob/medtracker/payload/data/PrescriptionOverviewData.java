@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Builder
 @Data
 @AllArgsConstructor
-public class PrescriptionData {
+public class PrescriptionOverviewData {
     private Long id;
     private int doseMg;
     private Medication medication;
