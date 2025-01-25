@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.payload.response;
+package com.cathalob.medtracker.payload.response.rolechange;
 
 import com.cathalob.medtracker.payload.data.RoleChangeData;
 import lombok.AllArgsConstructor;

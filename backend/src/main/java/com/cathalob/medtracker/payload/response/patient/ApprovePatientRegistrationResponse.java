@@ -1,5 +1,6 @@
-package com.cathalob.medtracker.payload.response;
+package com.cathalob.medtracker.payload.response.patient;
 
+import com.cathalob.medtracker.payload.response.Response;
 import lombok.*;
 
 import java.util.List;

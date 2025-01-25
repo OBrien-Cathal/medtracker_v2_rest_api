@@ -2,10 +2,10 @@ package com.cathalob.medtracker.controller;
 
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.payload.data.RoleChangeData;
-import com.cathalob.medtracker.payload.request.RoleChangeApprovalRequest;
-import com.cathalob.medtracker.payload.request.RoleChangeRequest;
+import com.cathalob.medtracker.payload.request.rolechange.RoleChangeApprovalRequest;
+import com.cathalob.medtracker.payload.request.rolechange.RoleChangeRequest;
 import com.cathalob.medtracker.payload.response.Response;
-import com.cathalob.medtracker.payload.response.RoleChangeStatusResponse;
+import com.cathalob.medtracker.payload.response.rolechange.RoleChangeStatusResponse;
 import com.cathalob.medtracker.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

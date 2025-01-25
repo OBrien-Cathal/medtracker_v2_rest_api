@@ -1,6 +1,7 @@
 package com.cathalob.medtracker.model.prescription;
 
 import com.cathalob.medtracker.model.enums.DAYSTAGE;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,6 +15,7 @@ public class PrescriptionScheduleEntry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "PRESCRIPTION_ID", nullable = false)
     private Prescription prescription;

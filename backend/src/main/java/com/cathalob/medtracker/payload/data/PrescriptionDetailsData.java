@@ -5,6 +5,7 @@ import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,14 +13,14 @@ import java.util.List;
 @Builder
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class PrescriptionDetailsData {
     private Long id;
     private int doseMg;
-    private Long medicationId;
+    private Medication medication;
     private LocalDateTime beginTime;
     private LocalDateTime endTime;
     private Long patientId;
     private Long practitionerId;
-    private PrescriptionOverviewData prescriptionOverviewData;
-    private List<PrescriptionScheduleEntry> prescriptionScheduleEntry;
+    private List<PrescriptionScheduleEntry> prescriptionScheduleEntries;
 }

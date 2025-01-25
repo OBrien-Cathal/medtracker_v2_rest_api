@@ -1,6 +1,5 @@
-package com.cathalob.medtracker.payload.request;
+package com.cathalob.medtracker.payload.request.rolechange;
 
-import com.cathalob.medtracker.model.enums.USERROLE;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -1,8 +1,8 @@
 package com.cathalob.medtracker.service;
 
-import com.cathalob.medtracker.payload.request.SignInRequest;
-import com.cathalob.medtracker.payload.request.SignUpRequest;
-import com.cathalob.medtracker.payload.response.JwtAuthenticationResponse;
+import com.cathalob.medtracker.payload.request.auth.SignInRequest;
+import com.cathalob.medtracker.payload.request.auth.SignUpRequest;
+import com.cathalob.medtracker.payload.response.auth.JwtAuthenticationResponse;
 
 public interface AuthenticationService {
     JwtAuthenticationResponse signUp(SignUpRequest request);

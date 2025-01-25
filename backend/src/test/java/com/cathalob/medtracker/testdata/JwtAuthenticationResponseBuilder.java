@@ -1,6 +1,6 @@
 package com.cathalob.medtracker.testdata;
 
-import com.cathalob.medtracker.payload.response.JwtAuthenticationResponse;
+import com.cathalob.medtracker.payload.response.auth.JwtAuthenticationResponse;
 
 public class JwtAuthenticationResponseBuilder {
     private String token = "tokenString";

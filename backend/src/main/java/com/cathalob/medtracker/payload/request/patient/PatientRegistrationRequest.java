@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.payload.request;
+package com.cathalob.medtracker.payload.request.patient;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.payload.request;
+package com.cathalob.medtracker.payload.response.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuthenticationVerificationRequest {
-    private String token;
+public class AccountVerificationResponse {
+    private boolean accountExists;
 }

@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.payload.request;
+package com.cathalob.medtracker.payload.request.auth;
 
 import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;

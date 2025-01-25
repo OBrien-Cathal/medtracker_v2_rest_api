@@ -44,8 +44,15 @@ public class JwtServiceImpl implements JwtService {
     private String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         return Jwts.builder().claims(extraClaims).subject(userDetails.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
+                .expiration(getExpirationDate())
                 .signWith(getSigningKey(), Jwts.SIG.HS256).compact();
+    }
+
+    private static Date getExpirationDate() {
+        int durationInMinutes = 60 * 24;
+        Date expirationDate = new Date(System.currentTimeMillis() + 1000 * 60 * durationInMinutes);
+        System.out.println("Login token expires: " + expirationDate);
+        return expirationDate;
     }
 
     private boolean isTokenExpired(String token) {

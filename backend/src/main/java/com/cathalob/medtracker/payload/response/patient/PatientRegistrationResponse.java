@@ -1,7 +1,8 @@
-package com.cathalob.medtracker.payload.response;
+package com.cathalob.medtracker.payload.response.patient;
 
 import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.payload.data.PatientRegistrationData;
+import com.cathalob.medtracker.payload.response.Response;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

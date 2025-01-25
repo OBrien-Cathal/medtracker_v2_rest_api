@@ -1,12 +1,12 @@
 package com.cathalob.medtracker.service.impl;
 
-import com.cathalob.medtracker.payload.request.AccountVerificationRequest;
-import com.cathalob.medtracker.payload.request.AuthenticationVerificationRequest;
-import com.cathalob.medtracker.payload.request.SignInRequest;
-import com.cathalob.medtracker.payload.request.SignUpRequest;
-import com.cathalob.medtracker.payload.response.AccountVerificationResponse;
-import com.cathalob.medtracker.payload.response.AuthenticationVerificationResponse;
-import com.cathalob.medtracker.payload.response.JwtAuthenticationResponse;
+import com.cathalob.medtracker.payload.request.auth.AccountVerificationRequest;
+import com.cathalob.medtracker.payload.request.auth.AuthenticationVerificationRequest;
+import com.cathalob.medtracker.payload.request.auth.SignInRequest;
+import com.cathalob.medtracker.payload.request.auth.SignUpRequest;
+import com.cathalob.medtracker.payload.response.auth.AccountVerificationResponse;
+import com.cathalob.medtracker.payload.response.auth.AuthenticationVerificationResponse;
+import com.cathalob.medtracker.payload.response.auth.JwtAuthenticationResponse;
 import com.cathalob.medtracker.exception.UserAlreadyExistsException;
 import com.cathalob.medtracker.exception.UserNotFound;
 import com.cathalob.medtracker.model.UserModel;

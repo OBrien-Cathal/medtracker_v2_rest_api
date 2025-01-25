@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.payload.response;
+package com.cathalob.medtracker.payload.response.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
