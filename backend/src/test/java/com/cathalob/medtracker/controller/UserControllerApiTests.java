@@ -6,7 +6,7 @@ import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.payload.data.RoleChangeData;
 import com.cathalob.medtracker.payload.request.rolechange.RoleChangeApprovalRequest;
 import com.cathalob.medtracker.payload.request.rolechange.RoleChangeRequest;
-import com.cathalob.medtracker.payload.response.Response;
+import com.cathalob.medtracker.payload.response.generic.GenericResponse;
 import com.cathalob.medtracker.payload.response.rolechange.RoleChangeStatusResponse;
 import com.cathalob.medtracker.service.UserService;
 import com.cathalob.medtracker.service.impl.AuthenticationServiceImpl;
@@ -107,7 +107,8 @@ class UserControllerApiTests {
         //given - precondition or setup
         UserModel userModel = aUserModel().build();
         RoleChangeRequest roleChangeRequest = RoleChangeRequest.builder().newRole(USERROLE.PRACTITIONER).build();
-        Response response = new Response(true, "Request pending with ID: 1");
+
+        GenericResponse response =GenericResponse.Success("Request pending with ID: 1");
         given(userService.submitRoleChange(roleChangeRequest.getNewRole(), userModel.getUsername()))
                 .willReturn(response);
         // when - action or the behaviour that we are going test
@@ -119,8 +120,8 @@ class UserControllerApiTests {
         usersResponse
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.successful", CoreMatchers.is(response.isSuccessful())))
-                .andExpect(jsonPath("$.message", CoreMatchers.is(response.getMessage())));
+                .andExpect(jsonPath("$.responseInfo.successful", CoreMatchers.is(response.getResponseInfo().isSuccessful())))
+                .andExpect(jsonPath("$.responseInfo.message", CoreMatchers.is(response.getResponseInfo().getMessage())));
     }
 
     @DisplayName("Non existing role name causes unhandled exception")
@@ -148,7 +149,7 @@ class UserControllerApiTests {
         //given - precondition or setup
         UserModel userModel = aUserModel().build();
         RoleChangeApprovalRequest roleChangeApprovalRequest = new RoleChangeApprovalRequest(1L);
-        Response response = new Response(true);
+        GenericResponse response = GenericResponse.Success();
         given(userService.approveRoleChange(1L, userModel.getUsername()))
                 .willReturn(response);
         // when - action or the behaviour that we are going test
@@ -160,8 +161,8 @@ class UserControllerApiTests {
         usersResponse
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.successful", CoreMatchers.is(response.isSuccessful())))
-                .andExpect(jsonPath("$.message", CoreMatchers.is(response.getMessage())));
+                .andExpect(jsonPath("$.responseInfo.successful", CoreMatchers.is(response.getResponseInfo().isSuccessful())))
+                .andExpect(jsonPath("$.responseInfo.message", CoreMatchers.is(response.getResponseInfo().getMessage())));
     }
 
     @DisplayName("Get Role change status returns ok and status object")

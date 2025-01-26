@@ -43,10 +43,9 @@ public class BloodPressureDataService {
 //        validate that the practitioner is a doc of the patient, and allowed to see the patient data
         Optional<UserModel> maybePatient = userService.findUserModelById(patientUserModelId);
         if (maybePatient.isEmpty()) return TimeSeriesGraphDataResponse.Failure();
-        if (patientRegistrationRepository.findByUserModelAndPractitionerUserModel(maybePatient.get(),practitioner).isEmpty()) {
-            TimeSeriesGraphDataResponse failure = TimeSeriesGraphDataResponse.Failure();
-            failure.setErrors(List.of("Only registered practitioners can view this patients data"));
-            return failure;
+        if (patientRegistrationRepository.findByUserModelAndPractitionerUserModel(maybePatient.get(), practitioner).isEmpty()) {
+            return TimeSeriesGraphDataResponse.Failure(List.of("Only registered practitioners can view this patients data"));
+
         }
         return maybePatient.map(this::getSystoleGraphData).orElseGet(TimeSeriesGraphDataResponse::Failure);
     }

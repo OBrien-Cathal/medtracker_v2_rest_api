@@ -1,6 +1,6 @@
 package com.cathalob.medtracker.payload.response;
 
-import com.cathalob.medtracker.payload.response.generic.Response2;
+import com.cathalob.medtracker.payload.response.generic.Response;
 import com.cathalob.medtracker.payload.response.generic.ResponseInfo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 
-public class SubmitPrescriptionDetailsResponse extends Response2 {
+public class SubmitPrescriptionDetailsResponse extends Response {
     private Long prescriptionId;
 
     public SubmitPrescriptionDetailsResponse() {

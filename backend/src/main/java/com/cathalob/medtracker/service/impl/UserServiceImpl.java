@@ -5,7 +5,7 @@ import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.userroles.RoleChange;
 import com.cathalob.medtracker.payload.data.RoleChangeData;
-import com.cathalob.medtracker.payload.response.Response;
+import com.cathalob.medtracker.payload.response.generic.GenericResponse;
 import com.cathalob.medtracker.payload.response.rolechange.RoleChangeStatusResponse;
 import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.repository.UserModelRepository;
@@ -65,9 +65,7 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
 
     //    NEW ROLE functions
     @Override
-    public Response submitRoleChange(USERROLE newRole, String submitterUserName) {
-        Response requestResponse = new Response();
-
+    public GenericResponse submitRoleChange(USERROLE newRole, String submitterUserName) {
         UserModel subbmiterUserModel = findByLogin(submitterUserName);
         RoleChange roleChange = new RoleChange();
         roleChange.setNewRole(newRole);
@@ -77,11 +75,11 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
 
         List<String> errors = validateRoleChangeSubmission(roleChange);
         if (!errors.isEmpty()) {
-            return requestResponse.failure(errors);
+            return GenericResponse.Failed(errors);
         }
 
         RoleChange savedRoleChange = roleChangeRepository.save(roleChange);
-        return requestResponse.success("Request pending with ID: " + savedRoleChange.getId());
+        return GenericResponse.Success("Request pending with ID: " + savedRoleChange.getId());
     }
 
     private List<String> validateRoleChangeSubmission(RoleChange roleChange) {
@@ -101,25 +99,22 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
     }
 
     @Override
-    public Response approveRoleChange(Long roleChangeId, String approvedByUserName) {
-
+    public GenericResponse approveRoleChange(Long roleChangeId, String approvedByUserName) {
         UserModel approvedBy = findByLogin(approvedByUserName);
 //    replace line below when adding method security
-        Response response = new Response(false);
+
         if (approvedBy == null || approvedBy.getRole() != USERROLE.ADMIN) {
-            response.setMessage("insufficient privileges");
-            return response;
+            return GenericResponse.Failed("insufficient privileges");
         }
+
         Optional<RoleChange> maybeRoleChange = roleChangeRepository.findById(roleChangeId);
-        if (maybeRoleChange.isEmpty()) return response;
+        if (maybeRoleChange.isEmpty())return GenericResponse.Failed("Role change not found");
 
         RoleChange roleChange = maybeRoleChange.get();
 
         List<String> errors = validateRoleChangeApproval(roleChange);
         if (!errors.isEmpty()) {
-            response.setMessage("Validation Failed");
-            response.setErrors(errors);
-            return response;
+            return GenericResponse.Failed("Validation Failed", errors);
         }
 
         roleChange.setApprovedBy(approvedBy);
@@ -129,7 +124,7 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
 
         roleChangeRepository.save(roleChange);
         userModelRepository.save(roleChangeUserModel);
-        return response.success();
+        return GenericResponse.Success();
     }
 
     private List<String> validateRoleChangeApproval(RoleChange roleChange) {

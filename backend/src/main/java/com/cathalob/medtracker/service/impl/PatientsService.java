@@ -87,7 +87,7 @@ public class PatientsService {
         Optional<PatientRegistration> reg = patientRegistrationRepository.findById(patientRegistrationId);
 
         ArrayList<String> errors = new ArrayList<>();
-        if (shouldBePractitionerUserModel == null) {
+        if (!shouldBePractitionerUserModel.getRole().equals(USERROLE.PRACTITIONER)) {
             errors.add("Only users with PRACTITIONER role can approve patient registrations");
             return ApprovePatientRegistrationResponse.Failed(patientRegistrationId, errors);
         }

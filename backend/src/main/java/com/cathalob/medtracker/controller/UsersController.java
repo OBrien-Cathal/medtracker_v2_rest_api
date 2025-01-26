@@ -4,7 +4,7 @@ import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.payload.data.RoleChangeData;
 import com.cathalob.medtracker.payload.request.rolechange.RoleChangeApprovalRequest;
 import com.cathalob.medtracker.payload.request.rolechange.RoleChangeRequest;
-import com.cathalob.medtracker.payload.response.Response;
+import com.cathalob.medtracker.payload.response.generic.GenericResponse;
 import com.cathalob.medtracker.payload.response.rolechange.RoleChangeStatusResponse;
 import com.cathalob.medtracker.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -26,19 +26,19 @@ public class UsersController {
     }
 
     @PostMapping("/role-requests/submit")
-    public ResponseEntity<Response> submitRoleChangeRequest(
+    public ResponseEntity<GenericResponse> submitRoleChangeRequest(
             @RequestBody RoleChangeRequest roleChangeRequest,
             Authentication authentication) {
-        Response requestResponse = userService.submitRoleChange(roleChangeRequest.getNewRole(),
+        GenericResponse requestResponse = userService.submitRoleChange(roleChangeRequest.getNewRole(),
                 authentication.getName());
         return ResponseEntity.ok(requestResponse);
     }
 
     @PostMapping("/role-requests/approve")
-    public ResponseEntity<Response> approveRoleChange(
+    public ResponseEntity<GenericResponse> approveRoleChange(
             @RequestBody RoleChangeApprovalRequest approvalRequest,
             Authentication authentication) {
-        Response requestResponse = userService.approveRoleChange(approvalRequest.getRoleChangeRequestId(),
+        GenericResponse requestResponse = userService.approveRoleChange(approvalRequest.getRoleChangeRequestId(),
                 authentication.getName());
         return ResponseEntity.ok(requestResponse);
     }

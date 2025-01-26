@@ -4,7 +4,7 @@ import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.payload.data.PatientRegistrationData;
 import com.cathalob.medtracker.payload.request.patient.ApprovePatientRegistrationRequest;
 import com.cathalob.medtracker.payload.request.patient.PatientRegistrationRequest;
-import com.cathalob.medtracker.payload.response.Response;
+import com.cathalob.medtracker.payload.response.generic.GenericResponse;
 import com.cathalob.medtracker.payload.response.patient.ApprovePatientRegistrationResponse;
 import com.cathalob.medtracker.payload.response.patient.PatientRegistrationResponse;
 import com.cathalob.medtracker.service.impl.PatientsService;
@@ -49,14 +49,14 @@ public class PatientsController {
     }
 
     @PostMapping("/upload/dose-upload")
-    public ResponseEntity<Response> reapDoseDataFromExcelUpload(@RequestParam("dosesFile") MultipartFile reapExcelDataFile, Authentication authentication) {
+    public ResponseEntity<GenericResponse> reapDoseDataFromExcelUpload(@RequestParam("dosesFile") MultipartFile reapExcelDataFile, Authentication authentication) {
         patientsService.importDoseFile(reapExcelDataFile, (authentication.getName()));
-        return ResponseEntity.ok(new Response().success());
+        return ResponseEntity.ok(GenericResponse.Success());
     }
 
     @PostMapping("/upload/blood-pressure-upload")
-    public ResponseEntity<Response> reapBloodPressureDataFromExcelUpload(@RequestParam("bloodPressureFile") MultipartFile reapExcelDataFile, Authentication authentication) {
+    public ResponseEntity<GenericResponse> reapBloodPressureDataFromExcelUpload(@RequestParam("bloodPressureFile") MultipartFile reapExcelDataFile, Authentication authentication) {
         patientsService.importBloodPressureFile(reapExcelDataFile, (authentication.getName()));
-        return ResponseEntity.ok(new Response().success());
+        return ResponseEntity.ok(GenericResponse.Success());
     }
 }

@@ -34,10 +34,27 @@ public class ResponseInfo {
     public ResponseInfo() {
     }
 
-    public static ResponseInfo Success(boolean successful, String message) {
-        return new ResponseInfo(successful, message);
+    public static ResponseInfo Success(String message) {
+        return new ResponseInfo(true, message);
     }
+
     public static ResponseInfo Success() {
-        return ResponseInfo.Success(true, "Success");
+        return ResponseInfo.Success("Success");
+    }
+
+    public static ResponseInfo Failed() {
+        return new ResponseInfo(false, "Failed");
+    }
+
+    public static ResponseInfo Failed(String message) {
+        return new ResponseInfo(false, message);
+    }
+
+    public static ResponseInfo Failed(List<String> errors) {
+        return new ResponseInfo(errors);
+    }
+
+    public static ResponseInfo Failed(String message, List<String> errors) {
+        return new ResponseInfo(false, message, errors);
     }
 }

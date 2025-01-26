@@ -2,7 +2,8 @@ package com.cathalob.medtracker.payload.response.patient;
 
 import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.payload.data.PatientRegistrationData;
-import com.cathalob.medtracker.payload.response.Response;
+import com.cathalob.medtracker.payload.response.generic.Response;
+import com.cathalob.medtracker.payload.response.generic.ResponseInfo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -13,33 +14,25 @@ import java.util.List;
 public class PatientRegistrationResponse extends Response {
     private PatientRegistrationData data;
 
-
-    public PatientRegistrationResponse(boolean b, PatientRegistration reg) {
-        super(b);
-        this.data = PatientRegistrationData.From(reg);
+    public PatientRegistrationResponse(ResponseInfo responseInfo, PatientRegistration patientRegistration) {
+        super(responseInfo);
+        this.data = PatientRegistrationData.From(patientRegistration);
     }
 
-    public PatientRegistrationResponse(boolean b) {
-        super(b);
-    }
-
-    public PatientRegistrationResponse() {
-    }
-
-    public PatientRegistrationResponse failure(List<String> errors) {
-        super.failure(errors);
-        return this;
+    public PatientRegistrationResponse(ResponseInfo responseInfo) {
+        super(responseInfo);
     }
 
     public static PatientRegistrationResponse Success(PatientRegistration reg) {
-        return new PatientRegistrationResponse(true, reg);
+        return new PatientRegistrationResponse(ResponseInfo.Success(), reg);
     }
 
     public static PatientRegistrationResponse Failed() {
-        return new PatientRegistrationResponse(false);
+        return new PatientRegistrationResponse(ResponseInfo.Failed());
     }
+
     public static PatientRegistrationResponse Failed(List<String> errors) {
-        return new PatientRegistrationResponse().failure(errors);
+        return new PatientRegistrationResponse(ResponseInfo.Failed(errors));
     }
 
 

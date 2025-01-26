@@ -49,14 +49,14 @@ public class DoseService {
         if (maybePatient.isEmpty()) return TimeSeriesGraphDataResponse.Failure();
         UserModel patient = maybePatient.get();
 //        validate that the practitioner is a doc of the patient, and allowed to see the patient data
-        if (patientRegistrationRepository.findByUserModelAndPractitionerUserModel(patient,practitioner).isEmpty()) {
-            TimeSeriesGraphDataResponse failure = TimeSeriesGraphDataResponse.Failure();
-            failure.setErrors(List.of("Only registered practitioners can view this patients data"));
-            return failure;
+        if (patientRegistrationRepository.findByUserModelAndPractitionerUserModel(patient, practitioner).isEmpty()) {
+            return TimeSeriesGraphDataResponse.Failure(List.of("Only registered practitioners can view this patients data"));
+
         }
         return getDoseGraphDataResponse(patient);
     }
-    private TimeSeriesGraphDataResponse getDoseGraphDataResponse(UserModel patient){
+
+    private TimeSeriesGraphDataResponse getDoseGraphDataResponse(UserModel patient) {
         return TimeSeriesGraphDataResponse.Success(
                 new GraphData(
                         getDoseGraphColumnNames(patient),

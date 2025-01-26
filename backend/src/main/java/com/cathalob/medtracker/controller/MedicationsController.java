@@ -1,7 +1,7 @@
 package com.cathalob.medtracker.controller;
 
 import com.cathalob.medtracker.model.prescription.Medication;
-import com.cathalob.medtracker.payload.response.Response;
+import com.cathalob.medtracker.payload.response.AddMedicationResponse;
 import com.cathalob.medtracker.service.impl.MedicationsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +26,8 @@ public class MedicationsController {
 
     @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
     @PostMapping("/add")
-    public ResponseEntity<Response> addMedication(@RequestBody @Valid Medication medication) {
-        Response requestResponse = medicationsService.addMedication(medication);
+    public ResponseEntity<AddMedicationResponse> addMedication(@RequestBody @Valid Medication medication) {
+        AddMedicationResponse requestResponse = medicationsService.addMedication(medication);
         return ResponseEntity.ok(requestResponse);
     }
 }

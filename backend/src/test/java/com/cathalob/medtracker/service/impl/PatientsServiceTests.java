@@ -5,6 +5,7 @@ import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.payload.data.PatientRegistrationData;
+import com.cathalob.medtracker.payload.response.patient.ApprovePatientRegistrationResponse;
 import com.cathalob.medtracker.payload.response.patient.PatientRegistrationResponse;
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.service.UserService;
@@ -80,9 +81,9 @@ class PatientsServiceTests {
         assertThat(patientRegistrationResponse.getData().getPractitionerId()).isEqualTo(practitioner.getId());
         assertThat(patientRegistrationResponse.getData()).isNotNull();
         assertThat(patientRegistrationResponse.getData().getId()).isEqualTo(1L);
-        assertThat(patientRegistrationResponse.isSuccessful()).isTrue();
-        assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Succeeded");
-        assertThat(patientRegistrationResponse.getErrors()).isEmpty();
+        assertThat(patientRegistrationResponse.getResponseInfo().isSuccessful()).isTrue();
+        assertThat(patientRegistrationResponse.getResponseInfo().getMessage()).isEqualTo("Success");
+        assertThat(patientRegistrationResponse.getResponseInfo().getErrors()).isEmpty();
     }
 
     @DisplayName("Fail validation: (registerPatient) due to non existent practitioner user")
@@ -98,9 +99,9 @@ class PatientsServiceTests {
         PatientRegistrationResponse patientRegistrationResponse = patientsService.registerPatient(toRegister.getUsername(), practitioner.getId());
 
         // then - verify the output
-        assertThat(patientRegistrationResponse.isSuccessful()).isFalse();
-        assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Failed Validation");
-        assertThat(patientRegistrationResponse.getErrors()).isNotEmpty();
+        assertThat(patientRegistrationResponse.getResponseInfo().isSuccessful()).isFalse();
+        assertThat(patientRegistrationResponse.getResponseInfo().getMessage()).isEqualTo("Failed");
+        assertThat(patientRegistrationResponse.getResponseInfo().getErrors()).isNotEmpty();
     }
 
 
@@ -119,9 +120,9 @@ class PatientsServiceTests {
         PatientRegistrationResponse patientRegistrationResponse = patientsService.registerPatient(toRegister.getUsername(), practitioner.getId());
 
         // then - verify the output
-        assertThat(patientRegistrationResponse.isSuccessful()).isFalse();
-        assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Failed Validation");
-        assertThat(patientRegistrationResponse.getErrors()).isNotEmpty();
+        assertThat(patientRegistrationResponse.getResponseInfo().isSuccessful()).isFalse();
+        assertThat(patientRegistrationResponse.getResponseInfo().getMessage()).isEqualTo("Failed");
+        assertThat(patientRegistrationResponse.getResponseInfo().getErrors()).isNotEmpty();
     }
 
     @DisplayName("Fail validation: (registerPatient) - user to register has wrong role")
@@ -139,30 +140,31 @@ class PatientsServiceTests {
         PatientRegistrationResponse patientRegistrationResponse = patientsService.registerPatient(toRegister.getUsername(), practitioner.getId());
 
         // then - verify the output
-        assertThat(patientRegistrationResponse.isSuccessful()).isFalse();
-        assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Failed Validation");
-        assertThat(patientRegistrationResponse.getErrors()).isNotEmpty();
+        assertThat(patientRegistrationResponse.getResponseInfo().isSuccessful()).isFalse();
+        assertThat(patientRegistrationResponse.getResponseInfo().getMessage()).isEqualTo("Failed");
+        assertThat(patientRegistrationResponse.getResponseInfo().getErrors()).isNotEmpty();
     }
 
 
-    @DisplayName("Fail validation: (approvePatientRegistration) - user to register has wrong role")
+    @DisplayName("Fail validation: (approvePatientRegistration) - user attempting approval has wrong role")
     @Test
-    public void givenApprovePatientRegistrationRequest_whenRegisterPatient_thenReturnFailedPatientRegistrationResponse() {
+    public void givenApprovePatientRegistrationRequest_whenApprovedPatientRegistration_thenReturnFailedApprovePatientRegistrationResponse() {
         //given - precondition or setup
-        UserModel toRegister = aUserModel().withRole(USERROLE.ADMIN).build();
-        UserModel practitioner = aUserModel().withId(1L).withRole(USERROLE.PRACTITIONER).build();
-        given(userService.findByLogin(toRegister.getUsername())).willReturn(toRegister);
-        given(userService.findUserModelById(practitioner.getId())).willReturn(Optional.of(practitioner));
-        PatientRegistration patientRegistration = new PatientRegistration(1L, toRegister, practitioner, false);
-//        given(patientRegistrationRepository.findByUserModelAndPractitionerUserModel(toRegister, practitioner)).willReturn(List.of(patientRegistration));
+        UserModel toRegister = aUserModel().withRole(USERROLE.USER).build();
+        UserModel notPractitioner = aUserModel().withId(1L).withRole(USERROLE.ADMIN).build();
+        given(userService.findByLogin(notPractitioner.getUsername())).willReturn(toRegister);
+
+        PatientRegistration patientRegistration = new PatientRegistration(1L, toRegister, notPractitioner, false);
+        given(patientRegistrationRepository.findById(patientRegistration.getId())).willReturn(Optional.of(patientRegistration));
 
         // when - action or the behaviour that we are going test
-        PatientRegistrationResponse patientRegistrationResponse = patientsService.registerPatient(toRegister.getUsername(), practitioner.getId());
+        ApprovePatientRegistrationResponse patientRegistrationResponse =
+                patientsService.approvePatientRegistration(notPractitioner.getUsername(), patientRegistration.getId());
 
         // then - verify the output
-        assertThat(patientRegistrationResponse.isSuccessful()).isFalse();
-        assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Failed Validation");
-        assertThat(patientRegistrationResponse.getErrors()).isNotEmpty();
+        assertThat(patientRegistrationResponse.getResponseInfo().isSuccessful()).isFalse();
+        assertThat(patientRegistrationResponse.getResponseInfo().getMessage()).isEqualTo("Failed");
+        assertThat(patientRegistrationResponse.getResponseInfo().getErrors()).contains("Only users with PRACTITIONER role can approve patient registrations");
     }
 
 

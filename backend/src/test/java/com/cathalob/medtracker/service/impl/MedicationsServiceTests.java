@@ -2,10 +2,8 @@ package com.cathalob.medtracker.service.impl;
 
 import com.cathalob.medtracker.config.SecurityConfig;
 import com.cathalob.medtracker.model.prescription.Medication;
-import com.cathalob.medtracker.payload.response.Response;
+import com.cathalob.medtracker.payload.response.AddMedicationResponse;
 import com.cathalob.medtracker.repository.MedicationRepository;
-
-import com.cathalob.medtracker.service.impl.MedicationsService;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,9 +35,9 @@ class MedicationsServiceTests {
         Medication medication = aMedication().withId(1L).build();
         given(medicationRepository.save(medication)).willReturn(medication);
         // when - action or the behaviour that we are going test
-        Response requestResponse = medicationsService.addMedication(medication);
+        AddMedicationResponse requestResponse = medicationsService.addMedication(medication);
         // then - verify the output
-        Assertions.assertThat(requestResponse.isSuccessful()).isTrue();
+        Assertions.assertThat(requestResponse.getResponseInfo().isSuccessful()).isTrue();
     }
 
     @DisplayName("Fail validation: Medication with name already exists ")
@@ -50,10 +48,10 @@ class MedicationsServiceTests {
         given(medicationRepository.findByName(medication.getName())).willReturn(List.of(medication));
 
         // when - action or the behaviour that we are going test
-        Response requestResponse = medicationsService.addMedication(medication);
+        AddMedicationResponse requestResponse = medicationsService.addMedication(medication);
         // then - verify the output
-        Assertions.assertThat(requestResponse.isSuccessful()).isFalse();
-        Assertions.assertThat(requestResponse.getErrors()).isNotEmpty();
+        Assertions.assertThat(requestResponse.getResponseInfo().isSuccessful()).isFalse();
+        Assertions.assertThat(requestResponse.getResponseInfo().getErrors()).isNotEmpty();
     }
 
 }

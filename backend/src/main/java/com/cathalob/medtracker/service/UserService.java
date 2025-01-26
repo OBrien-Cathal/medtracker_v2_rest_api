@@ -4,7 +4,7 @@ import com.cathalob.medtracker.exception.UserNotFound;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.payload.data.RoleChangeData;
-import com.cathalob.medtracker.payload.response.Response;
+import com.cathalob.medtracker.payload.response.generic.GenericResponse;
 import com.cathalob.medtracker.payload.response.rolechange.RoleChangeStatusResponse;
 
 import java.util.List;
@@ -25,9 +25,9 @@ public interface UserService {
     List<UserModel> getPractitionerUserModels();
 
     //  USER Role functions
-    Response submitRoleChange(USERROLE newRole, String submitterUserName);
+    GenericResponse submitRoleChange(USERROLE newRole, String submitterUserName);
 
-    Response approveRoleChange(Long roleChangeId, String approvedByUserName);
+    GenericResponse approveRoleChange(Long roleChangeId, String approvedByUserName);
 
     RoleChangeStatusResponse getRoleChangeStatus(String username);
 

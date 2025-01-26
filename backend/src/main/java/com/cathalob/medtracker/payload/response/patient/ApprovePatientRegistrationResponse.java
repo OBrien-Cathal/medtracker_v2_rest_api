@@ -1,6 +1,7 @@
 package com.cathalob.medtracker.payload.response.patient;
 
-import com.cathalob.medtracker.payload.response.Response;
+import com.cathalob.medtracker.payload.response.generic.Response;
+import com.cathalob.medtracker.payload.response.generic.ResponseInfo;
 import lombok.*;
 
 import java.util.List;
@@ -10,25 +11,20 @@ import java.util.List;
 public class ApprovePatientRegistrationResponse extends Response {
     private Long patientRegistrationId;
 
-    public ApprovePatientRegistrationResponse(boolean b, Long patientRegistrationId) {
-        super(b);
-        this.patientRegistrationId = patientRegistrationId;
-    }
-
-    public ApprovePatientRegistrationResponse(boolean b, Long patientRegistrationId, List<String> errors) {
-        super(b, errors);
+    public ApprovePatientRegistrationResponse(Long patientRegistrationId, ResponseInfo responseInfo) {
+        super(responseInfo);
         this.patientRegistrationId = patientRegistrationId;
     }
 
     public static ApprovePatientRegistrationResponse Success(Long patientRegistrationId) {
-        return new ApprovePatientRegistrationResponse(true, patientRegistrationId);
+        return new ApprovePatientRegistrationResponse(patientRegistrationId, ResponseInfo.Success());
     }
 
     public static ApprovePatientRegistrationResponse Failed(Long patientRegistrationId) {
-        return new ApprovePatientRegistrationResponse(false, patientRegistrationId);
+        return new ApprovePatientRegistrationResponse(patientRegistrationId, ResponseInfo.Failed());
     }
 
     public static ApprovePatientRegistrationResponse Failed(Long patientRegistrationId, List<String> errors) {
-        return new ApprovePatientRegistrationResponse(false, patientRegistrationId, errors);
+        return new ApprovePatientRegistrationResponse(patientRegistrationId, ResponseInfo.Failed(errors));
     }
 }
