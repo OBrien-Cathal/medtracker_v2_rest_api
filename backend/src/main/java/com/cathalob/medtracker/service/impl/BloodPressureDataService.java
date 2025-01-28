@@ -1,11 +1,22 @@
 package com.cathalob.medtracker.service.impl;
 
+import com.cathalob.medtracker.mapper.BloodPressureMapper;
+import com.cathalob.medtracker.mapper.DailyEvaluationMapper;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.DAYSTAGE;
+import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.tracking.BloodPressureReading;
+import com.cathalob.medtracker.model.tracking.DailyEvaluation;
+import com.cathalob.medtracker.model.tracking.DailyEvaluationId;
+import com.cathalob.medtracker.payload.data.BloodPressureData;
 import com.cathalob.medtracker.payload.data.GraphData;
+import com.cathalob.medtracker.payload.request.patient.AddDatedBloodPressureReadingRequest;
+import com.cathalob.medtracker.payload.request.patient.AddDatedBloodPressureReadingRequestResponse;
+import com.cathalob.medtracker.payload.request.patient.DatedBloodPressureDataRequest;
+import com.cathalob.medtracker.payload.response.BloodPressureDataRequestResponse;
 import com.cathalob.medtracker.payload.response.TimeSeriesGraphDataResponse;
 import com.cathalob.medtracker.repository.BloodPressureReadingRepository;
+import com.cathalob.medtracker.repository.DailyEvaluationRepository;
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.service.UserService;
 import lombok.AllArgsConstructor;
@@ -23,6 +34,7 @@ public class BloodPressureDataService {
     private final BloodPressureReadingRepository bloodPressureReadingRepository;
     private final UserService userService;
     private final PatientRegistrationRepository patientRegistrationRepository;
+    private final DailyEvaluationRepository dailyEvaluationRepository;
 
     public void saveBloodPressureReadings(List<BloodPressureReading> bloodPressureReadings) {
         bloodPressureReadingRepository.saveAll(bloodPressureReadings);
@@ -48,6 +60,52 @@ public class BloodPressureDataService {
 
         }
         return maybePatient.map(this::getSystoleGraphData).orElseGet(TimeSeriesGraphDataResponse::Failure);
+    }
+
+
+    public BloodPressureDataRequestResponse getBloodPressureData(
+            DatedBloodPressureDataRequest datedBloodPressureDataRequest,
+            String username) {
+        UserModel patient = userService.findByLogin(username);
+
+        if (!patient.getRole().equals(USERROLE.PATIENT))
+            return BloodPressureDataRequestResponse.Failed(List.of("User is not a patient"));
+        Optional<DailyEvaluation> dailyEvaluationOptional = dailyEvaluationRepository.findById(new DailyEvaluationId(patient.getId(), datedBloodPressureDataRequest.getDate()));
+        if (dailyEvaluationOptional.isEmpty()) {
+//            return BloodPressureDataRequestResponse.Failed(List.of("No daily evaluation found for this patient and date"));
+            return BloodPressureDataRequestResponse.Success(List.of());
+        }
+
+        List<BloodPressureReading> readings = bloodPressureReadingRepository.findByDailyEvaluation(dailyEvaluationOptional.get());
+
+        List<BloodPressureData> data = readings.stream().map((r) -> BloodPressureData.builder()
+                .readingTime(r.getReadingTime())
+                .systole(r.getSystole())
+                .diastole(r.getDiastole())
+                .heartRate(r.getHeartRate())
+                .dayStage(r.getDayStage())
+                .build()).toList();
+        return BloodPressureDataRequestResponse.Success(data);
+    }
+
+    public AddDatedBloodPressureReadingRequestResponse addBloodPressureReading(
+            AddDatedBloodPressureReadingRequest addRequest, String username) {
+        UserModel patient = userService.findByLogin(username);
+
+        if (!patient.getRole().equals(USERROLE.PATIENT))
+            return AddDatedBloodPressureReadingRequestResponse.Failed(List.of("User is not a patient"));
+        DailyEvaluation newDailyEvaluation = DailyEvaluationMapper.ToDailyEvaluation(
+                addRequest.getDate(), patient);
+        Optional<DailyEvaluation> existingDailyEvaluationOptional = dailyEvaluationRepository.findById(newDailyEvaluation.getDailyEvaluationIdClass());
+        if (existingDailyEvaluationOptional.isEmpty()) {
+            dailyEvaluationRepository.save(newDailyEvaluation);
+        }
+
+        BloodPressureReading newReading = BloodPressureMapper.ToBloodPressureReading(addRequest.getData(), newDailyEvaluation);
+        System.out.println(newReading);
+        BloodPressureReading saved = bloodPressureReadingRepository.save(newReading);
+        System.out.println(saved);
+        return AddDatedBloodPressureReadingRequestResponse.Success(saved.getId());
     }
 
     public TimeSeriesGraphDataResponse getDiastoleGraphData(String username) {

@@ -11,4 +11,7 @@ import java.util.List;
 public interface DailyEvaluationRepository extends JpaRepository<DailyEvaluation, DailyEvaluationId> {
     @Query("FROM DAILYEVALUATION e WHERE e.userModel.id = :userModelId")
     List<DailyEvaluation> findDailyEvaluationsForUserModelId(@Param("userModelId") Long userModelId);
+
+
+
 }

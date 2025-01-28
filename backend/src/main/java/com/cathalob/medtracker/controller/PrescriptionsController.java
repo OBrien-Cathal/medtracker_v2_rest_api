@@ -69,7 +69,7 @@ public class PrescriptionsController {
     }
 
     @GetMapping("/day-stages")
-    @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
+    @PreAuthorize("hasRole('ROLE_PRACTITIONER')||hasRole('ROLE_PATIENT')")
     public ResponseEntity<List<String>> getDayStages( ) {
         return ResponseEntity.ok(Arrays.stream(DAYSTAGE.values()).map(DAYSTAGE::name).toList());
     }
