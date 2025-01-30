@@ -1,5 +1,6 @@
 package com.cathalob.medtracker.testdata;
 
+import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
 import com.cathalob.medtracker.model.tracking.DailyEvaluation;
 import com.cathalob.medtracker.model.tracking.Dose;

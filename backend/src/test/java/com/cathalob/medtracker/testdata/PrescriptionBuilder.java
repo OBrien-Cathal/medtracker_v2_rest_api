@@ -10,7 +10,7 @@ public class PrescriptionBuilder {
     private int doseMg = 10;
     private MedicationBuilder medicationBuilder = new MedicationBuilder();
 
-    private UserModelBuilder patientUserModelBuilder = new UserModelBuilder().withRole(USERROLE.USER);
+    private UserModelBuilder patientUserModelBuilder = new UserModelBuilder().withRole(USERROLE.PATIENT);
     private UserModelBuilder practitionerUserModelBuilder = new UserModelBuilder().withRole(USERROLE.PRACTITIONER);
 
     private LocalDateTime beginTime = LocalDateTime.now();

@@ -7,7 +7,10 @@ import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
 import com.cathalob.medtracker.model.tracking.DailyEvaluation;
 import com.cathalob.medtracker.model.tracking.Dose;
+import com.cathalob.medtracker.payload.data.DailyDoseData;
+import com.cathalob.medtracker.payload.request.patient.AddDailyDoseDataRequest;
 import com.cathalob.medtracker.payload.request.patient.GetDailyDoseDataRequest;
+import com.cathalob.medtracker.payload.response.AddDailyDoseDataRequestResponse;
 import com.cathalob.medtracker.payload.response.GetDailyDoseDataRequestResponse;
 import com.cathalob.medtracker.repository.DailyEvaluationRepository;
 import com.cathalob.medtracker.repository.DoseRepository;
@@ -15,6 +18,7 @@ import com.cathalob.medtracker.repository.PrescriptionScheduleEntryRepository;
 import com.cathalob.medtracker.service.UserService;
 import com.cathalob.medtracker.testdata.*;
 import com.cathalob.medtracker.validate.model.UserRoleValidator;
+import io.jsonwebtoken.security.Jwks;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,6 +34,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.cathalob.medtracker.testdata.DailyEvaluationBuilder.aDailyEvaluation;
@@ -99,7 +104,7 @@ class DoseServiceTests {
     }
 
 
-    @DisplayName("When Doses are registered for the full set of prescription schedules, return DailyDoseData with Dose Ids")
+    @DisplayName("Test DoseData creation when full daily data ALREADY exists ")
     @Test
     public void givenGetDailyDoseDataRequestResponse_whenGetDailyDoseDataForDayWithCompleteDoseData_thenReturnGetDailyDoseDataResponseWithDoseData() {
         //given - precondition or setup
@@ -140,7 +145,7 @@ class DoseServiceTests {
 
     }
 
-    @DisplayName("When no doses are registered for the full set of prescription schedules, return DailyDoseData with Empty Dose Ids")
+    @DisplayName("Test Dose template creation when persisted daily dose data does NOT exist")
     @Test
     public void givenGetDailyDoseDataRequestResponse_whenGetDailyDoseDataForNewDay_thenReturnGetDailyDoseDataResponseWithDoseData() {
         //given - precondition or setup
@@ -176,6 +181,37 @@ class DoseServiceTests {
                 .isTrue();
         assertThat(response.getResponseInfo().isSuccessful()).isTrue();
 
+    }
+@DisplayName("Entering a valid DailyDoseData will return a success response")
+    @Test
+    public void givenValidNewDoseDataEntry_whenAddDailyDoseData_thenReturnSuccessResponse() {
+        //given - precondition or setup
+        AddDailyDoseDataRequest request = AddDailyDoseDataRequest.builder()
+                .date(LocalDate.now())
+                .dailyDoseData(DailyDoseData.builder()
+                        .prescriptionScheduleEntryId(1L)
+                        .build())
+                .build();
+
+        Dose dose = aDose().withId(1L).build();
+
+        DailyEvaluation evaluation = dose.getEvaluation();
+        UserModel patient = evaluation.getUserModel();
+        given(userService.findByLogin(patient.getUsername()))
+                .willReturn(patient);
+        given(dailyEvaluationRepository.findById(evaluation.getDailyEvaluationIdClass()))
+                .willReturn(Optional.of(evaluation));
+        given(prescriptionScheduleEntryRepository.findById(request.getDailyDoseData().getPrescriptionScheduleEntryId()))
+                .willReturn(Optional.of(dose.getPrescriptionScheduleEntry()));
+        given(doseRepository.findByPrescriptionScheduleEntryAndEvaluation(dose.getPrescriptionScheduleEntry(), evaluation)).willReturn(List.of(dose));
+        given(doseRepository.save(dose)).willReturn(dose);
+
+        // when - action or the behaviour that we are going test
+        AddDailyDoseDataRequestResponse response = doseService.addDailyDoseData(request, patient.getUsername());
+
+        // then - verify the output
+        System.out.println(response);
+        assertThat(response.getResponseInfo().isSuccessful()).isTrue();
     }
 
 }

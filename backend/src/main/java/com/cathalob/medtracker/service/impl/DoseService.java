@@ -1,21 +1,19 @@
 package com.cathalob.medtracker.service.impl;
 
+import com.cathalob.medtracker.mapper.DailyEvaluationMapper;
 import com.cathalob.medtracker.mapper.DoseMapper;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.DAYSTAGE;
-import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.prescription.Medication;
 import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
 import com.cathalob.medtracker.model.tracking.DailyEvaluation;
-import com.cathalob.medtracker.model.tracking.DailyEvaluationId;
 import com.cathalob.medtracker.model.tracking.Dose;
 import com.cathalob.medtracker.payload.data.DailyMedicationDoseData;
 import com.cathalob.medtracker.payload.data.GraphData;
 import com.cathalob.medtracker.payload.request.patient.AddDailyDoseDataRequest;
 import com.cathalob.medtracker.payload.request.patient.GetDailyDoseDataRequest;
 import com.cathalob.medtracker.payload.response.AddDailyDoseDataRequestResponse;
-import com.cathalob.medtracker.payload.response.BloodPressureDataRequestResponse;
 import com.cathalob.medtracker.payload.response.GetDailyDoseDataRequestResponse;
 import com.cathalob.medtracker.payload.response.TimeSeriesGraphDataResponse;
 import com.cathalob.medtracker.repository.DailyEvaluationRepository;
@@ -23,6 +21,8 @@ import com.cathalob.medtracker.repository.DoseRepository;
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.PrescriptionScheduleEntryRepository;
 import com.cathalob.medtracker.service.UserService;
+import com.cathalob.medtracker.validate.Validator;
+import com.cathalob.medtracker.validate.model.DoseValidator;
 import com.cathalob.medtracker.validate.model.UserRoleValidator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -124,38 +124,39 @@ public class DoseService {
     }
 
     public AddDailyDoseDataRequestResponse addDailyDoseData(AddDailyDoseDataRequest request, String username) {
-
         UserModel patient = userService.findByLogin(username);
-        UserRoleValidator userRoleValidator = new UserRoleValidator(patient.getRole());
-        if (!userRoleValidator.validateIsPatient().isValid()) {
-            return AddDailyDoseDataRequestResponse.Failed(request.getDate(), userRoleValidator.getErrors());
-        }
 
-        DailyEvaluation dailyEvaluationPlaceholder = new DailyEvaluation(request.getDate(), patient);
+        DailyEvaluation dailyEvaluationPlaceholder = DailyEvaluationMapper.ToDailyEvaluation(request.getDate(), patient);
         DailyEvaluation dailyEvaluation = dailyEvaluationRepository.findById(dailyEvaluationPlaceholder.getDailyEvaluationIdClass())
                 .orElse(dailyEvaluationRepository.save(dailyEvaluationPlaceholder));
 
-        Optional<PrescriptionScheduleEntry> prescriptionScheduleEntryOptional = prescriptionScheduleEntryRepository.findById(request.getDailyDoseData().getPrescriptionScheduleEntryId());
-        if (prescriptionScheduleEntryOptional.isEmpty())
-            return AddDailyDoseDataRequestResponse.Failed(
-                    LocalDate.now(),
-                    List.of("No prescription schedule found for id " + request.getDailyDoseData().getPrescriptionScheduleEntryId()));
+        PrescriptionScheduleEntry prescriptionScheduleEntry = prescriptionScheduleEntryRepository.findById(request.getDailyDoseData().getPrescriptionScheduleEntryId()).orElse(null);
 
-        List<Dose> byId = doseRepository.findByPrescriptionScheduleEntryAndEvaluation(prescriptionScheduleEntryOptional.get(), dailyEvaluation);
+        List<Dose> byId = doseRepository.findByPrescriptionScheduleEntryAndEvaluation(prescriptionScheduleEntry, dailyEvaluation);
 
-        Dose savedDose;
+        Dose doseToSave;
         if (byId.isEmpty()) {
-            savedDose = doseRepository.save(DoseMapper.Dose(request, dailyEvaluation, prescriptionScheduleEntryOptional.get()));
-        } else if (byId.size() == 1) {
-            savedDose = byId.get(0);
-            savedDose.setTaken(request.getDailyDoseData().isTaken());
-            savedDose.setDoseTime(LocalDateTime.now());
-            doseRepository.save(savedDose);
+            doseToSave = DoseMapper.Dose(request, dailyEvaluation, prescriptionScheduleEntry);
         } else {
-            return AddDailyDoseDataRequestResponse.Failed(LocalDate.now(), List.of("More than one Dose for this day and schedule found, data corrupt"));
+            Dose foundDose = byId.get(0);
+            foundDose.setTaken(request.getDailyDoseData().isTaken());
+            foundDose.setDoseTime(LocalDateTime.now());
+            doseToSave = foundDose;
         }
 
-        return AddDailyDoseDataRequestResponse.Success(LocalDate.now(), savedDose.getId());
+        DoseValidator validator = DoseValidator.aDoseValidator();
+        validator.validateDoseEntry(doseToSave);
+        System.out.println(validator.getErrors());
+        if (!validator.isValid()) return addDailyDoseDataRequestValidationFailed(request, validator);
+
+        doseRepository.save(doseToSave);
+
+        return AddDailyDoseDataRequestResponse.Success(LocalDate.now(), doseToSave.getId());
+    }
+
+
+    private AddDailyDoseDataRequestResponse addDailyDoseDataRequestValidationFailed(AddDailyDoseDataRequest request, Validator validator) {
+        return AddDailyDoseDataRequestResponse.Failed(request.getDate(), validator.getErrors());
     }
 
     private TimeSeriesGraphDataResponse getDoseGraphDataResponse(UserModel patient) {

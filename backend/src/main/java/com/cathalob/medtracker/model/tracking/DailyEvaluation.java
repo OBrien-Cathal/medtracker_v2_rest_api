@@ -1,10 +1,12 @@
 package com.cathalob.medtracker.model.tracking;
+
 import com.cathalob.medtracker.model.UserModel;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.time.LocalDate;
 
 @Entity(name = "DAILYEVALUATION")
@@ -23,8 +25,7 @@ public class DailyEvaluation {
     private UserModel userModel;
 
 
-
     public DailyEvaluationId getDailyEvaluationIdClass() {
-        return new DailyEvaluationId(userModel.getId(), recordDate);
+        return new DailyEvaluationId(userModel != null ? userModel.getId() : null, recordDate);
     }
 }
