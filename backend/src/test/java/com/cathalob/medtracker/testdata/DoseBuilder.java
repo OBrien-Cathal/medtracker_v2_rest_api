@@ -64,6 +64,6 @@ public class DoseBuilder {
         PrescriptionScheduleEntry prescriptionScheduleEntry = prescriptionScheduleEntryBuilder.build();
         DailyEvaluation dailyEvaluation = dailyEvaluationBuilder.build();
         dailyEvaluation.setUserModel(prescriptionScheduleEntry.getPrescription().getPatient());
-        return new Dose(null, dailyEvaluation, doseTime, prescriptionScheduleEntry, taken);
+        return new Dose(id, dailyEvaluation, doseTime, prescriptionScheduleEntry, taken);
     }
 }

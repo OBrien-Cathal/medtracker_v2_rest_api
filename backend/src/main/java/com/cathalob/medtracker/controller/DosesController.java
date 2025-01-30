@@ -1,15 +1,15 @@
 package com.cathalob.medtracker.controller;
 
+import com.cathalob.medtracker.payload.request.patient.*;
+import com.cathalob.medtracker.payload.response.AddDailyDoseDataRequestResponse;
+import com.cathalob.medtracker.payload.response.GetDailyDoseDataRequestResponse;
 import com.cathalob.medtracker.payload.response.TimeSeriesGraphDataResponse;
 import com.cathalob.medtracker.service.impl.DoseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/doses")
@@ -31,4 +31,23 @@ public class DosesController {
             Authentication authentication) {
         return ResponseEntity.ok(doseService.getPatientDoseGraphData(patientId, authentication.getName()));
     }
+
+
+    @PostMapping("/daily-dose-data")
+    @PreAuthorize("hasRole('ROLE_PATIENT')")
+    public ResponseEntity<GetDailyDoseDataRequestResponse> getDailyDoseData(
+            @RequestBody GetDailyDoseDataRequest request,
+            Authentication authentication) {
+        return ResponseEntity.ok(doseService.getDailyDoseData(request, authentication.getName()));
+    }
+
+    @PostMapping("/add-daily-dose-data")
+    @PreAuthorize("hasRole('ROLE_PATIENT')")
+    public ResponseEntity<AddDailyDoseDataRequestResponse> addDailyDoseData(
+            @RequestBody AddDailyDoseDataRequest request,
+            Authentication authentication) {
+        return ResponseEntity.ok(doseService.addDailyDoseData(request, authentication.getName()));
+    }
+
+
 }

@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.chrono.ChronoLocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Function;
@@ -201,6 +202,23 @@ public class PrescriptionsService {
 
     public List<Prescription> getPrescriptions(UserModel userModel) {
         return prescriptionsRepository.findByPatient(userModel);
+    }
+
+    public List<Prescription> getPrescriptionsValidOnDate(UserModel patient, LocalDate date) {
+
+        return getPrescriptions(patient)
+                .stream()
+                .filter(prescription -> {
+                    ChronoLocalDate begin = ChronoLocalDate.from(prescription.getBeginTime());
+
+                    boolean endTimeValid = prescription.getEndTime() == null;
+                    if (!endTimeValid) {
+                        ChronoLocalDate end = ChronoLocalDate.from(prescription.getEndTime());
+                        endTimeValid = (date.isBefore(end) || date.equals(end));
+                    }
+                    return (date.isAfter(begin) || date.equals(begin)) &&
+                            endTimeValid;
+                }).toList();
     }
 
     public List<Prescription> getAllPrescriptions() {

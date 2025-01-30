@@ -3,11 +3,13 @@ package com.cathalob.medtracker.repository;
 
 import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
+import com.cathalob.medtracker.model.tracking.DailyEvaluation;
 import com.cathalob.medtracker.model.tracking.Dose;
 
 import static com.cathalob.medtracker.testdata.DoseBuilder.aDose;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.cathalob.medtracker.testdata.DailyEvaluationBuilder;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -20,7 +22,6 @@ import java.util.List;
 
 @DataJpaTest
 @ActiveProfiles("test")
-
 class DoseRepositoryTests {
     @Autowired
     private DoseRepository doseRepository;
@@ -61,6 +62,30 @@ class DoseRepositoryTests {
         assertThat(dosesForUserId).allMatch(retrievedDose -> retrievedDose.getEvaluation().getUserModel().getId() > (0));
 
     }
+
+
+    @Test
+    public void givenDose_whenFindByDailyEvaluation_thenReturnDoseList() {
+//          given
+        Dose dose = aDose().build();
+        Dose otherDose = aDose().build();
+
+        persistPrerequisites(dose);
+        persistPrerequisites(otherDose);
+        testEntityManager.persist(otherDose);
+        testEntityManager.persist(dose);
+
+//      when
+        List<Dose> byEvaluation = doseRepository.findByEvaluation(
+                dose.getEvaluation());
+
+//      then
+        assertThat(doseRepository.findAll().size()).isEqualTo(2);
+        assertThat(byEvaluation.size()).isEqualTo(1);
+        assertThat(byEvaluation).allMatch(retrievedDose -> retrievedDose.getEvaluation().getUserModel().getId() > (0));
+
+    }
+
 
     private void persistPrerequisites(Dose dose) {
         PrescriptionScheduleEntry prescriptionScheduleEntry = dose.getPrescriptionScheduleEntry();
