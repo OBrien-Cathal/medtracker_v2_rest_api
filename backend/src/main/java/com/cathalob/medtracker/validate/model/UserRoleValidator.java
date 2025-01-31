@@ -1,43 +1,42 @@
 package com.cathalob.medtracker.validate.model;
 
+import com.cathalob.medtracker.exception.validation.UserRoleValidationException;
 import com.cathalob.medtracker.model.enums.USERROLE;
 
 import com.cathalob.medtracker.validate.Validator;
-import com.cathalob.medtracker.validate.model.errors.UserRoleError;
 
 import java.util.List;
 
 public class UserRoleValidator extends Validator {
     private final USERROLE userRole;
+    private final List<USERROLE> allowedRoles;
 
-    public UserRoleValidator(USERROLE userRole) {
+    public UserRoleValidator(USERROLE userRole, List<USERROLE> allowedRoles) {
         super();
         this.userRole = userRole;
+        this.allowedRoles = allowedRoles;
     }
 
-    public Validator validateIsPatient() {
-        return validateRoleInAllowed(List.of(USERROLE.PATIENT));
-
-    }
-
-    public Validator validateIsAdmin() {
-        return validateRoleInAllowed(List.of(USERROLE.ADMIN));
-    }
-
-    public Validator validateIsPractitioner() {
-        return validateRoleInAllowed(List.of(USERROLE.PRACTITIONER));
-    }
-
-    public Validator validateIsPatientOrPractitioner() {
-        return validateRoleInAllowed(List.of(USERROLE.PATIENT, USERROLE.PRACTITIONER));
-    }
-
-    private Validator validateRoleInAllowed(List<USERROLE> allowedRoles) {
+    public void validateAllowedRoles() {
         if (!allowedRoles.contains(userRole)) {
-            this.addError(UserRoleError.of(userRole, allowedRoles));
-            System.out.println(this.getErrors().stream().findAny());
+            this.addError(UserRoleValidator.wrongRoleErrorMessage(userRole, allowedRoles));
         }
-        return this;
+    }
+
+    @Override
+    protected void basicValidate() {
+        validateObjectPresence(userRole);
+        validateAllowedRoles();
+    }
+
+    @Override
+    protected void raiseValidationException() {
+        throw new UserRoleValidationException(this.getErrors());
+    }
+
+    public static String wrongRoleErrorMessage(USERROLE current, List<USERROLE> allowed) {
+        return String.format("User has role '%s', where only '%s' are allowed.", current,
+                String.join(", ", allowed.stream().map(USERROLE::name).toList()));
     }
 
 

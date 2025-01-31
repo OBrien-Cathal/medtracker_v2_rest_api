@@ -3,10 +3,10 @@ package com.cathalob.medtracker.service.impl;
 import com.cathalob.medtracker.exception.validation.PatientRegistrationException;
 import com.cathalob.medtracker.fileupload.BloodPressureFileImporter;
 import com.cathalob.medtracker.fileupload.DoseFileImporter;
+import com.cathalob.medtracker.mapper.PatientRegistrationMapper;
 import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
-import com.cathalob.medtracker.model.factories.PatientRegistrationFactory;
 import com.cathalob.medtracker.model.tracking.BloodPressureReading;
 import com.cathalob.medtracker.model.userroles.RoleChange;
 import com.cathalob.medtracker.payload.data.PatientRegistrationData;
@@ -15,6 +15,7 @@ import com.cathalob.medtracker.payload.response.patient.PatientRegistrationRespo
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.service.UserService;
+import com.cathalob.medtracker.validate.model.PatientRegistrationValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -50,35 +51,21 @@ public class PatientsService {
     }
 
 
-    public PatientRegistrationResponse registerPatient(String username, Long practitionerId) {
+    public PatientRegistrationResponse registerPatient(String username, Long practitionerId) throws PatientRegistrationException {
         UserModel toRegister = userService.findByLogin(username);
         Optional<UserModel> maybePractitioner = userService.findUserModelById(practitionerId);
-
         UserModel practitioner = maybePractitioner.orElse(null);
-        try {
-            validatePatientRegistration(toRegister, practitioner);
-        } catch (Exception e) {
-            return PatientRegistrationResponse.Failed(List.of(e.getMessage()));
-        }
 
-        PatientRegistration patientRegistration = PatientRegistrationFactory.PatientRegistration(toRegister, practitioner, false);
+        PatientRegistration patientRegistration = PatientRegistrationMapper.PatientRegistration(toRegister, practitioner);
+
+        List<PatientRegistration> existingRegistration = patientRegistrationRepository.findByUserModelAndPractitionerUserModel(toRegister, practitioner);
+        PatientRegistrationValidator.aRegisterPatientValidator(
+                patientRegistration, existingRegistration.isEmpty() ? null : existingRegistration.get(0)).validate();
+
+
         PatientRegistration saved = patientRegistrationRepository.save(patientRegistration);
 
         return PatientRegistrationResponse.Success(saved);
-    }
-
-    private void validatePatientRegistration(UserModel toRegister, UserModel practitioner) {
-        if (practitioner == null) {
-            throw new PatientRegistrationException("Practitioner does not exist");
-        }
-        if (!List.of(USERROLE.USER, USERROLE.PATIENT).contains(toRegister.getRole())) {
-            throw new PatientRegistrationException("User does not have allowed role to register as a patient (allowed: USER, PATIENT), current: " +
-                    toRegister.getRole());
-        }
-        List<PatientRegistration> existingReg = patientRegistrationRepository.findByUserModelAndPractitionerUserModel(toRegister, practitioner);
-        if (!existingReg.isEmpty()) {
-            throw new PatientRegistrationException("Registration for practitioner and patient already exists");
-        }
     }
 
 

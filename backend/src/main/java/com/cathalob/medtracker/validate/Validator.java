@@ -1,6 +1,6 @@
 package com.cathalob.medtracker.validate;
 
-import com.cathalob.medtracker.validate.model.errors.UserModelError;
+import com.cathalob.medtracker.exception.validation.ObjectPresenceValidatorException;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -18,6 +18,10 @@ public abstract class Validator {
         return errors.isEmpty();
     }
 
+    public boolean validationFailed() {
+        return !isValid();
+    }
+
     protected void addError(String error) {
         this.errors.add(error);
     }
@@ -26,15 +30,36 @@ public abstract class Validator {
         this.errors.addAll(errors);
     }
 
+    protected String objectNotPresentMessage() {
+        return objectToValidateName();
+    }
 
-    protected void validateUsingSubValidator(Validator subValidator) {
-        if (!subValidator.isValid()) {
-            addErrors(subValidator.getErrors());
+    protected String objectToValidateName() {
+        return this.getClass().getSimpleName();
+    }
+
+    protected void validateObjectPresence(Object objectToValidate) {
+        try {
+            ObjectPresenceValidator.aObjectPresenceValidator(objectToValidate, objectNotPresentMessage()).validate();
+        } catch (ObjectPresenceValidatorException e) {
+            addErrors(e.getErrors());
+            cannotContinueValidation();
         }
     }
 
-    protected boolean validateExists(Object object) {
-        return object != null;
+    protected void cannotContinueValidation() {
+        raiseValidationException();
     }
 
+    protected abstract void basicValidate();
+
+    protected abstract void raiseValidationException();
+
+    public void validate() {
+        basicValidate();
+        if (validationFailed()) {
+            raiseValidationException();
+        }
+
+    }
 }
