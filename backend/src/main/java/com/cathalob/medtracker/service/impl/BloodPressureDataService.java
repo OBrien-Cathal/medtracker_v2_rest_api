@@ -10,6 +10,7 @@ import com.cathalob.medtracker.model.tracking.DailyEvaluation;
 import com.cathalob.medtracker.model.tracking.DailyEvaluationId;
 import com.cathalob.medtracker.payload.data.BloodPressureData;
 import com.cathalob.medtracker.payload.data.GraphData;
+import com.cathalob.medtracker.payload.request.graph.GraphDataForDateRangeRequest;
 import com.cathalob.medtracker.payload.request.patient.AddDatedBloodPressureReadingRequest;
 import com.cathalob.medtracker.payload.request.patient.AddDatedBloodPressureReadingRequestResponse;
 import com.cathalob.medtracker.payload.request.patient.DatedBloodPressureDataRequest;
@@ -20,6 +21,7 @@ import com.cathalob.medtracker.repository.DailyEvaluationRepository;
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.service.UserService;
 import lombok.AllArgsConstructor;
+import lombok.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -40,17 +42,12 @@ public class BloodPressureDataService {
         bloodPressureReadingRepository.saveAll(bloodPressureReadings);
     }
 
-    public List<BloodPressureReading> getBloodPressureReadings(UserModel userModel) {
-        return bloodPressureReadingRepository.findAll().stream()
-                .filter(bloodPressureReading -> bloodPressureReading.getDailyEvaluation().getUserModel().getId().equals(userModel.getId()))
-                .toList();
+    public TimeSeriesGraphDataResponse getSystoleGraphData(@NonNull String username, GraphDataForDateRangeRequest request) {
+        System.out.println(request);
+        return getBloodPressureGraphData(BloodPressureReading::getSystole, userService.findByLogin(username), request.getStart(), request.getEnd(), false);
     }
 
-    public TimeSeriesGraphDataResponse getSystoleGraphData(String username) {
-        return getSystoleGraphData(userService.findByLogin(username));
-    }
-
-    public TimeSeriesGraphDataResponse getPatientSystoleGraphData(Long patientUserModelId, String practitionerUsername) {
+    public TimeSeriesGraphDataResponse getPatientSystoleGraphDataDateRange(Long patientUserModelId, String practitionerUsername, GraphDataForDateRangeRequest request) {
         UserModel practitioner = userService.findByLogin(practitionerUsername);
 //        validate that the practitioner is a doc of the patient, and allowed to see the patient data
         Optional<UserModel> maybePatient = userService.findUserModelById(patientUserModelId);
@@ -59,9 +56,10 @@ public class BloodPressureDataService {
             return TimeSeriesGraphDataResponse.Failure(List.of("Only registered practitioners can view this patients data"));
 
         }
-        return maybePatient.map(this::getSystoleGraphData).orElseGet(TimeSeriesGraphDataResponse::Failure);
+        return maybePatient.map(userModel ->
+                getBloodPressureGraphData(BloodPressureReading::getSystole, userModel, request.getStart(), request.getEnd(), false)
+        ).orElseGet(TimeSeriesGraphDataResponse::Failure);
     }
-
 
     public BloodPressureDataRequestResponse getBloodPressureData(
             DatedBloodPressureDataRequest datedBloodPressureDataRequest,
@@ -117,19 +115,50 @@ public class BloodPressureDataService {
     }
 
     private TimeSeriesGraphDataResponse getSystoleGraphData(UserModel userModel) {
-        return getBloodPressureGraphData(BloodPressureReading::getSystole, userModel);
+        return getBloodPressureGraphData(BloodPressureReading::getSystole, userModel, null, null, false);
+    }
+
+    private List<BloodPressureReading> getBloodPressureReadingsForEvaluations(List<DailyEvaluation> dailyEvaluations) {
+        List<BloodPressureReading> list = dailyEvaluations
+                .stream()
+                .map(bloodPressureReadingRepository::findByDailyEvaluation)
+                .flatMap(List::stream)
+                .toList();
+        return list;
     }
 
     private TimeSeriesGraphDataResponse getDiastoleGraphData(UserModel userModel) {
-        return getBloodPressureGraphData(BloodPressureReading::getDiastole, userModel);
+        return getBloodPressureGraphData(BloodPressureReading::getDiastole, userModel, null, null, false);
     }
 
     private TimeSeriesGraphDataResponse getHeartRateGraphData(UserModel userModel) {
-        return getBloodPressureGraphData(BloodPressureReading::getHeartRate, userModel);
+        return getBloodPressureGraphData(BloodPressureReading::getHeartRate, userModel, null, null, false);
     }
 
-    private TimeSeriesGraphDataResponse getBloodPressureGraphData(ToIntFunction<BloodPressureReading> bpDataAccessorFunction, UserModel userModel) {
-        List<BloodPressureReading> bloodPressureReadings = getBloodPressureReadings(userModel);
+    private TimeSeriesGraphDataResponse getBloodPressureGraphData(ToIntFunction<BloodPressureReading> bpDataAccessorFunction, UserModel userModel, LocalDate start, LocalDate end, boolean interpolate) {
+        if (start == null || end == null) {
+            return TimeSeriesGraphDataResponse.Failure(List.of("No date range provided"));
+        }
+
+        List<DailyEvaluation> da = dailyEvaluationRepository.findDailyEvaluationsByUserModel(userModel)
+                .stream()
+                .filter(dailyEvaluation ->
+                {
+                    boolean between = (dailyEvaluation.getRecordDate().isEqual(start) || dailyEvaluation.getRecordDate().isAfter(start))
+                            &&
+                            (dailyEvaluation.getRecordDate().isEqual(end) || dailyEvaluation.getRecordDate().isBefore(end));
+//                    if (between) {
+//                        System.out.println("Between " + dailyEvaluation.getRecordDate());
+//                    } else {
+//                        System.out.println("NOt between " + dailyEvaluation.getRecordDate());
+//                    }
+                    return between;
+
+                }).toList();
+
+        List<BloodPressureReading> bloodPressureReadings = getBloodPressureReadingsForEvaluations(
+                da);
+
         return TimeSeriesGraphDataResponse.Success(
                 new GraphData(
                         getSortedDataColumnNames(bloodPressureReadings),
@@ -175,5 +204,4 @@ public class BloodPressureDataService {
         });
         return listData;
     }
-
 }

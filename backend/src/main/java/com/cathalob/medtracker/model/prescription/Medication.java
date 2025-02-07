@@ -1,5 +1,6 @@
 package com.cathalob.medtracker.model.prescription;
 
+import com.cathalob.medtracker.model.enums.DAYSTAGE;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -9,7 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity(name ="MEDICATION")
+@Entity(name = "MEDICATION")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,5 +21,10 @@ public class Medication {
 
     @NotNull
     private String name;
+
+
+    public String nameWithDayStage(DAYSTAGE ds) {
+        return getName() + " (" + ds.toString().charAt(0) + ds.toString().substring(1).toLowerCase() + ')';
+    }
 
 }

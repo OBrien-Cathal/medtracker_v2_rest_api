@@ -7,20 +7,24 @@ import com.cathalob.medtracker.mapper.DoseMapper;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.DAYSTAGE;
 import com.cathalob.medtracker.model.enums.USERROLE;
+import com.cathalob.medtracker.model.prescription.Medication;
 import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
 import com.cathalob.medtracker.model.tracking.DailyEvaluation;
 import com.cathalob.medtracker.model.tracking.Dose;
 import com.cathalob.medtracker.payload.data.DailyDoseData;
+import com.cathalob.medtracker.payload.request.graph.GraphDataForDateRangeRequest;
 import com.cathalob.medtracker.payload.request.patient.AddDailyDoseDataRequest;
 import com.cathalob.medtracker.payload.request.patient.GetDailyDoseDataRequest;
 import com.cathalob.medtracker.payload.response.AddDailyDoseDataRequestResponse;
 import com.cathalob.medtracker.payload.response.GetDailyDoseDataRequestResponse;
+import com.cathalob.medtracker.payload.response.TimeSeriesGraphDataResponse;
 import com.cathalob.medtracker.repository.DailyEvaluationRepository;
 import com.cathalob.medtracker.repository.DoseRepository;
 import com.cathalob.medtracker.repository.PrescriptionScheduleEntryRepository;
 import com.cathalob.medtracker.service.UserService;
 import com.cathalob.medtracker.testdata.*;
+import com.cathalob.medtracker.testdata.service.DoseServiceTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +36,8 @@ import org.springframework.context.annotation.Import;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -44,8 +50,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @Import(SecurityConfig.class)
@@ -400,6 +405,126 @@ class DoseServiceTests {
         // then - verify the output
 //        assertThat(response.getResponseInfo().isSuccessful()).isFalse();
         verify(doseRepository, never()).save(any(Dose.class));
+    }
+
+    @DisplayName("Dose graph data created for range with 2 fully active prescriptions, and no registered doses")
+    @Test
+    public void givenGetDoseGraphDataRequestResponse_whenGetDoseGraphData_thenReturnSuccess() {
+        //given - precondition or setup
+        DoseServiceTestDataBuilder doseServiceTestDataBuilder = new DoseServiceTestDataBuilder();
+
+        GraphDataForDateRangeRequest request = doseServiceTestDataBuilder.graphDataRequestYesterdayToTomorrow();
+
+        UserModelBuilder patientBuilder = UserModelBuilder.aUserModel().withRole(USERROLE.PATIENT);
+        UserModel patient = patientBuilder.build();
+
+        Medication med1 = MedicationBuilder.aMedication().withId(1L).withName("Med1").build();
+        Medication med2 = MedicationBuilder.aMedication().withId(2L).withName("Med2").build();
+
+        List<PrescriptionScheduleEntry> pseList = new ArrayList<>();
+        List<DAYSTAGE> p1DayStages = List.of(DAYSTAGE.WAKEUP, DAYSTAGE.BEDTIME);
+        List<DAYSTAGE> p2DayStages = List.of(DAYSTAGE.WAKEUP, DAYSTAGE.MIDDAY, DAYSTAGE.BEDTIME);
+
+        doseServiceTestDataBuilder.addPSEs(patient, med1, 5, p1DayStages, request.getStart(), request.getEnd(), pseList);
+        doseServiceTestDataBuilder.addPSEs(patient, med2, 10, p2DayStages, request.getStart(), request.getEnd(), pseList);
+
+        HashMap<LocalDate, List<PrescriptionScheduleEntry>> entriesByDate = new HashMap<>();
+
+        entriesByDate.put(request.getStart(), pseList);
+        entriesByDate.put(request.getEnd(), pseList);
+        entriesByDate.put(request.getStart().plusDays(1), pseList);
+
+
+        given(userService.findByLogin(patient.getUsername()))
+                .willReturn(patient);
+
+        given(dailyEvaluationRepository.findDailyEvaluationsByUserModel(patient))
+                .willReturn(List.of());
+
+        given(prescriptionsService.getPrescriptionScheduleEntriesValidBetween(patient, request.getStart(), request.getEnd()))
+                .willReturn(entriesByDate);
+
+        given(doseMapper.dummyDosesForRange(entriesByDate))
+                .willReturn(DoseMapper.DummyDosesForRange(entriesByDate));
+
+        // when - action or the behaviour that we are going test
+        TimeSeriesGraphDataResponse response = doseService.getDoseGraphData(patient.getUsername(), request);
+        // then - verify the output
+
+        System.out.println("_____________");
+        System.out.println(response);
+        ArrayList<String> expectedColumns = new ArrayList<>(List.of("Date"));
+        expectedColumns.addAll(p1DayStages.stream().map(med1::nameWithDayStage).toList());
+        expectedColumns.addAll(p2DayStages.stream().map(med2::nameWithDayStage).toList());
+        System.out.println(expectedColumns);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getResponseInfo().isSuccessful()).isTrue();
+        assertThat(response.getGraphData().getDataRows().isEmpty()).isFalse();
+        assertThat(response.getGraphData().getColumnNames()).isEqualTo(expectedColumns);
+
+    }
+
+    @DisplayName("Dose graph data created for range with partially active prescriptions, and no registered doses")
+    @Test
+    public void givenGetDoseGraphDataRequestForRangeWithPartiallyActivePrescriptions_whenGetDoseGraphData_thenReturnSuccess() {
+        //given - precondition or setup
+        DoseServiceTestDataBuilder doseServiceTestDataBuilder = new DoseServiceTestDataBuilder();
+
+        GraphDataForDateRangeRequest request = doseServiceTestDataBuilder.graphDataRequestYesterdayToTomorrow();
+
+        UserModelBuilder patientBuilder = UserModelBuilder.aUserModel().withRole(USERROLE.PATIENT);
+        UserModel patient = patientBuilder.build();
+
+        Medication med1 = MedicationBuilder.aMedication().withId(1L).withName("Med1").build();
+        Medication med2 = MedicationBuilder.aMedication().withId(2L).withName("Med2").build();
+
+        List<PrescriptionScheduleEntry> pseList = new ArrayList<>();
+        List<DAYSTAGE> p1DayStages = List.of(DAYSTAGE.WAKEUP, DAYSTAGE.BEDTIME);
+        List<DAYSTAGE> p2DayStages = List.of(DAYSTAGE.WAKEUP, DAYSTAGE.MIDDAY, DAYSTAGE.BEDTIME);
+
+        doseServiceTestDataBuilder.addPSEs(patient, med1, 5, p1DayStages, request.getStart(), request.getEnd(), pseList);
+        doseServiceTestDataBuilder.addPSEs(patient, med2, 10, p2DayStages, request.getStart(), request.getEnd(), pseList);
+
+        HashMap<LocalDate, List<PrescriptionScheduleEntry>> entriesByDate = new HashMap<>();
+
+        entriesByDate.put(request.getStart(),
+                pseList.stream().filter(pse -> pse.getPrescription().getMedication().equals(med1)).toList());
+        entriesByDate.put(request.getStart().plusDays(1),
+                pseList);
+        entriesByDate.put(request.getEnd(),
+                pseList.stream().filter(pse -> pse.getPrescription().getMedication().equals(med2)).toList());
+
+        given(userService.findByLogin(patient.getUsername()))
+                .willReturn(patient);
+
+        given(dailyEvaluationRepository.findDailyEvaluationsByUserModel(patient))
+                .willReturn(List.of());
+
+        given(prescriptionsService.getPrescriptionScheduleEntriesValidBetween(patient, request.getStart(), request.getEnd()))
+                .willReturn(entriesByDate);
+
+        given(doseMapper.dummyDosesForRange(entriesByDate))
+                .willReturn(DoseMapper.DummyDosesForRange(entriesByDate));
+
+
+        // when - action or the behaviour that we are going test
+        TimeSeriesGraphDataResponse response = doseService.getDoseGraphData(patient.getUsername(), request);
+        // then - verify the output
+
+        System.out.println("_____________");
+        System.out.println(response);
+        ArrayList<String> expectedColumns = new ArrayList<>(List.of("Date"));
+        expectedColumns.addAll(p1DayStages.stream().map(med1::nameWithDayStage).toList());
+        expectedColumns.addAll(p2DayStages.stream().map(med2::nameWithDayStage).toList());
+        System.out.println(expectedColumns);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getResponseInfo().isSuccessful()).isTrue();
+        assertThat(response.getGraphData().getDataRows().isEmpty()).isFalse();
+        assertThat(response.getGraphData().getDataRows().get(0).size()).isEqualTo(expectedColumns.size());
+        assertThat(response.getGraphData().getColumnNames()).isEqualTo(expectedColumns);
+
     }
 
 

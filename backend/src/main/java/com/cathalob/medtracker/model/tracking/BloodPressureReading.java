@@ -10,16 +10,13 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-
 @Entity(name = "BLOODPRESSUREREADING")
 @Data
+
+@NoArgsConstructor
 @Builder
 @AllArgsConstructor
-
-
 public class BloodPressureReading {
-    public BloodPressureReading() {
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,7 +38,10 @@ public class BloodPressureReading {
     private Integer diastole;
     private Integer heartRate;
 
+
+
     public boolean hasData() {
         return systole != null && diastole != null && heartRate != null;
     }
 }
+

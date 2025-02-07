@@ -1,6 +1,8 @@
 package com.cathalob.medtracker.controller;
 
 import com.cathalob.medtracker.exception.validation.dose.DailyDoseDataException;
+import com.cathalob.medtracker.payload.request.graph.GraphDataForDateRangeRequest;
+import com.cathalob.medtracker.payload.request.graph.PatientGraphDataForDateRangeRequest;
 import com.cathalob.medtracker.payload.request.patient.*;
 import com.cathalob.medtracker.payload.response.AddDailyDoseDataRequestResponse;
 import com.cathalob.medtracker.payload.response.GetDailyDoseDataRequestResponse;
@@ -18,19 +20,27 @@ import org.springframework.web.bind.annotation.*;
 public class DosesController {
     private final DoseService doseService;
 
-    @GetMapping("/graph-data")
+    @PostMapping("/graph-data")
     @PreAuthorize("hasRole('ROLE_PATIENT')")
-    public ResponseEntity<TimeSeriesGraphDataResponse> getDoseGraphData(Authentication authentication) {
-        return ResponseEntity.ok(doseService.getDoseGraphData(authentication.getName()));
+    public ResponseEntity<TimeSeriesGraphDataResponse> getDoseGraphData(
+            Authentication authentication,
+            @RequestBody GraphDataForDateRangeRequest request) {
+        return ResponseEntity.ok(doseService.getDoseGraphData(authentication.getName(), request));
     }
 
+//    @GetMapping("/graph-data")
+//    @PreAuthorize("hasRole('ROLE_PATIENT')")
+//    public ResponseEntity<TimeSeriesGraphDataResponse> getDoseGraphDataDateRange(Authentication authentication) {
+//        return ResponseEntity.ok(doseService.getDoseGraphData(authentication.getName()));
+//    }
 
-    @GetMapping("/graph-data/patient")
+
+    @PostMapping("/graph-data/patient")
     @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
     public ResponseEntity<TimeSeriesGraphDataResponse> getPatientDoseGraphData(
-            @RequestParam(required = false, name = "id") Long patientId,
-            Authentication authentication) {
-        return ResponseEntity.ok(doseService.getPatientDoseGraphData(patientId, authentication.getName()));
+
+            Authentication authentication,@RequestBody PatientGraphDataForDateRangeRequest request) {
+        return ResponseEntity.ok(doseService.getPatientDoseGraphData(request.getPatientId(), authentication.getName(), request ));
     }
 
 

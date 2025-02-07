@@ -23,7 +23,7 @@ public class MedicationBuilder {
 
     }
     public Medication build(){
-        return new Medication(null, name);
+        return new Medication(id, name);
     }
 
 

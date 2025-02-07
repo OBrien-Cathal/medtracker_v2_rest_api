@@ -8,6 +8,7 @@ import com.cathalob.medtracker.payload.data.DailyDoseData;
 import com.cathalob.medtracker.payload.data.DailyMedicationDoseData;
 import com.cathalob.medtracker.payload.request.patient.AddDailyDoseDataRequest;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -71,13 +72,13 @@ public class DoseMapper {
     }
 
 
-    public List<DailyMedicationDoseData> dailyMedicationDoseDataList(List<PrescriptionScheduleEntry> pseList, List< Dose> doses) {
+    public List<DailyMedicationDoseData> dailyMedicationDoseDataList(List<PrescriptionScheduleEntry> pseList, List<Dose> doses) {
         return DoseMapper.DailyMedicationDoseDataList(pseList, doses);
     }
 
 
     public static List<DailyMedicationDoseData> DailyMedicationDoseDataList(List<PrescriptionScheduleEntry> pseList,
-                                                                            List< Dose> doses) {
+                                                                            List<Dose> doses) {
 
         Map<Long, Dose> doseByPseId = doses.stream()
                 .collect(Collectors
@@ -101,5 +102,35 @@ public class DoseMapper {
                 .map((e) -> DailyMedicationDoseData(e.getKey(), e.getValue()))
                 .toList();
     }
+
+
+    public Map<LocalDate, List<Dose>> dummyDosesForRange(HashMap<LocalDate, List<PrescriptionScheduleEntry>> entries) {
+        return DoseMapper.DummyDosesForRange(entries);
+    }
+
+    public static Map<LocalDate, List<Dose>> DummyDosesForRange(HashMap<LocalDate, List<PrescriptionScheduleEntry>> entries) {
+        HashMap<LocalDate, List<Dose>> dosesByDate = new HashMap<>();
+        entries.forEach((key, value) -> dosesByDate.put(key, DoseMapper.GetDummyDoses(value)));
+        return dosesByDate;
+    }
+
+    public static List<Dose> GetDummyDoses(List<PrescriptionScheduleEntry> entries) {
+        return entries.stream().map(DoseMapper::GetDummyDose).toList();
+    }
+
+    public Dose getDummyDose(PrescriptionScheduleEntry entry) {
+        return DoseMapper.GetDummyDose(entry);
+
+    }
+
+    public static Dose GetDummyDose(PrescriptionScheduleEntry entry) {
+
+        Dose dose = new Dose();
+        dose.setTaken(true);
+        dose.setPrescriptionScheduleEntry(entry);
+        return dose;
+
+    }
+
 
 }

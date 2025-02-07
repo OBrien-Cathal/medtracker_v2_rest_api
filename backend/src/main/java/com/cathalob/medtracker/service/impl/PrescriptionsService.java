@@ -221,7 +221,25 @@ public class PrescriptionsService {
                 }).toList();
     }
 
-    public List<Prescription> getAllPrescriptions() {
+    public HashMap<LocalDate, List<PrescriptionScheduleEntry>> getPrescriptionScheduleEntriesValidBetween(UserModel patient, LocalDate start, LocalDate end) {
+        HashMap<LocalDate, List<PrescriptionScheduleEntry>> entriesByDate = new HashMap<>();
+        LocalDate current = start;
+
+        while (current.isEqual(end) || current.isBefore(end)) {
+
+            entriesByDate.put(current, prescriptionScheduleEntryRepository
+                    .findByPrescriptionIds(getPrescriptionsValidOnDate(patient, current)
+                            .stream()
+                            .map(Prescription::getId)
+                            .toList()));
+            current = current.plusDays(1);
+        }
+
+        return entriesByDate;
+    }
+
+
+    private List<Prescription> getAllPrescriptions() {
         return prescriptionsRepository.findAll();
     }
 
@@ -230,49 +248,12 @@ public class PrescriptionsService {
                 .stream().collect(Collectors.toMap(Prescription::getId, Function.identity()));
     }
 
-    private List<PrescriptionScheduleEntry> getPrescriptionScheduleEntries() {
-        return prescriptionScheduleEntryRepository.findAll();
+    private List<PrescriptionScheduleEntry> getPrescriptionScheduleEntries(List<Long> prescriptionIds) {
+        return prescriptionScheduleEntryRepository.findByPrescriptionIds(prescriptionIds);
     }
 
     public Map<Long, PrescriptionScheduleEntry> getPrescriptionScheduleEntriesById() {
         return prescriptionScheduleEntryRepository.findAll().stream().collect(Collectors.toMap(PrescriptionScheduleEntry::getId, Function.identity()));
-    }
-
-    public List<PrescriptionScheduleEntry> getPatientPrescriptionScheduleEntries(UserModel userModel) {
-        return prescriptionScheduleEntryRepository.findAll().stream().filter(pse -> pse.getPrescription().getPatient().getId().equals(userModel.getId()))
-                .distinct().toList();
-    }
-
-
-    public List<Medication> getPatientMedications(UserModel userModel) {
-        return getPrescriptions(userModel).stream()
-                .map(Prescription::getMedication)
-                .distinct()
-                .toList();
-    }
-
-    public List<DAYSTAGE> getPatientPrescriptionDayStages(UserModel userModel) {
-        return this.getPatientPrescriptionScheduleEntries(userModel).stream().map(PrescriptionScheduleEntry::getDayStage).distinct().toList();
-    }
-
-    public HashMap<Medication, HashSet<LocalDate>> getPatientPrescriptionDatesByMedication(UserModel userModel) {
-        HashMap<Medication, HashSet<LocalDate>> medDates = new HashMap<>();
-        this.getPrescriptions(userModel)
-                .stream()
-                .collect(Collectors.groupingBy(Prescription::getMedication))
-                .forEach((medication, prescriptions) ->
-
-                        prescriptions.forEach(prescription -> {
-                            LocalDate start = prescription.getBeginTime().toLocalDate();
-                            LocalDate end = ((prescription.getEndTime() == null) ? LocalDate.now() : prescription.getEndTime().toLocalDate()).plusDays(1);
-                            long numDays = ChronoUnit.DAYS.between(start, end);
-                            List<LocalDate> dates = Stream.iterate(start, date -> date.plusDays(1)).limit(numDays).toList();
-                            medDates.putIfAbsent(medication, new HashSet<>());
-                            medDates.get(medication).addAll(dates);
-                        })
-                );
-
-        return medDates;
     }
 
 

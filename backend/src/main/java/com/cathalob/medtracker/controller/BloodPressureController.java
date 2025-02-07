@@ -1,11 +1,11 @@
 package com.cathalob.medtracker.controller;
 
-import com.cathalob.medtracker.payload.data.PrescriptionDetailsData;
+import com.cathalob.medtracker.payload.request.graph.GraphDataForDateRangeRequest;
+import com.cathalob.medtracker.payload.request.graph.PatientGraphDataForDateRangeRequest;
 import com.cathalob.medtracker.payload.request.patient.AddDatedBloodPressureReadingRequest;
 import com.cathalob.medtracker.payload.request.patient.AddDatedBloodPressureReadingRequestResponse;
 import com.cathalob.medtracker.payload.request.patient.DatedBloodPressureDataRequest;
 import com.cathalob.medtracker.payload.response.BloodPressureDataRequestResponse;
-import com.cathalob.medtracker.payload.response.SubmitPrescriptionDetailsResponse;
 import com.cathalob.medtracker.payload.response.TimeSeriesGraphDataResponse;
 import com.cathalob.medtracker.service.impl.BloodPressureDataService;
 import lombok.RequiredArgsConstructor;
@@ -22,18 +22,22 @@ public class BloodPressureController {
 
     private final BloodPressureDataService bloodPressureDataService;
 
-    @GetMapping("/systole-graph-data")
+    @PostMapping("/systole-graph-data")
     @PreAuthorize("hasRole('ROLE_PATIENT')")
-    public ResponseEntity<TimeSeriesGraphDataResponse> getSystoleGraphData(Authentication authentication) {
-        return ResponseEntity.ok(bloodPressureDataService.getSystoleGraphData(authentication.getName()));
+    public ResponseEntity<TimeSeriesGraphDataResponse> getSystoleGraphDataDateRange(
+            @RequestBody GraphDataForDateRangeRequest request,
+            Authentication authentication) {
+        return ResponseEntity.ok(bloodPressureDataService.getSystoleGraphData(authentication.getName(), request));
     }
 
-    @GetMapping("/systole-graph-data/patient")
+
+
+    @PostMapping("/systole-graph-data/patient")
     @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
-    public ResponseEntity<TimeSeriesGraphDataResponse> getPatientSystoleGraphData(
-            @RequestParam(required = false, name = "id") Long patientId,
+    public ResponseEntity<TimeSeriesGraphDataResponse> getPatientSystoleGraphDataDateRange(
+            @RequestBody PatientGraphDataForDateRangeRequest request,
             Authentication authentication) {
-        return ResponseEntity.ok(bloodPressureDataService.getPatientSystoleGraphData(patientId, authentication.getName()));
+        return ResponseEntity.ok(bloodPressureDataService.getPatientSystoleGraphDataDateRange(request.getPatientId(), authentication.getName(), request));
     }
 
 

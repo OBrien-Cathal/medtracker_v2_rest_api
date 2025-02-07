@@ -12,6 +12,7 @@ import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
 import com.cathalob.medtracker.model.tracking.DailyEvaluation;
 import com.cathalob.medtracker.model.tracking.Dose;
 import com.cathalob.medtracker.payload.data.GraphData;
+import com.cathalob.medtracker.payload.request.graph.GraphDataForDateRangeRequest;
 import com.cathalob.medtracker.payload.request.patient.AddDailyDoseDataRequest;
 import com.cathalob.medtracker.payload.request.patient.GetDailyDoseDataRequest;
 import com.cathalob.medtracker.payload.response.AddDailyDoseDataRequestResponse;
@@ -27,11 +28,10 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
 
 @Service
 @AllArgsConstructor
@@ -59,11 +59,11 @@ public class DoseService {
         return doseRepository.findAll().stream().collect(Collectors.toMap(Dose::getId, Function.identity()));
     }
 
-    public TimeSeriesGraphDataResponse getDoseGraphData(String patientUsername) {
-        return getDoseGraphDataResponse(userService.findByLogin(patientUsername));
+    public TimeSeriesGraphDataResponse getDoseGraphData(String patientUsername, GraphDataForDateRangeRequest request) {
+        return getDoseGraphDataResponse(userService.findByLogin(patientUsername), request.getStart(), request.getEnd(), false);
     }
 
-    public TimeSeriesGraphDataResponse getPatientDoseGraphData(Long patientUserModelId, String practitionerUsername) {
+    public TimeSeriesGraphDataResponse getPatientDoseGraphData(Long patientUserModelId, String practitionerUsername, GraphDataForDateRangeRequest request) {
         UserModel practitioner = userService.findByLogin(practitionerUsername);
         Optional<UserModel> maybePatient = userService.findUserModelById(patientUserModelId);
         if (maybePatient.isEmpty()) return TimeSeriesGraphDataResponse.Failure();
@@ -73,7 +73,7 @@ public class DoseService {
             return TimeSeriesGraphDataResponse.Failure(List.of("Only registered practitioners can view this patients data"));
 
         }
-        return getDoseGraphDataResponse(patient);
+        return getDoseGraphDataResponse(patient, request.getStart(), request.getEnd(), false);
     }
 
     public GetDailyDoseDataRequestResponse getDailyDoseData(GetDailyDoseDataRequest request, String username) {
@@ -117,95 +117,170 @@ public class DoseService {
         return AddDailyDoseDataRequestResponse.Success(LocalDate.now(), saved.getId());
     }
 
-    private TimeSeriesGraphDataResponse getDoseGraphDataResponse(UserModel patient) {
-        return TimeSeriesGraphDataResponse.Success(
-                new GraphData(
-                        getDoseGraphColumnNames(patient),
-                        getDoseGraphData(patient)));
+    private Map<LocalDate, List<Dose>> existingDoses(UserModel patient, LocalDate start, LocalDate end) {
 
+        List<DailyEvaluation> existingDailyEvaluations = dailyEvaluationRepository.findDailyEvaluationsByUserModel(patient)
+                .stream()
+                .filter(dailyEvaluation ->
+
+                        (dailyEvaluation.getRecordDate().isEqual(start) || dailyEvaluation.getRecordDate().isAfter(start))
+                                &&
+                                (dailyEvaluation.getRecordDate().isEqual(end) || dailyEvaluation.getRecordDate().isBefore(end))).toList();
+
+        return existingDailyEvaluations
+                .stream()
+                .collect(Collectors.toMap(DailyEvaluation::getRecordDate, doseRepository::findByEvaluation));
     }
 
-    private List<List<Object>> getDoseGraphData(UserModel userModel) {
-        List<List<Object>> listData = new ArrayList<>();
-        List<Dose> doses = getDoses(userModel);
+    private Map<LocalDate, List<Dose>> dummyDosesForRange(UserModel patient, LocalDate start, LocalDate end) {
 
-        TreeMap<LocalDate, List<Dose>> byDate = doses.stream()
-                .sorted(Comparator.comparing(dose -> dose.getDoseTime().toLocalDate()))
-                .collect(Collectors.groupingBy(dose -> dose.getDoseTime().toLocalDate(), TreeMap::new, Collectors.toList()));
+        HashMap<LocalDate, List<PrescriptionScheduleEntry>> entriesByDate =
+                prescriptionsService.getPrescriptionScheduleEntriesValidBetween(patient, start, end);
 
-        List<Medication> medicationList = prescriptionsService.getPatientMedications(userModel).stream().sorted(Comparator.comparing(Medication::getName)).toList();
-        List<DAYSTAGE> daystageList = prescriptionsService.getPatientPrescriptionDayStages(userModel).stream().sorted(Comparator.comparing(DAYSTAGE::ordinal)).toList();
-        HashMap<Medication, HashSet<LocalDate>> patientPrescriptionDatesByMedication = prescriptionsService.getPatientPrescriptionDatesByMedication(userModel);
+        return doseMapper.dummyDosesForRange(entriesByDate);
+    }
 
-        Optional<LocalDate> start = byDate.keySet().stream().distinct().min(LocalDate::compareTo);
 
-        Optional<LocalDate> endDose = byDate.keySet().stream().distinct().max(LocalDate::compareTo);
-        LocalDate now = LocalDate.now().plusDays(1);
-        LocalDate end = endDose.isPresent() && endDose.get().isAfter(now) ? endDose.get() : now;
+    private TimeSeriesGraphDataResponse getDoseGraphDataResponse(UserModel patient, LocalDate start, LocalDate end, boolean interpolate) {
 
-        List<LocalDate> daysRange = new ArrayList<>();
-        if (start.isPresent()) {
-            long numDays = ChronoUnit.DAYS.between(start.get(), end);
-            daysRange.addAll(Stream.iterate(start.get(), date -> date.plusDays(1)).limit(numDays).toList());
+        if (start == null || end == null) {
+            return TimeSeriesGraphDataResponse.Failure(List.of("No date range provided"));
         }
 
-        for (LocalDate date : daysRange) {
-            List<Dose> dosesByDate = (byDate.get(date) == null) ? new ArrayList<>() : byDate.get(date);
+        Map<LocalDate, List<Dose>> existingDosesByDate = existingDoses(patient, start, end);
+        Map<LocalDate, List<Dose>> dummyDosesByDate = dummyDosesForRange(patient, start, end);
 
-            List<Object> dayDoseData = new ArrayList<>();
-            Map<Medication, List<Dose>> byMedication = dosesByDate.stream()
-                    .collect(Collectors.groupingBy(dose -> dose.getPrescriptionScheduleEntry().getPrescription().getMedication()));
+        TreeMap<LocalDate, List<Dose>> orderedDosesMap = new TreeMap<>();
 
-            dayDoseData.add(date);
-            for (Medication medication : medicationList) {
-                for (DAYSTAGE daystage : daystageList) {
-                    boolean isPrescribedOnDate = patientPrescriptionDatesByMedication.containsKey(medication) && patientPrescriptionDatesByMedication.get(medication).contains(date);
+        LocalDate current = start;
+        while (current.isEqual(end) || current.isBefore(end)) {
 
-                    if (byMedication.containsKey(medication)) {
-                        Map<DAYSTAGE, List<Dose>> byDayStage = byMedication.get(medication).stream()
-                                .collect(Collectors.groupingBy(dose -> dose.getPrescriptionScheduleEntry().getDayStage()));
-                        List<Dose> doseEntriesForDayStage = byDayStage
-                                .get(daystage);
-                        if (byDayStage.containsKey(daystage)) {
-                            if (doseEntriesForDayStage.stream().filter(Dose::isTaken).toList().isEmpty()) {
-                                dayDoseData.add(0);
-                            } else {
-                                dayDoseData.add(doseEntriesForDayStage.stream().filter(Dose::isTaken).mapToInt(value -> value.getPrescriptionScheduleEntry().getPrescription().getDoseMg()).sum());
-                            }
-                        } else {
-                            dayDoseData.add(isPrescribedOnDate ? 0 : null);
-                        }
+            Map<Long, Dose> existingDosesByEntryId = existingDosesByDate.getOrDefault(current, new ArrayList<>()).stream()
+                    .collect(Collectors.toMap(dose -> dose.getPrescriptionScheduleEntry().getId(), Function.identity()));
+
+            List<Dose> dummyDosesForCurrentDate = dummyDosesByDate.get(current);
+
+            if (existingDosesByEntryId.isEmpty()) {
+                //  add the full set of dummy doses for the date
+                orderedDosesMap.put(current, dummyDosesForCurrentDate);
+            } else {
+                // if some doses exist for a date, we need to ensure that the set is complete
+                orderedDosesMap.put(current, dummyDosesForCurrentDate.stream().map(dummyDose -> {
+                    Dose foundExistingDoseForEntry = existingDosesByEntryId.get(dummyDose.getPrescriptionScheduleEntry().getId());
+                    return foundExistingDoseForEntry == null ? dummyDose : foundExistingDoseForEntry;
+                }).toList());
+            }
+            //  move to the next date
+            current = current.plusDays(1);
+        }
+
+        return TimeSeriesGraphDataResponse.Success(
+                getDoseGraphData(orderedDosesMap));
+    }
+
+    private GraphData getDoseGraphData(TreeMap<LocalDate, List<Dose>> orderedDosesMap) {
+        List<Dose> doseList = orderedDosesMap.values()
+                .stream()
+                .flatMap(List::stream).toList();
+        List<Medication> distinctMedications = doseList.stream()
+                .map(dose -> dose.getPrescriptionScheduleEntry()
+                        .getPrescription()
+                        .getMedication())
+                .distinct().sorted(Comparator.comparing(Medication::getName))
+                .toList();
+        List<DAYSTAGE> distinctDayStages = doseList.stream()
+                .map(dose -> dose.getPrescriptionScheduleEntry()
+                        .getDayStage())
+                .distinct().sorted(Comparator.comparing(DAYSTAGE::ordinal))
+                .toList();
+
+
+        List<List<Object>> listData = new ArrayList<>();
+
+        LinkedHashMap<String, HashMap<LocalDate, List<Integer>>> columnRegistry = new LinkedHashMap<>();
+
+        for (LocalDate currentDate : orderedDosesMap.keySet()) {
+            List<Dose> doseForCurrentDate = orderedDosesMap.get(currentDate);
+
+
+            for (Medication medication : distinctMedications) {
+                for (DAYSTAGE daystage : distinctDayStages) {
+
+                    List<Dose> dosesByMedAndDayStage = doseForCurrentDate.stream()
+                            .filter(dose ->
+                                    dose.getPrescriptionScheduleEntry().getPrescription().getMedication().getId().equals(medication.getId())
+                                            && dose.getPrescriptionScheduleEntry().getDayStage().equals(daystage)).toList();
+
+                    String columnName = medication.nameWithDayStage(daystage);
+
+                    columnRegistry.putIfAbsent(columnName, new HashMap<>());
+                    HashMap<LocalDate, List<Integer>> localDateListHashMap = columnRegistry.get(columnName);
+
+                    localDateListHashMap.putIfAbsent(currentDate, new ArrayList<>());
+                    List<Integer> byMedDayStageAndDate = localDateListHashMap.get(currentDate);
+
+                    if (dosesByMedAndDayStage.isEmpty()) {
+                        byMedDayStageAndDate.add(null);
                     } else {
-                        dayDoseData.add(isPrescribedOnDate ? 0 : null);
+
+                        byMedDayStageAndDate.add(
+                                dosesByMedAndDayStage.stream()
+                                        .filter(Dose::isTaken)
+                                        .mapToInt(value -> value.getPrescriptionScheduleEntry().getPrescription().getDoseMg())
+                                        .sum());
                     }
                 }
             }
-            listData.add(dayDoseData);
+
         }
-        return listData;
-    }
+
+        LinkedHashMap<String, HashMap<LocalDate, List<Integer>>> columnsWithAtLeastOneValue = new LinkedHashMap<>();
+
+        columnRegistry.entrySet().stream()
+                .filter(column -> {
+
+                    Collection<List<Integer>> values = column.getValue().values();
+                    System.out.println("Ints colls for column: " + column.getKey() + " -- " + values);
+                    boolean allEmptyForColumn = values.stream()
+                            .allMatch(integersOrNulls -> {
+                                System.out.println("Ints for date and column");
+                                boolean allNullByDate = integersOrNulls.stream().allMatch(Objects::isNull);
+                                System.out.println("All null today = " + allNullByDate);
+                                return allNullByDate;
+                            });
+                    System.out.println("All empty for column: " + allEmptyForColumn);
+                    System.out.println("Should filter column: " + !allEmptyForColumn);
+                    return !allEmptyForColumn;
 
 
-    private List<String> getDoseGraphColumnNames(UserModel userModel) {
+                }).toList()
+                .forEach(stringHashMapEntry ->
+                        columnsWithAtLeastOneValue.put(stringHashMapEntry.getKey(), stringHashMapEntry.getValue()));
+
+
         List<String> names = new ArrayList<>();
         names.add("Date");
-        List<String> dayStageNames = this.prettifiedDayStageNames(prescriptionsService.getPatientPrescriptionDayStages(userModel));
+        names.addAll(columnsWithAtLeastOneValue.keySet().stream().toList());
 
-        for (String medication : prescriptionsService.getPatientMedications(userModel)
-                .stream()
-                .map(Medication::getName)
-                .sorted()
-                .toList()) {
-            for (String dayStage : dayStageNames) {
-                names.add(medication + " (" + dayStage + ')');
-            }
+        System.out.println("All Data Columns = " + columnRegistry.keySet());
+        System.out.println("Fil Data Columns = " + names);
+
+        for (LocalDate currentDate : orderedDosesMap.keySet()) {
+            List<Object> dayDoseData = new ArrayList<>();
+            dayDoseData.add(currentDate);
+
+            columnsWithAtLeastOneValue.forEach((columnName, dosesForColumn) -> {
+                List<Integer> columnDosesForDate = dosesForColumn.get(currentDate);
+                if (columnDosesForDate != null) dayDoseData.addAll(columnDosesForDate);
+            });
+
+            System.out.println(dayDoseData);
+            listData.add(dayDoseData);
         }
-        return names;
+
+        return new GraphData(
+                names,
+                listData);
     }
 
-
-    private List<String> prettifiedDayStageNames(List<DAYSTAGE> dayStages) {
-        return dayStages.stream().map(ds -> (
-                ds.toString().charAt(0) + ds.toString().substring(1).toLowerCase())).toList();
-    }
 }
