@@ -1,6 +1,7 @@
 package com.cathalob.medtracker.validate.model;
 
 import com.cathalob.medtracker.exception.validation.DailyEvaluationValidationException;
+import com.cathalob.medtracker.exception.validation.PrescriptionScheduleEntryValidatorException;
 import com.cathalob.medtracker.exception.validation.dose.DailyDoseDataException;
 import com.cathalob.medtracker.model.tracking.Dose;
 import com.cathalob.medtracker.validate.Validator;
@@ -37,10 +38,11 @@ public class DoseValidator extends Validator {
 
         LocalDateTime prescriptionBegin = dose.getPrescriptionScheduleEntry().getPrescription().getBeginTime();
         if (doseTime.isBefore(prescriptionBegin)) {
-            addError(String.format("Cannot enter dose data for %s before prescription begin time %s", doseTime, prescriptionBegin ));
+            addError(String.format("Cannot enter dose data for %s before prescription begin time %s", doseTime, prescriptionBegin));
         }
 
     }
+
     private void validateDailyEvaluation() {
         try {
             DailyEvaluationValidator.aDailyEvaluationValidator(dose.getEvaluation()).validate();
@@ -50,9 +52,11 @@ public class DoseValidator extends Validator {
     }
 
     private void validatePrescriptionScheduleEntry() {
-
-        PrescriptionScheduleEntryValidator.aPrescriptionScheduleEntryValidator(dose.getPrescriptionScheduleEntry()).validate();
-
+        try {
+            PrescriptionScheduleEntryValidator.aPrescriptionScheduleEntryValidator(dose.getPrescriptionScheduleEntry()).validate();
+        } catch (PrescriptionScheduleEntryValidatorException e) {
+            addErrors(e.getErrors());
+        }
     }
 
     public static DoseValidator AddDoseValidator(Dose dose) {

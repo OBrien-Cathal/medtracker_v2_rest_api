@@ -43,7 +43,7 @@ class BloodPressureDataServiceTests {
  private BloodPressureReadingRepository bloodPressureReadingRepository;
 
 
-    @DisplayName("Basic BP graph data request with valid date range is successful")
+    @DisplayName("BP graph data request with valid date range is successful")
     @Test
     public void givenGraphDataForDateRangeRequest_whenGetSystoleGraphData_thenReturnSuccessfulResponse() {
         //given - precondition or setup
@@ -75,7 +75,7 @@ class BloodPressureDataServiceTests {
 
 
     }
-    @DisplayName("Basic BP graph data request with missing date range fails")
+    @DisplayName("BP graph data request with missing date range returns failure response")
     @Test
     public void givenGraphDataForDateRangeRequestWithEmptyRange_whenGetSystoleGraphData_thenReturnFailureResponse() {
         //given - precondition or setup
@@ -85,15 +85,8 @@ class BloodPressureDataServiceTests {
         UserModelBuilder patientBuilder = UserModelBuilder.aUserModel().withRole(USERROLE.PATIENT);
         UserModel patient = patientBuilder.build();
 
-        BloodPressureReading bpReading = BloodPressureReadingBuilder.aBloodPressureReading().build();
-
         given(userService.findByLogin(patient.getUsername()))
                 .willReturn(patient);
-//        given(dailyEvaluationRepository.findDailyEvaluationsByUserModel(patient))
-//                .willReturn(List.of(bpReading.getDailyEvaluation()));
-//        given(bloodPressureReadingRepository.findByDailyEvaluation(bpReading.getDailyEvaluation()))
-//                .willReturn(List.of(bpReading));
-        // when - action or the behaviour that we are going test
         TimeSeriesGraphDataResponse response = bloodPressureDataService.getSystoleGraphData(patient.getUsername(), request);
 
 

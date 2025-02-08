@@ -1,6 +1,8 @@
 package com.cathalob.medtracker.controller;
 
 import com.cathalob.medtracker.exception.validation.dose.DailyDoseDataException;
+import com.cathalob.medtracker.exception.validation.dose.DoseGraphDataException;
+import com.cathalob.medtracker.mapper.DoseMapper;
 import com.cathalob.medtracker.payload.request.graph.GraphDataForDateRangeRequest;
 import com.cathalob.medtracker.payload.request.graph.PatientGraphDataForDateRangeRequest;
 import com.cathalob.medtracker.payload.request.patient.*;
@@ -14,33 +16,46 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+
 @RestController
 @RequestMapping("/api/v1/doses")
 @RequiredArgsConstructor
 public class DosesController {
     private final DoseService doseService;
+    private final DoseMapper doseMapper;
 
     @PostMapping("/graph-data")
     @PreAuthorize("hasRole('ROLE_PATIENT')")
     public ResponseEntity<TimeSeriesGraphDataResponse> getDoseGraphData(
             Authentication authentication,
             @RequestBody GraphDataForDateRangeRequest request) {
-        return ResponseEntity.ok(doseService.getDoseGraphData(authentication.getName(), request));
+
+        try {
+            return ResponseEntity.ok(
+                    TimeSeriesGraphDataResponse.Success(doseMapper.getDoseGraphData(doseService.getDoseGraphData(authentication.getName(),
+                            request.getStart(),
+                            request.getEnd()))));
+        } catch (DoseGraphDataException e) {
+            return ResponseEntity.ok(TimeSeriesGraphDataResponse.Failure(e.getErrors()));
+        }
     }
-
-//    @GetMapping("/graph-data")
-//    @PreAuthorize("hasRole('ROLE_PATIENT')")
-//    public ResponseEntity<TimeSeriesGraphDataResponse> getDoseGraphDataDateRange(Authentication authentication) {
-//        return ResponseEntity.ok(doseService.getDoseGraphData(authentication.getName()));
-//    }
-
 
     @PostMapping("/graph-data/patient")
     @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
     public ResponseEntity<TimeSeriesGraphDataResponse> getPatientDoseGraphData(
+            Authentication authentication, @RequestBody PatientGraphDataForDateRangeRequest request) {
 
-            Authentication authentication,@RequestBody PatientGraphDataForDateRangeRequest request) {
-        return ResponseEntity.ok(doseService.getPatientDoseGraphData(request.getPatientId(), authentication.getName(), request ));
+        try {
+            return ResponseEntity.ok(
+                    TimeSeriesGraphDataResponse.Success(
+                            doseMapper.getDoseGraphData(doseService.getPatientDoseGraphData(request.getPatientId(),
+                                    authentication.getName(),
+                                    request.getStart(),
+                                    request.getEnd()))));
+        } catch (DoseGraphDataException e) {
+            return ResponseEntity.ok(TimeSeriesGraphDataResponse.Failure(e.getErrors()));
+        }
     }
 
 
@@ -49,7 +64,15 @@ public class DosesController {
     public ResponseEntity<GetDailyDoseDataRequestResponse> getDailyDoseData(
             @RequestBody GetDailyDoseDataRequest request,
             Authentication authentication) {
-        return ResponseEntity.ok(doseService.getDailyDoseData(request, authentication.getName()));
+        try {
+
+            return ResponseEntity.ok(GetDailyDoseDataRequestResponse.Success(
+                    LocalDate.now(),
+                    doseMapper.dailyMedicationDoseDataList(
+                            doseService.getDailyDoseData(authentication.getName(), request.getDate()))));
+        } catch (DoseGraphDataException e) {
+            return ResponseEntity.ok(GetDailyDoseDataRequestResponse.Failed(request.getDate(), e.getErrors()));
+        }
     }
 
     @PostMapping("/add-daily-dose-data")
@@ -57,14 +80,22 @@ public class DosesController {
     public ResponseEntity<AddDailyDoseDataRequestResponse> addDailyDoseData(
             @RequestBody AddDailyDoseDataRequest request,
             Authentication authentication) {
-        AddDailyDoseDataRequestResponse response;
+
         try {
-            response = (doseService.addDailyDoseData(request, authentication.getName()));
+            System.out.println("try add");
+            ResponseEntity<AddDailyDoseDataRequestResponse> ok = ResponseEntity.ok(AddDailyDoseDataRequestResponse.Success(request.getDate(), doseService.addDailyDoseData(authentication.getName(),
+                    doseMapper.dose(request),
+                    request.getDailyDoseData().getPrescriptionScheduleEntryId(),
+                    request.getDate())));
+            System.out.println(ok);
+            return ok;
+
 
         } catch (DailyDoseDataException e) {
-            response = (AddDailyDoseDataRequestResponse.Failed(request.getDate(), e.getErrors()));
+            System.out.println("catch add");
+            return ResponseEntity.ok(AddDailyDoseDataRequestResponse.Failed(request.getDate(), e.getErrors()));
         }
-        return ResponseEntity.ok(response);
+
     }
 
 

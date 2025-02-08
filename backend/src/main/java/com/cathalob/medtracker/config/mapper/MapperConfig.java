@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.service.config;
+package com.cathalob.medtracker.config.mapper;
 
 import com.cathalob.medtracker.mapper.DailyEvaluationMapper;
 import com.cathalob.medtracker.mapper.DoseMapper;

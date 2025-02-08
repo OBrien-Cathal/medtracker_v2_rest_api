@@ -47,7 +47,7 @@ public class BloodPressureDataService {
         return getBloodPressureGraphData(BloodPressureReading::getSystole, userService.findByLogin(username), request.getStart(), request.getEnd(), false);
     }
 
-    public TimeSeriesGraphDataResponse getPatientSystoleGraphDataDateRange(Long patientUserModelId, String practitionerUsername, GraphDataForDateRangeRequest request) {
+    public TimeSeriesGraphDataResponse getPatientSystoleGraphData(Long patientUserModelId, String practitionerUsername, GraphDataForDateRangeRequest request) {
         UserModel practitioner = userService.findByLogin(practitionerUsername);
 //        validate that the practitioner is a doc of the patient, and allowed to see the patient data
         Optional<UserModel> maybePatient = userService.findUserModelById(patientUserModelId);

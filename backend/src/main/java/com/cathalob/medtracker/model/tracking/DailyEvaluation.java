@@ -28,4 +28,11 @@ public class DailyEvaluation {
     public DailyEvaluationId getDailyEvaluationIdClass() {
         return new DailyEvaluationId(userModel != null ? userModel.getId() : null, recordDate);
     }
+
+
+    public boolean isActiveBetween(LocalDate start, LocalDate end) {
+        return (recordDate.isEqual(start) || recordDate.isAfter(start))
+                &&
+                (recordDate.isEqual(end) || recordDate.isBefore(end));
+    }
 }

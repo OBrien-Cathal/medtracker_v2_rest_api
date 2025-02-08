@@ -37,7 +37,7 @@ public class BloodPressureController {
     public ResponseEntity<TimeSeriesGraphDataResponse> getPatientSystoleGraphDataDateRange(
             @RequestBody PatientGraphDataForDateRangeRequest request,
             Authentication authentication) {
-        return ResponseEntity.ok(bloodPressureDataService.getPatientSystoleGraphDataDateRange(request.getPatientId(), authentication.getName(), request));
+        return ResponseEntity.ok(bloodPressureDataService.getPatientSystoleGraphData(request.getPatientId(), authentication.getName(), request));
     }
 
 

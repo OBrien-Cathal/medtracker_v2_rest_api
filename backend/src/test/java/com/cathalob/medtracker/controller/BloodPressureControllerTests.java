@@ -3,7 +3,9 @@ package com.cathalob.medtracker.controller;
 import com.cathalob.medtracker.config.SecurityConfig;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
+import com.cathalob.medtracker.payload.data.GraphData;
 import com.cathalob.medtracker.payload.request.graph.GraphDataForDateRangeRequest;
+import com.cathalob.medtracker.payload.request.graph.PatientGraphDataForDateRangeRequest;
 import com.cathalob.medtracker.payload.response.TimeSeriesGraphDataResponse;
 import com.cathalob.medtracker.service.impl.*;
 import com.cathalob.medtracker.testdata.UserModelBuilder;
@@ -43,15 +45,15 @@ class BloodPressureControllerTests {
     @MockBean
     private BloodPressureDataService bloodPressureDataService;
 
-    @DisplayName("Get blood pressure graph data by date range")
+    @DisplayName("valid PATIENT request for BP graph data returns success response")
     @Test
     @WithMockUser(value = "user@user.com", roles = {"PATIENT"})
-    public void givenGraphDataRequestForDateRange_whenGetSystoleGraphDataDateRange_thenReturnResponse() throws Exception {
+    public void givenPATIENTValidGraphDataRequest_whenGetSystoleGraphData_thenReturnSuccess() throws Exception {
         //given - precondition or setup
         UserModel userModel = UserModelBuilder.aUserModel().withRole(USERROLE.PATIENT).build();
 
         GraphDataForDateRangeRequest request = GraphDataForDateRangeRequest.builder().start(LocalDate.now().plusDays(-1)).end(LocalDate.now().plusDays(1)).build();
-        TimeSeriesGraphDataResponse response = TimeSeriesGraphDataResponse.Failure();
+        TimeSeriesGraphDataResponse response = TimeSeriesGraphDataResponse.Success(new GraphData());
         System.out.println(response.getResponseInfo());
         given(bloodPressureDataService.getSystoleGraphData(userModel.getUsername(), request))
                 .willReturn(response);
@@ -59,6 +61,35 @@ class BloodPressureControllerTests {
         // when - action or the behaviour that we are going test
         ResultActions usersResponse = mockMvc.perform(
                 post("/api/v1/blood-pressure/systole-graph-data")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)));
+
+        // then - verify the output
+        usersResponse
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseInfo.successful").isBoolean());
+    }
+
+    @DisplayName("valid PRACTITIONER request for BP graph data returns success response")
+    @Test
+    @WithMockUser(value = "user@user.com", roles = {"PRACTITIONER"})
+    public void givenPRACTITIONERGraphDataRequest_whenGetPatientSystoleGraphData_thenReturnResponse() throws Exception {
+        //given - precondition or setup
+        UserModel userModel = UserModelBuilder.aUserModel().withRole(USERROLE.PATIENT).build();
+
+        PatientGraphDataForDateRangeRequest request = new PatientGraphDataForDateRangeRequest();
+        request.setPatientId(1L);
+        request.setStart(LocalDate.now().plusDays(-1));
+        request.setEnd(LocalDate.now().plusDays(1));
+
+        TimeSeriesGraphDataResponse response = TimeSeriesGraphDataResponse.Success(new GraphData());
+        given(bloodPressureDataService.getPatientSystoleGraphData(request.getPatientId(), userModel.getUsername(), request))
+                .willReturn(response);
+
+        // when - action or the behaviour that we are going test
+        ResultActions usersResponse = mockMvc.perform(
+                post("/api/v1/blood-pressure/systole-graph-data/patient")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)));
 
