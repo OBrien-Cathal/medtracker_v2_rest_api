@@ -58,7 +58,6 @@ public class PrescriptionsService {
     }
 
     public GetPrescriptionDetailsResponse getPrescriptionDetails(String practitionerUsername, Long prescriptionId) {
-        System.out.println("getPrescriptionDetails");
         Prescription prescriptionOrNull = prescriptionsRepository.findById(prescriptionId).orElse(null);
         if (prescriptionOrNull == null)
             return GetPrescriptionDetailsResponse.Failed(List.of("Prescription with ID does not exist (ID: " + prescriptionId + ")"));

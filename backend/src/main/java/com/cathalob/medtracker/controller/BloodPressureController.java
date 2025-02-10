@@ -1,5 +1,9 @@
 package com.cathalob.medtracker.controller;
 
+import com.cathalob.medtracker.exception.validation.bloodpressure.AddBloodPressureDailyDataException;
+import com.cathalob.medtracker.exception.validation.bloodpressure.BloodPressureDailyDataExceptionData;
+import com.cathalob.medtracker.exception.validation.bloodpressure.BloodPressureGraphDataException;
+import com.cathalob.medtracker.mapper.BloodPressureMapper;
 import com.cathalob.medtracker.payload.request.graph.GraphDataForDateRangeRequest;
 import com.cathalob.medtracker.payload.request.graph.PatientGraphDataForDateRangeRequest;
 import com.cathalob.medtracker.payload.request.patient.AddDatedBloodPressureReadingRequest;
@@ -19,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/blood-pressure")
 @RequiredArgsConstructor
 public class BloodPressureController {
-
+    private final BloodPressureMapper bloodPressureMapper;
     private final BloodPressureDataService bloodPressureDataService;
 
     @PostMapping("/systole-graph-data")
@@ -27,9 +31,16 @@ public class BloodPressureController {
     public ResponseEntity<TimeSeriesGraphDataResponse> getSystoleGraphDataDateRange(
             @RequestBody GraphDataForDateRangeRequest request,
             Authentication authentication) {
-        return ResponseEntity.ok(bloodPressureDataService.getSystoleGraphData(authentication.getName(), request));
-    }
+        try {
 
+            return ResponseEntity.ok(TimeSeriesGraphDataResponse.Success(bloodPressureMapper.getSystoleGraphData(
+                    bloodPressureDataService.getBloodPressureReadingsForDateRange(authentication.getName(), request.getStart(), request.getEnd()))));
+
+        } catch (BloodPressureGraphDataException e) {
+            return ResponseEntity.ok(TimeSeriesGraphDataResponse.Failure(e.getErrors()));
+        }
+
+    }
 
 
     @PostMapping("/systole-graph-data/patient")
@@ -37,7 +48,17 @@ public class BloodPressureController {
     public ResponseEntity<TimeSeriesGraphDataResponse> getPatientSystoleGraphDataDateRange(
             @RequestBody PatientGraphDataForDateRangeRequest request,
             Authentication authentication) {
-        return ResponseEntity.ok(bloodPressureDataService.getPatientSystoleGraphData(request.getPatientId(), authentication.getName(), request));
+        try {
+            return ResponseEntity.ok(TimeSeriesGraphDataResponse.Success(bloodPressureMapper.getSystoleGraphData(
+                    bloodPressureDataService.getPatientBloodPressureReadingsForDateRange(request.getPatientId(),
+                            authentication.getName(),
+                            request.getStart(),
+                            request.getEnd()))));
+
+        } catch (BloodPressureGraphDataException e) {
+            return ResponseEntity.ok(TimeSeriesGraphDataResponse.Failure(e.getErrors()));
+        }
+
     }
 
 
@@ -46,7 +67,19 @@ public class BloodPressureController {
     public ResponseEntity<BloodPressureDataRequestResponse> getBloodPressureDailyData(
             @RequestBody DatedBloodPressureDataRequest datedBloodPressureDataRequest,
             Authentication authentication) {
-        return ResponseEntity.ok(bloodPressureDataService.getBloodPressureData(datedBloodPressureDataRequest, authentication.getName()));
+        try {
+            return ResponseEntity.ok(
+                    BloodPressureDataRequestResponse.Success(
+                            bloodPressureMapper.bloodPressureDataList(
+                                    bloodPressureDataService.getBloodPressureData(
+                                            authentication.getName(),
+                                            datedBloodPressureDataRequest.getDate()
+                                    ))));
+        } catch (BloodPressureDailyDataExceptionData e) {
+            return ResponseEntity.ok(BloodPressureDataRequestResponse.Failed(e.getErrors()));
+        }
+
+
     }
 
     @PostMapping("/add-blood-pressure-daily-data")
@@ -54,7 +87,18 @@ public class BloodPressureController {
     public ResponseEntity<AddDatedBloodPressureReadingRequestResponse> addBloodPressureDailyData(
             @RequestBody AddDatedBloodPressureReadingRequest request,
             Authentication authentication) {
-        return ResponseEntity.ok(bloodPressureDataService.addBloodPressureReading(request, authentication.getName()));
+        try {
+            return ResponseEntity.ok(
+                    AddDatedBloodPressureReadingRequestResponse.Success(
+                            bloodPressureDataService.addBloodPressureReading(
+                                    bloodPressureMapper.toBloodPressureReading(request),
+                                    request.getDate(),
+                                    authentication.getName()
+                            )));
+        } catch (AddBloodPressureDailyDataException e) {
+            return ResponseEntity.ok(AddDatedBloodPressureReadingRequestResponse.Failed(e.getErrors()));
+        }
+
     }
 
 }

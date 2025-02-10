@@ -3,12 +3,10 @@ package com.cathalob.medtracker.service.impl;
 import com.cathalob.medtracker.exception.validation.dose.DailyDoseDataException;
 import com.cathalob.medtracker.exception.validation.dose.DoseGraphDataException;
 import com.cathalob.medtracker.factory.DoseServiceModelFactory;
-import com.cathalob.medtracker.mapper.DailyEvaluationMapper;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
 import com.cathalob.medtracker.model.tracking.DailyEvaluation;
 import com.cathalob.medtracker.model.tracking.Dose;
-import com.cathalob.medtracker.repository.DailyEvaluationRepository;
 import com.cathalob.medtracker.repository.DoseRepository;
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.PrescriptionScheduleEntryRepository;
@@ -30,9 +28,8 @@ public class DoseService {
     private final DoseRepository doseRepository;
     private final UserService userService;
     private final PatientRegistrationRepository patientRegistrationRepository;
-    private final DailyEvaluationRepository dailyEvaluationRepository;
+    private final EvaluationDataService evaluationDataService;
     private final PrescriptionScheduleEntryRepository prescriptionScheduleEntryRepository;
-    private final DailyEvaluationMapper dailyEvaluationMapper;
     private final DoseServiceModelFactory factory;
 
 
@@ -78,12 +75,8 @@ public class DoseService {
     public Long addDailyDoseData(String username, Dose newDose, Long pseId, LocalDate date ) throws DailyDoseDataException {
         UserModel patient = userService.findByLogin(username);
 
-        DailyEvaluation dailyEvaluationPlaceholder = dailyEvaluationMapper.toDailyEvaluation(date, patient);
-        DailyEvaluation dailyEvaluation = dailyEvaluationRepository.findById(dailyEvaluationPlaceholder.getDailyEvaluationIdClass())
-                .orElse(dailyEvaluationRepository.save(dailyEvaluationPlaceholder));
-
+        DailyEvaluation dailyEvaluation = evaluationDataService.findOrCreateDailyEvaluationForPatientAndDate(patient, date);
         PrescriptionScheduleEntry prescriptionScheduleEntry = prescriptionScheduleEntryRepository.findById(pseId).orElse(null);
-
         List<Dose> byId = doseRepository.findByPrescriptionScheduleEntryAndEvaluation(prescriptionScheduleEntry, dailyEvaluation);
         newDose.setPrescriptionScheduleEntry(prescriptionScheduleEntry);
         newDose.setEvaluation(dailyEvaluation);
@@ -101,12 +94,7 @@ public class DoseService {
     }
 
     private Map<LocalDate, List<Dose>> existingDoses(UserModel patient, LocalDate start, LocalDate end) {
-
-        List<DailyEvaluation> existingDailyEvaluations = dailyEvaluationRepository.findDailyEvaluationsByUserModel(patient)
-                .stream()
-                .filter(dailyEvaluation ->
-                        dailyEvaluation.isActiveBetween(start, end)
-                ).toList();
+        List<DailyEvaluation> existingDailyEvaluations = evaluationDataService.findDailyEvaluationsByUserModelActiveBetween(patient, start, end);
 
         return existingDailyEvaluations
                 .stream()

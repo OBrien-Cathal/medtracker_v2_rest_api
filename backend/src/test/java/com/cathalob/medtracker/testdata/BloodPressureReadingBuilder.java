@@ -63,7 +63,7 @@ public class BloodPressureReadingBuilder {
 
     public BloodPressureReading build() {
         DailyEvaluation dailyEvaluation = dailyEvaluationBuilder.build();
-        return new BloodPressureReading(null, daystage, dailyEvaluation, readingTime, systole, diastole, heartRate);
+        return new BloodPressureReading(id, daystage, dailyEvaluation, readingTime, systole, diastole, heartRate);
 
     }
 

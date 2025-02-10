@@ -31,8 +31,8 @@ public class DailyEvaluation {
 
 
     public boolean isActiveBetween(LocalDate start, LocalDate end) {
-        return (recordDate.isEqual(start) || recordDate.isAfter(start))
-                &&
-                (recordDate.isEqual(end) || recordDate.isBefore(end));
+        return recordDate.isEqual(start) || recordDate.isEqual(end)
+                ||
+                (recordDate.isAfter(start) && recordDate.isBefore(end));
     }
 }

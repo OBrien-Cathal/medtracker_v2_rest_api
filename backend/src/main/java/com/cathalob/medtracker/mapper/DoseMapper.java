@@ -146,16 +146,16 @@ public class DoseMapper {
                 .filter(column -> {
 
                     Collection<List<Integer>> values = column.getValue().values();
-                    System.out.println("Ints colls for column: " + column.getKey() + " -- " + values);
+//                    System.out.println("Ints colls for column: " + column.getKey() + " -- " + values);
                     boolean allEmptyForColumn = values.stream()
                             .allMatch(integersOrNulls -> {
-                                System.out.println("Ints for date and column");
+//                                System.out.println("Ints for date and column");
                                 boolean allNullByDate = integersOrNulls.stream().allMatch(Objects::isNull);
-                                System.out.println("All null today = " + allNullByDate);
+//                                System.out.println("All null today = " + allNullByDate);
                                 return allNullByDate;
                             });
-                    System.out.println("All empty for column: " + allEmptyForColumn);
-                    System.out.println("Should filter column: " + !allEmptyForColumn);
+//                    System.out.println("All empty for column: " + allEmptyForColumn);
+//                    System.out.println("Should filter column: " + !allEmptyForColumn);
                     return !allEmptyForColumn;
 
 
@@ -168,8 +168,8 @@ public class DoseMapper {
         names.add("Date");
         names.addAll(columnsWithAtLeastOneValue.keySet().stream().toList());
 
-        System.out.println("All Data Columns = " + columnRegistry.keySet());
-        System.out.println("Fil Data Columns = " + names);
+//        System.out.println("All Data Columns = " + columnRegistry.keySet());
+//        System.out.println("Fil Data Columns = " + names);
 
         for (LocalDate currentDate : orderedDosesMap.keySet()) {
             List<Object> dayDoseData = new ArrayList<>();
@@ -180,7 +180,7 @@ public class DoseMapper {
                 if (columnDosesForDate != null) dayDoseData.addAll(columnDosesForDate);
             });
 
-            System.out.println(dayDoseData);
+//            System.out.println(dayDoseData);
             listData.add(dayDoseData);
         }
 

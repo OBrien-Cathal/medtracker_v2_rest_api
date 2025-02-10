@@ -1,23 +1,14 @@
 package com.cathalob.medtracker.service.impl;
 
-import com.cathalob.medtracker.mapper.BloodPressureMapper;
-import com.cathalob.medtracker.mapper.DailyEvaluationMapper;
+import com.cathalob.medtracker.exception.validation.bloodpressure.AddBloodPressureDailyDataException;
+import com.cathalob.medtracker.exception.validation.bloodpressure.BloodPressureDailyDataExceptionData;
+
+import com.cathalob.medtracker.exception.validation.bloodpressure.BloodPressureGraphDataException;
 import com.cathalob.medtracker.model.UserModel;
-import com.cathalob.medtracker.model.enums.DAYSTAGE;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.tracking.BloodPressureReading;
 import com.cathalob.medtracker.model.tracking.DailyEvaluation;
-import com.cathalob.medtracker.model.tracking.DailyEvaluationId;
-import com.cathalob.medtracker.payload.data.BloodPressureData;
-import com.cathalob.medtracker.payload.data.GraphData;
-import com.cathalob.medtracker.payload.request.graph.GraphDataForDateRangeRequest;
-import com.cathalob.medtracker.payload.request.patient.AddDatedBloodPressureReadingRequest;
-import com.cathalob.medtracker.payload.request.patient.AddDatedBloodPressureReadingRequestResponse;
-import com.cathalob.medtracker.payload.request.patient.DatedBloodPressureDataRequest;
-import com.cathalob.medtracker.payload.response.BloodPressureDataRequestResponse;
-import com.cathalob.medtracker.payload.response.TimeSeriesGraphDataResponse;
 import com.cathalob.medtracker.repository.BloodPressureReadingRepository;
-import com.cathalob.medtracker.repository.DailyEvaluationRepository;
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.service.UserService;
 import lombok.AllArgsConstructor;
@@ -26,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,172 +26,94 @@ public class BloodPressureDataService {
     private final BloodPressureReadingRepository bloodPressureReadingRepository;
     private final UserService userService;
     private final PatientRegistrationRepository patientRegistrationRepository;
-    private final DailyEvaluationRepository dailyEvaluationRepository;
+    private final EvaluationDataService evaluationDataService;
+
 
     public void saveBloodPressureReadings(List<BloodPressureReading> bloodPressureReadings) {
         bloodPressureReadingRepository.saveAll(bloodPressureReadings);
     }
 
-    public TimeSeriesGraphDataResponse getSystoleGraphData(@NonNull String username, GraphDataForDateRangeRequest request) {
-        System.out.println(request);
-        return getBloodPressureGraphData(BloodPressureReading::getSystole, userService.findByLogin(username), request.getStart(), request.getEnd(), false);
+    public TreeMap<LocalDate, List<BloodPressureReading>> getBloodPressureReadingsForDateRange(@NonNull String username, LocalDate start, LocalDate end) {
+        return getBloodPressureGraphData(userService.findByLogin(username), start, end, false);
     }
 
-    public TimeSeriesGraphDataResponse getPatientSystoleGraphData(Long patientUserModelId, String practitionerUsername, GraphDataForDateRangeRequest request) {
+    public  TreeMap<LocalDate, List<BloodPressureReading>> getPatientBloodPressureReadingsForDateRange(Long patientUserModelId, String practitionerUsername, LocalDate start, LocalDate end) {
         UserModel practitioner = userService.findByLogin(practitionerUsername);
 //        validate that the practitioner is a doc of the patient, and allowed to see the patient data
         Optional<UserModel> maybePatient = userService.findUserModelById(patientUserModelId);
-        if (maybePatient.isEmpty()) return TimeSeriesGraphDataResponse.Failure();
+        if (maybePatient.isEmpty()) throw new BloodPressureGraphDataException(List.of("Patient does not exist"));
+
         if (patientRegistrationRepository.findByUserModelAndPractitionerUserModel(maybePatient.get(), practitioner).isEmpty()) {
-            return TimeSeriesGraphDataResponse.Failure(List.of("Only registered practitioners can view this patients data"));
-
+            throw new BloodPressureGraphDataException(List.of("Only registered practitioners can view this patients data"));
         }
-        return maybePatient.map(userModel ->
-                getBloodPressureGraphData(BloodPressureReading::getSystole, userModel, request.getStart(), request.getEnd(), false)
-        ).orElseGet(TimeSeriesGraphDataResponse::Failure);
+
+        return  getBloodPressureGraphData(maybePatient.get(), start, end, false);
     }
 
-    public BloodPressureDataRequestResponse getBloodPressureData(
-            DatedBloodPressureDataRequest datedBloodPressureDataRequest,
-            String username) {
+    public List<BloodPressureReading> getBloodPressureData(
+            String username,
+            LocalDate date) throws BloodPressureDailyDataExceptionData {
         UserModel patient = userService.findByLogin(username);
 
         if (!patient.getRole().equals(USERROLE.PATIENT))
-            return BloodPressureDataRequestResponse.Failed(List.of("User is not a patient"));
-        Optional<DailyEvaluation> dailyEvaluationOptional = dailyEvaluationRepository.findById(new DailyEvaluationId(patient.getId(), datedBloodPressureDataRequest.getDate()));
-        if (dailyEvaluationOptional.isEmpty()) {
-//            return BloodPressureDataRequestResponse.Failed(List.of("No daily evaluation found for this patient and date"));
-            return BloodPressureDataRequestResponse.Success(List.of());
-        }
+            throw new BloodPressureDailyDataExceptionData(List.of("User is not a patient"));
 
-        List<BloodPressureReading> readings = bloodPressureReadingRepository.findByDailyEvaluation(dailyEvaluationOptional.get());
-
-        List<BloodPressureData> data = readings.stream().map((r) -> BloodPressureData.builder()
-                .readingTime(r.getReadingTime())
-                .systole(r.getSystole())
-                .diastole(r.getDiastole())
-                .heartRate(r.getHeartRate())
-                .dayStage(r.getDayStage())
-                .build()).toList();
-        return BloodPressureDataRequestResponse.Success(data);
+        return bloodPressureReadingRepository.findByDailyEvaluation(evaluationDataService.findForPatientAndDate(patient, date));
     }
 
-    public AddDatedBloodPressureReadingRequestResponse addBloodPressureReading(
-            AddDatedBloodPressureReadingRequest addRequest, String username) {
+    public Long addBloodPressureReading(BloodPressureReading newReading,
+                                        LocalDate date,
+                                        String username) {
         UserModel patient = userService.findByLogin(username);
 
         if (!patient.getRole().equals(USERROLE.PATIENT))
-            return AddDatedBloodPressureReadingRequestResponse.Failed(List.of("User is not a patient"));
-        DailyEvaluation newDailyEvaluation = DailyEvaluationMapper.ToDailyEvaluation(
-                addRequest.getDate(), patient);
-        Optional<DailyEvaluation> existingDailyEvaluationOptional = dailyEvaluationRepository.findById(newDailyEvaluation.getDailyEvaluationIdClass());
-        if (existingDailyEvaluationOptional.isEmpty()) {
-            dailyEvaluationRepository.save(newDailyEvaluation);
-        }
+            throw new AddBloodPressureDailyDataException(List.of("User is not a patient"));
 
-        BloodPressureReading newReading = BloodPressureMapper.ToBloodPressureReading(addRequest.getData(), newDailyEvaluation);
-        System.out.println(newReading);
+        DailyEvaluation dailyEvaluation = evaluationDataService.findOrCreateDailyEvaluationForPatientAndDate(patient, date);
+        newReading.setDailyEvaluation(dailyEvaluation);
+
         BloodPressureReading saved = bloodPressureReadingRepository.save(newReading);
-        System.out.println(saved);
-        return AddDatedBloodPressureReadingRequestResponse.Success(saved.getId());
+        return saved.getId();
     }
 
-    public TimeSeriesGraphDataResponse getDiastoleGraphData(String username) {
-        return getDiastoleGraphData(userService.findByLogin(username));
-    }
-
-    public TimeSeriesGraphDataResponse getHeartRateGraphData(String username) {
-        return getHeartRateGraphData(userService.findByLogin(username));
-    }
-
-    private TimeSeriesGraphDataResponse getSystoleGraphData(UserModel userModel) {
-        return getBloodPressureGraphData(BloodPressureReading::getSystole, userModel, null, null, false);
-    }
 
     private List<BloodPressureReading> getBloodPressureReadingsForEvaluations(List<DailyEvaluation> dailyEvaluations) {
-        List<BloodPressureReading> list = dailyEvaluations
-                .stream()
-                .map(bloodPressureReadingRepository::findByDailyEvaluation)
-                .flatMap(List::stream)
-                .toList();
-        return list;
+
+        return bloodPressureReadingRepository.findByDailyEvaluationDatesAndIds(
+                dailyEvaluations.stream().map(DailyEvaluation::getRecordDate).toList(),
+                dailyEvaluations.stream().map(dailyEvaluation -> dailyEvaluation.getUserModel().getId() ).toList()
+                );
+//
+//        return dailyEvaluations
+//                .stream()
+//                .map(bloodPressureReadingRepository::findByDailyEvaluation)
+//                .flatMap(List::stream)
+//                .toList();
     }
 
-    private TimeSeriesGraphDataResponse getDiastoleGraphData(UserModel userModel) {
-        return getBloodPressureGraphData(BloodPressureReading::getDiastole, userModel, null, null, false);
-    }
-
-    private TimeSeriesGraphDataResponse getHeartRateGraphData(UserModel userModel) {
-        return getBloodPressureGraphData(BloodPressureReading::getHeartRate, userModel, null, null, false);
-    }
-
-    private TimeSeriesGraphDataResponse getBloodPressureGraphData(ToIntFunction<BloodPressureReading> bpDataAccessorFunction, UserModel userModel, LocalDate start, LocalDate end, boolean interpolate) {
+    private TreeMap<LocalDate, List<BloodPressureReading>> getBloodPressureGraphData(UserModel userModel, LocalDate start, LocalDate end, boolean interpolate) {
         if (start == null || end == null) {
-            return TimeSeriesGraphDataResponse.Failure(List.of("No date range provided"));
+            throw new BloodPressureGraphDataException(List.of("No date range provided"));
         }
 
-        List<DailyEvaluation> da = dailyEvaluationRepository.findDailyEvaluationsByUserModel(userModel)
-                .stream()
-                .filter(dailyEvaluation ->
-                {
-                    boolean between = (dailyEvaluation.getRecordDate().isEqual(start) || dailyEvaluation.getRecordDate().isAfter(start))
-                            &&
-                            (dailyEvaluation.getRecordDate().isEqual(end) || dailyEvaluation.getRecordDate().isBefore(end));
-//                    if (between) {
-//                        System.out.println("Between " + dailyEvaluation.getRecordDate());
-//                    } else {
-//                        System.out.println("NOt between " + dailyEvaluation.getRecordDate());
-//                    }
-                    return between;
+        List<DailyEvaluation> da = evaluationDataService.findDailyEvaluationsByUserModelActiveBetween(userModel, start, end);
+        Map<LocalDate, List<BloodPressureReading>> byDate = getBloodPressureReadingsForEvaluations(da).stream()
+                .collect(Collectors
+                        .groupingBy(bloodPressureReading -> bloodPressureReading.getReadingTime().toLocalDate()));
 
-                }).toList();
+        TreeMap<LocalDate, List<BloodPressureReading>> byDateForFullRange = new TreeMap<>();
 
-        List<BloodPressureReading> bloodPressureReadings = getBloodPressureReadingsForEvaluations(
-                da);
 
-        return TimeSeriesGraphDataResponse.Success(
-                new GraphData(
-                        getSortedDataColumnNames(bloodPressureReadings),
-                        getBloodPressureGraphData(bpDataAccessorFunction, bloodPressureReadings)));
+        LocalDate current = start;
+        while (current.isEqual(end) || current.isBefore(end)) {
+            List<BloodPressureReading> forCurrent = byDate.get(current);
+
+            byDateForFullRange.put(current, forCurrent != null ? forCurrent : new ArrayList<>());
+            current = current.plusDays(1);
+        }
+
+        return byDateForFullRange;
+
     }
 
-
-    private List<String> getSortedDataColumnNames(List<BloodPressureReading> bloodPressureReadings) {
-        List<DAYSTAGE> daystageList = bloodPressureReadings.stream().map(BloodPressureReading::getDayStage)
-                .distinct()
-                .sorted(Comparator.comparing(DAYSTAGE::ordinal))
-                .toList();
-        List<String> strings = new ArrayList<>();
-        strings.add("Date");
-        strings.addAll(daystageList.stream().map(ds -> (
-                ds.toString().charAt(0) + ds.toString().substring(1).toLowerCase())).toList());
-        return strings;
-    }
-
-    private List<List<Object>> getBloodPressureGraphData(ToIntFunction<BloodPressureReading> getBpValueFunction, List<BloodPressureReading> bloodPressureReadings) {
-        List<List<Object>> listData = new ArrayList<>();
-
-        TreeMap<LocalDate, List<BloodPressureReading>> byDate = bloodPressureReadings.stream().sorted(Comparator.comparing(bloodPressureReading -> bloodPressureReading.getReadingTime().toLocalDate()))
-                .collect(Collectors.groupingBy(bloodPressureReading -> bloodPressureReading.getReadingTime().toLocalDate(), TreeMap::new, Collectors.toList()));
-
-        List<DAYSTAGE> sortedDayStages = bloodPressureReadings.stream().map(BloodPressureReading::getDayStage).distinct().sorted(Comparator.comparing(DAYSTAGE::ordinal)).toList();
-
-        byDate.forEach((date, bloodPressureReadingsByDate) -> {
-            ArrayList<Object> dayList = new ArrayList<>();
-            dayList.add(date);
-
-            Map<DAYSTAGE, List<BloodPressureReading>> bprMap = bloodPressureReadingsByDate.stream().collect(Collectors.groupingBy(BloodPressureReading::getDayStage));
-
-            for (DAYSTAGE dayStage : sortedDayStages) {
-                if (bprMap.containsKey(dayStage)) {
-                    OptionalDouble average = bprMap.get(dayStage).stream().mapToInt(getBpValueFunction).average();
-                    dayList.add(average.isEmpty() ? null : ((int) average.getAsDouble()));
-                } else {
-                    dayList.add(null);
-                }
-            }
-            listData.add(dayList);
-        });
-        return listData;
-    }
 }

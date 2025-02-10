@@ -1,5 +1,6 @@
 package com.cathalob.medtracker.config.mapper;
 
+import com.cathalob.medtracker.mapper.BloodPressureMapper;
 import com.cathalob.medtracker.mapper.DailyEvaluationMapper;
 import com.cathalob.medtracker.mapper.DoseMapper;
 import org.springframework.context.annotation.Bean;
@@ -19,5 +20,9 @@ public class MapperConfig {
         return new DoseMapper();
     }
 
+    @Bean
+    public BloodPressureMapper bloodPressureMapper() {
+        return new BloodPressureMapper();
+    }
 }
 
