@@ -60,7 +60,75 @@ public class BloodPressureController {
         }
 
     }
+    @PostMapping("/diastole-graph-data")
+    @PreAuthorize("hasRole('ROLE_PATIENT')")
+    public ResponseEntity<TimeSeriesGraphDataResponse> getDiastoleGraphDataDateRange(
+            @RequestBody GraphDataForDateRangeRequest request,
+            Authentication authentication) {
+        try {
 
+            return ResponseEntity.ok(TimeSeriesGraphDataResponse.Success(bloodPressureMapper.getDiastoleGraphData(
+                    bloodPressureDataService.getBloodPressureReadingsForDateRange(authentication.getName(), request.getStart(), request.getEnd()))));
+
+        } catch (BloodPressureGraphDataException e) {
+            return ResponseEntity.ok(TimeSeriesGraphDataResponse.Failure(e.getErrors()));
+        }
+
+    }
+
+
+    @PostMapping("/diastole-graph-data/patient")
+    @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
+    public ResponseEntity<TimeSeriesGraphDataResponse> getPatientDiastoleGraphDataDateRange(
+            @RequestBody PatientGraphDataForDateRangeRequest request,
+            Authentication authentication) {
+        try {
+            return ResponseEntity.ok(TimeSeriesGraphDataResponse.Success(bloodPressureMapper.getDiastoleGraphData(
+                    bloodPressureDataService.getPatientBloodPressureReadingsForDateRange(request.getPatientId(),
+                            authentication.getName(),
+                            request.getStart(),
+                            request.getEnd()))));
+
+        } catch (BloodPressureGraphDataException e) {
+            return ResponseEntity.ok(TimeSeriesGraphDataResponse.Failure(e.getErrors()));
+        }
+
+    }
+
+    @PostMapping("/heart-rate-graph-data")
+    @PreAuthorize("hasRole('ROLE_PATIENT')")
+    public ResponseEntity<TimeSeriesGraphDataResponse> getHeartRateGraphDataDateRange(
+            @RequestBody GraphDataForDateRangeRequest request,
+            Authentication authentication) {
+        try {
+
+            return ResponseEntity.ok(TimeSeriesGraphDataResponse.Success(bloodPressureMapper.getHeartRateGraphData(
+                    bloodPressureDataService.getBloodPressureReadingsForDateRange(authentication.getName(), request.getStart(), request.getEnd()))));
+
+        } catch (BloodPressureGraphDataException e) {
+            return ResponseEntity.ok(TimeSeriesGraphDataResponse.Failure(e.getErrors()));
+        }
+
+    }
+
+
+    @PostMapping("/heart-rate-graph-data/patient")
+    @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
+    public ResponseEntity<TimeSeriesGraphDataResponse> getPatientHeartRateGraphDataDateRange(
+            @RequestBody PatientGraphDataForDateRangeRequest request,
+            Authentication authentication) {
+        try {
+            return ResponseEntity.ok(TimeSeriesGraphDataResponse.Success(bloodPressureMapper.getHeartRateGraphData(
+                    bloodPressureDataService.getPatientBloodPressureReadingsForDateRange(request.getPatientId(),
+                            authentication.getName(),
+                            request.getStart(),
+                            request.getEnd()))));
+
+        } catch (BloodPressureGraphDataException e) {
+            return ResponseEntity.ok(TimeSeriesGraphDataResponse.Failure(e.getErrors()));
+        }
+
+    }
 
     @PostMapping("/blood-pressure-daily-data")
     @PreAuthorize("hasRole('ROLE_PATIENT')")

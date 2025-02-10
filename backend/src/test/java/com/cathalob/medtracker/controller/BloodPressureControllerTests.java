@@ -3,6 +3,7 @@ package com.cathalob.medtracker.controller;
 import com.cathalob.medtracker.config.SecurityConfig;
 import com.cathalob.medtracker.exception.validation.bloodpressure.AddBloodPressureDailyDataException;
 import com.cathalob.medtracker.exception.validation.bloodpressure.BloodPressureDailyDataExceptionData;
+import com.cathalob.medtracker.exception.validation.bloodpressure.BloodPressureGraphDataException;
 import com.cathalob.medtracker.mapper.BloodPressureMapper;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
@@ -127,7 +128,7 @@ class BloodPressureControllerTests {
         BloodPressureReading newReading = BloodPressureMapper.ToBloodPressureReading(request);
 
         given(bloodPressureMapper.toBloodPressureReading(request)).willReturn(newReading);
-        given(bloodPressureDataService.addBloodPressureReading( newReading,request.getDate(), userModel.getUsername()))
+        given(bloodPressureDataService.addBloodPressureReading(newReading, request.getDate(), userModel.getUsername()))
                 .willReturn(1L);
 
         // when - action or the behaviour that we are going test
@@ -159,7 +160,7 @@ class BloodPressureControllerTests {
         BloodPressureReading newReading = BloodPressureMapper.ToBloodPressureReading(request);
 
         given(bloodPressureMapper.toBloodPressureReading(request)).willReturn(newReading);
-        given(bloodPressureDataService.addBloodPressureReading( newReading,request.getDate(), userModel.getUsername()))
+        given(bloodPressureDataService.addBloodPressureReading(newReading, request.getDate(), userModel.getUsername()))
                 .willThrow(AddBloodPressureDailyDataException.class);
 
         // when - action or the behaviour that we are going test
@@ -176,30 +177,107 @@ class BloodPressureControllerTests {
                 .andExpect(jsonPath("$.bloodPressureReadingId").isEmpty());
     }
 
-
-
-    @DisplayName("valid PATIENT request for BP graph data returns success response")
+    //    Systole---------------------------------------
+    @DisplayName("valid PATIENT request for Systole BP graph data returns success response")
     @Test
     @WithMockUser(value = "user@user.com", roles = {"PATIENT"})
-    public void givenPATIENTValidGraphDataRequest_whenGetSystoleGraphData_thenReturnSuccess2() throws Exception {
+    public void givenPATIENTValidGraphDataRequest_whenGetSystoleGraphData_thenReturnSuccess() throws Exception {
+        given(bloodPressureMapper.getSystoleGraphData(new TreeMap<>()))
+                .willReturn(new GraphData());
+        setupAndVerifyForBPGraphDataRequest("systole-graph-data");
+    }
+
+
+    @DisplayName("valid PRACTITIONER request for Systole BP graph data returns success response")
+    @Test
+    @WithMockUser(value = "user@user.com", roles = {"PRACTITIONER"})
+    public void givenPRACTITIONERGraphDataRequest_whenGetPatientSystoleGraphData_thenReturnResponse() throws Exception {
+        given(bloodPressureMapper.getSystoleGraphData(new TreeMap<>()))
+                .willReturn(new GraphData());
+        setupAndVerifyForPatientBPGraphDataRequest("systole-graph-data/patient");
+    }
+
+
+    @DisplayName("Invalid PATIENT request for Systole BP graph data returns failure response")
+    @Test
+    @WithMockUser(value = "user@user.com", roles = {"PATIENT"})
+    public void givenPATIENTValidGraphDataRequest_whenGetSystoleGraphData_thenReturnFailure() throws Exception {
+        setupAndVerifyForFailedBPGraphDataRequest("systole-graph-data");
+    }
+
+    //    DIASTOLE ---------------------------------------
+    @DisplayName("valid PATIENT request for Diastole BP graph data returns success response")
+    @Test
+    @WithMockUser(value = "user@user.com", roles = {"PATIENT"})
+    public void givenPATIENTValidGraphDataRequest_whenGetDiastoleGraphData_thenReturnSuccess() throws Exception {
+        given(bloodPressureMapper.getDiastoleGraphData(new TreeMap<>()))
+                .willReturn(new GraphData());
+        setupAndVerifyForBPGraphDataRequest("diastole-graph-data");
+    }
+
+
+    @DisplayName("valid PRACTITIONER request for Diastole BP graph data returns success response")
+    @Test
+    @WithMockUser(value = "user@user.com", roles = {"PRACTITIONER"})
+    public void givenPRACTITIONERGraphDataRequest_whenGetPatientDiastoleGraphData_thenReturnResponse() throws Exception {
+        given(bloodPressureMapper.getDiastoleGraphData(new TreeMap<>()))
+                .willReturn(new GraphData());
+        setupAndVerifyForPatientBPGraphDataRequest("diastole-graph-data/patient");
+    }
+
+
+    @DisplayName("Invalid PATIENT request for Diastole BP graph data returns failure response")
+    @Test
+    @WithMockUser(value = "user@user.com", roles = {"PATIENT"})
+    public void givenPATIENTValidGraphDataRequest_whenGetDiastoleGraphData_thenReturnFailure() throws Exception {
+        setupAndVerifyForFailedBPGraphDataRequest("diastole-graph-data");
+    }
+
+
+
+
+//    HEART RATE---------------------------------------
+    @DisplayName("valid PATIENT request for HeartRate BP graph data returns success response")
+    @Test
+    @WithMockUser(value = "user@user.com", roles = {"PATIENT"})
+    public void givenPATIENTValidGraphDataRequest_whenGetHeartRateGraphData_thenReturnSuccess() throws Exception {
+        given(bloodPressureMapper.getHeartRateGraphData(new TreeMap<>()))
+                .willReturn(new GraphData());
+        setupAndVerifyForBPGraphDataRequest("heart-rate-graph-data");
+    }
+
+
+    @DisplayName("valid PRACTITIONER request for HeartRate BP graph data returns success response")
+    @Test
+    @WithMockUser(value = "user@user.com", roles = {"PRACTITIONER"})
+    public void givenPRACTITIONERGraphDataRequest_whenGetPatientHeartRateGraphData_thenReturnResponse() throws Exception {
+        given(bloodPressureMapper.getHeartRateGraphData(new TreeMap<>()))
+                .willReturn(new GraphData());
+        setupAndVerifyForPatientBPGraphDataRequest("heart-rate-graph-data/patient");
+    }
+
+
+    @DisplayName("Invalid PATIENT request for HeartRate BP graph data returns failure response")
+    @Test
+    @WithMockUser(value = "user@user.com", roles = {"PATIENT"})
+    public void givenPATIENTValidGraphDataRequest_whenGetHeartRateGraphData_thenReturnFailure() throws Exception {
+        setupAndVerifyForFailedBPGraphDataRequest("heart-rate-graph-data");
+    }
+
+
+    private void setupAndVerifyForBPGraphDataRequest(String urlTail) throws Exception {
         //given - precondition or setup
         UserModel userModel = UserModelBuilder.aUserModel().withRole(USERROLE.PATIENT).build();
-
-        GraphDataForDateRangeRequest request = GraphDataForDateRangeRequest.builder()
-                .start(LocalDate.now().plusDays(-1))
-                .end(LocalDate.now().plusDays(1))
-                .build();
+        GraphDataForDateRangeRequest request = GraphDataForDateRangeRequest.builder().build();
 
 
-        TreeMap<LocalDate, List<BloodPressureReading>> bpReadingMap = new TreeMap<>();
-        given(bloodPressureMapper.getSystoleGraphData(bpReadingMap))
-                .willReturn(new GraphData());
+
         given(bloodPressureDataService.getBloodPressureReadingsForDateRange(userModel.getUsername(), request.getStart(), request.getEnd()))
-                .willReturn(bpReadingMap);
+                .willReturn(new TreeMap<>());
 
         // when - action or the behaviour that we are going test
         ResultActions usersResponse = mockMvc.perform(
-                post("/api/v1/blood-pressure/systole-graph-data")
+                post("/api/v1/blood-pressure/" + urlTail)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)));
 
@@ -211,30 +289,23 @@ class BloodPressureControllerTests {
                 .andExpect(jsonPath("$.graphData").isNotEmpty());
     }
 
-    @DisplayName("valid PRACTITIONER request for BP graph data returns success response")
-    @Test
-    @WithMockUser(value = "user@user.com", roles = {"PRACTITIONER"})
-    public void givenPRACTITIONERGraphDataRequest_whenGetPatientSystoleGraphData_thenReturnResponse2() throws Exception {
+
+    private void setupAndVerifyForPatientBPGraphDataRequest(String urlTail) throws Exception {
         //given - precondition or setup
         UserModel userModel = UserModelBuilder.aUserModel().withRole(USERROLE.PRACTITIONER).build();
 
         PatientGraphDataForDateRangeRequest request = new PatientGraphDataForDateRangeRequest();
         request.setPatientId(1L);
-        request.setStart(LocalDate.now().plusDays(-1));
-        request.setEnd(LocalDate.now().plusDays(1));
 
-        TreeMap<LocalDate, List<BloodPressureReading>> bpReadingMap = new TreeMap<>();
-        given(bloodPressureMapper.getSystoleGraphData(bpReadingMap))
-                .willReturn(new GraphData());
         given(bloodPressureDataService.getPatientBloodPressureReadingsForDateRange(request.getPatientId(),
                 userModel.getUsername(),
                 request.getStart(),
                 request.getEnd()))
-                .willReturn(bpReadingMap);
+                .willReturn(new TreeMap<>());
 
         // when - action or the behaviour that we are going test
         ResultActions usersResponse = mockMvc.perform(
-                post("/api/v1/blood-pressure/systole-graph-data/patient")
+                post("/api/v1/blood-pressure/" + urlTail)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)));
 
@@ -246,4 +317,26 @@ class BloodPressureControllerTests {
                 .andExpect(jsonPath("$.graphData").isNotEmpty());
     }
 
+    private void setupAndVerifyForFailedBPGraphDataRequest(String urlTail) throws Exception {
+        //given - precondition or setup
+        UserModel userModel = UserModelBuilder.aUserModel().withRole(USERROLE.PATIENT).build();
+        GraphDataForDateRangeRequest request = GraphDataForDateRangeRequest.builder()
+                .build();
+
+        given(bloodPressureDataService.getBloodPressureReadingsForDateRange(userModel.getUsername(), request.getStart(), request.getEnd()))
+                .willThrow(BloodPressureGraphDataException.class);
+
+        // when - action or the behaviour that we are going test
+        ResultActions usersResponse = mockMvc.perform(
+                post("/api/v1/blood-pressure/" + urlTail)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)));
+
+        // then - verify the output
+        usersResponse
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseInfo.successful", is(false)))
+                .andExpect(jsonPath("$.graphData").isEmpty());
+    }
 }

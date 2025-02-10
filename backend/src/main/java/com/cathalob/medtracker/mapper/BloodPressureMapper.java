@@ -50,6 +50,12 @@ public class BloodPressureMapper {
     public GraphData getSystoleGraphData(TreeMap<LocalDate, List<BloodPressureReading>> columnsToValues) {
         return GetGraphData(columnsToValues, BloodPressureReading::getSystole);
     }
+    public GraphData getDiastoleGraphData(TreeMap<LocalDate, List<BloodPressureReading>> columnsToValues) {
+        return GetGraphData(columnsToValues, BloodPressureReading::getDiastole);
+    }
+    public GraphData getHeartRateGraphData(TreeMap<LocalDate, List<BloodPressureReading>> columnsToValues) {
+        return GetGraphData(columnsToValues, BloodPressureReading::getHeartRate);
+    }
 
     public static GraphData GetGraphData(TreeMap<LocalDate, List<BloodPressureReading>> datesToReadings,
                                          ToIntFunction<BloodPressureReading> getBpValueFunction) {
