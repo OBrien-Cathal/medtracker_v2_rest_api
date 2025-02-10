@@ -53,7 +53,7 @@ public class BloodPressureMapper {
 
     public static GraphData GetGraphData(TreeMap<LocalDate, List<BloodPressureReading>> datesToReadings,
                                          ToIntFunction<BloodPressureReading> getBpValueFunction) {
-        datesToReadings.values().forEach(bloodPressureReadings -> System.out.println(bloodPressureReadings));
+//        datesToReadings.values().forEach(bloodPressureReadings -> System.out.println(bloodPressureReadings));
 
         List<List<Object>> listData = new ArrayList<>();
 
@@ -68,7 +68,7 @@ public class BloodPressureMapper {
         columnNames.add("Date");
         List<String> sortedDayStageNames = sortedDayStages.stream().map(daystage -> daystage.toString().charAt(0) + daystage.toString().substring(1).toLowerCase()).toList();
         columnNames.addAll(sortedDayStageNames);
-        System.out.println(columnNames);
+//        System.out.println(columnNames);
         for (LocalDate currentDate : datesToReadings.keySet()) {
             ArrayList<Object> dayList = new ArrayList<>();
             List<BloodPressureReading> bpForCurrent = datesToReadings.get(currentDate);
@@ -84,7 +84,7 @@ public class BloodPressureMapper {
                     dayList.add(null);
                 }
             }
-            System.out.println(currentDate +""+ dayList);
+//            System.out.println(currentDate +""+ dayList);
             listData.add(dayList);
         }
         return new GraphData(columnNames, listData);

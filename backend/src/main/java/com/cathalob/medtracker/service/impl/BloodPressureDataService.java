@@ -77,27 +77,21 @@ public class BloodPressureDataService {
     }
 
 
-    private List<BloodPressureReading> getBloodPressureReadingsForEvaluations(List<DailyEvaluation> dailyEvaluations) {
+    private List<BloodPressureReading> getBloodPressureReadingsForEvaluations(UserModel patient, List<DailyEvaluation> dailyEvaluations) {
 
-        return bloodPressureReadingRepository.findByDailyEvaluationDatesAndIds(
+        return bloodPressureReadingRepository.findByDailyEvaluationDatesAndUserModelId(
                 dailyEvaluations.stream().map(DailyEvaluation::getRecordDate).toList(),
-                dailyEvaluations.stream().map(dailyEvaluation -> dailyEvaluation.getUserModel().getId() ).toList()
+                patient.getId()
                 );
-//
-//        return dailyEvaluations
-//                .stream()
-//                .map(bloodPressureReadingRepository::findByDailyEvaluation)
-//                .flatMap(List::stream)
-//                .toList();
     }
 
-    private TreeMap<LocalDate, List<BloodPressureReading>> getBloodPressureGraphData(UserModel userModel, LocalDate start, LocalDate end, boolean interpolate) {
+    private TreeMap<LocalDate, List<BloodPressureReading>> getBloodPressureGraphData(UserModel patient, LocalDate start, LocalDate end, boolean interpolate) {
         if (start == null || end == null) {
             throw new BloodPressureGraphDataException(List.of("No date range provided"));
         }
 
-        List<DailyEvaluation> da = evaluationDataService.findDailyEvaluationsByUserModelActiveBetween(userModel, start, end);
-        Map<LocalDate, List<BloodPressureReading>> byDate = getBloodPressureReadingsForEvaluations(da).stream()
+        List<DailyEvaluation> da = evaluationDataService.findDailyEvaluationsByUserModelActiveBetween(patient, start, end);
+        Map<LocalDate, List<BloodPressureReading>> byDate = getBloodPressureReadingsForEvaluations(patient, da).stream()
                 .collect(Collectors
                         .groupingBy(bloodPressureReading -> bloodPressureReading.getReadingTime().toLocalDate()));
 

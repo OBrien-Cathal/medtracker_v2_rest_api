@@ -5,6 +5,7 @@ import com.cathalob.medtracker.exception.validation.dose.DoseGraphDataException;
 import com.cathalob.medtracker.factory.DoseServiceModelFactory;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
+import com.cathalob.medtracker.model.tracking.BloodPressureReading;
 import com.cathalob.medtracker.model.tracking.DailyEvaluation;
 import com.cathalob.medtracker.model.tracking.Dose;
 import com.cathalob.medtracker.repository.DoseRepository;
@@ -72,7 +73,7 @@ public class DoseService {
         return getFullDoseSchedule(patient, date, date, false).get(date);
     }
 
-    public Long addDailyDoseData(String username, Dose newDose, Long pseId, LocalDate date ) throws DailyDoseDataException {
+    public Long addDailyDoseData(String username, Dose newDose, Long pseId, LocalDate date) throws DailyDoseDataException {
         UserModel patient = userService.findByLogin(username);
 
         DailyEvaluation dailyEvaluation = evaluationDataService.findOrCreateDailyEvaluationForPatientAndDate(patient, date);
@@ -96,9 +97,13 @@ public class DoseService {
     private Map<LocalDate, List<Dose>> existingDoses(UserModel patient, LocalDate start, LocalDate end) {
         List<DailyEvaluation> existingDailyEvaluations = evaluationDataService.findDailyEvaluationsByUserModelActiveBetween(patient, start, end);
 
-        return existingDailyEvaluations
-                .stream()
-                .collect(Collectors.toMap(DailyEvaluation::getRecordDate, doseRepository::findByEvaluation));
+        return doseRepository.findByDailyEvaluationDatesAndUserModelId(
+                        existingDailyEvaluations.stream().map(DailyEvaluation::getRecordDate).toList(),
+                        patient.getId()).stream()
+                .collect(Collectors
+                        .groupingBy(dose -> dose.getEvaluation().getRecordDate()));
+
+
     }
 
     private TreeMap<LocalDate, List<Dose>> getFullDoseSchedule(UserModel patient, LocalDate start, LocalDate end, boolean interpolate) {

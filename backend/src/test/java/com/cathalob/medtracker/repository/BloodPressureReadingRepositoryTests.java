@@ -6,6 +6,7 @@ import com.cathalob.medtracker.model.tracking.DailyEvaluation;
 import com.cathalob.medtracker.testdata.BloodPressureReadingBuilder;
 import com.cathalob.medtracker.testdata.DailyEvaluationBuilder;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -50,37 +51,49 @@ class BloodPressureReadingRepositoryTests {
 //    then
         assertThat(saved.getId()).isGreaterThan(0);
     }
+    @DisplayName("Query returns readings for multiple dates queried and not other dates")
     @Test
-    public void givenDatesAndUserModelIds_whenFindByDailyEvaluationDatesAndIds_thenReturnReadings() {
+    public void givenReadingPerDateForUser_whenFindByDailyEvaluationDatesAndUserModelId_thenReturn2Readings() {
 
         DailyEvaluation dailyEvaluation = DailyEvaluationBuilder.aDailyEvaluation().build();
         testEntityManager.persist(dailyEvaluation.getUserModel());
         testEntityManager.persist(dailyEvaluation);
 
         DailyEvaluation dailyEvaluation2 = DailyEvaluationBuilder.aDailyEvaluation().withRecordDate(LocalDate.now().plusDays(1)).build();
-        testEntityManager.persist(dailyEvaluation2.getUserModel());
+        dailyEvaluation2.setUserModel(dailyEvaluation.getUserModel());
         testEntityManager.persist(dailyEvaluation2);
+
+        DailyEvaluation dailyEvaluation3 = DailyEvaluationBuilder.aDailyEvaluation().withRecordDate(LocalDate.now().plusDays(2)).build();
+        dailyEvaluation2.setUserModel(dailyEvaluation.getUserModel());
+        testEntityManager.persist(dailyEvaluation3);
 
 
 
         BloodPressureReading reading1 = BloodPressureReadingBuilder.aBloodPressureReading().build();
         BloodPressureReading reading2 = BloodPressureReadingBuilder.aBloodPressureReading().build();
+        BloodPressureReading reading3 = BloodPressureReadingBuilder.aBloodPressureReading().build();
+
         reading1.setDailyEvaluation(dailyEvaluation);
         reading2.setDailyEvaluation(dailyEvaluation2);
+        reading3.setDailyEvaluation(dailyEvaluation3);
+
         testEntityManager.persist(reading1);
         testEntityManager.persist(reading2);
+        testEntityManager.persist(reading3);
 
 
 //    when
-        List<BloodPressureReading> foundReadings = bloodPressureReadingRepository.findByDailyEvaluationDatesAndIds(List.of(dailyEvaluation.getRecordDate(), dailyEvaluation2.getRecordDate()),
-                List.of(dailyEvaluation.getUserModel().getId(), dailyEvaluation2.getUserModel().getId()));
+        List<BloodPressureReading> foundReadings = bloodPressureReadingRepository.findByDailyEvaluationDatesAndUserModelId(
+                List.of(dailyEvaluation.getRecordDate(), dailyEvaluation2.getRecordDate()),
+                dailyEvaluation.getUserModel().getId());
 
 //    then
         assertThat(foundReadings.size()).isEqualTo(2);
     }
 
+    @DisplayName("Query does not return readings belonging to other users for a date range")
     @Test
-    public void givenDateAndUserModelId_whenFindByDailyEvaluationDatesAndIds_thenReturnReadings() {
+    public void given1ReadingForUserModel_whenFindByDailyEvaluationDatesAndUserModelId_thenReturn1Reading() {
 
         DailyEvaluation dailyEvaluation = DailyEvaluationBuilder.aDailyEvaluation().build();
         testEntityManager.persist(dailyEvaluation.getUserModel());
@@ -101,8 +114,9 @@ class BloodPressureReadingRepositoryTests {
 
 
 //    when
-        List<BloodPressureReading> foundReadings = bloodPressureReadingRepository.findByDailyEvaluationDatesAndIds(List.of(dailyEvaluation.getRecordDate()),
-                List.of(dailyEvaluation.getUserModel().getId()));
+        List<BloodPressureReading> foundReadings = bloodPressureReadingRepository.findByDailyEvaluationDatesAndUserModelId(
+                List.of(dailyEvaluation.getRecordDate(), dailyEvaluation2.getRecordDate()),
+                dailyEvaluation.getUserModel().getId());
 
 //    then
         assertThat(foundReadings.size()).isEqualTo(1);

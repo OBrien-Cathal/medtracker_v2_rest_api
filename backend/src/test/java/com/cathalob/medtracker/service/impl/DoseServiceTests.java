@@ -101,7 +101,8 @@ class DoseServiceTests {
                 .willReturn(patient);
         given(evaluationDataService.findDailyEvaluationsByUserModelActiveBetween(patient, requestDate, requestDate))
                 .willReturn(List.of(evaluation));
-        given(doseRepository.findByEvaluation(evaluation))
+
+        given(doseRepository.findByDailyEvaluationDatesAndUserModelId(List.of(requestDate), patient.getId()))
                 .willReturn(existingDoses);
         given(prescriptionsService.getPrescriptionScheduleEntriesValidBetween(patient, requestDate, requestDate))
                 .willReturn(entriesByDate);
@@ -165,7 +166,8 @@ class DoseServiceTests {
                 .willReturn(patient);
         given(evaluationDataService.findDailyEvaluationsByUserModelActiveBetween(patient, request.getDate(), request.getDate()))
                 .willReturn(List.of(evaluation));
-        given(doseRepository.findByEvaluation(evaluation))
+
+        given(doseRepository.findByDailyEvaluationDatesAndUserModelId(List.of(requestDate), patient.getId()))
                 .willReturn(List.of());
         given(prescriptionsService.getPrescriptionScheduleEntriesValidBetween(patient, requestDate, requestDate))
                 .willReturn(entriesByDate);
@@ -372,7 +374,84 @@ class DoseServiceTests {
 
         // then - verify the output
         assertThat(response.keySet().size()).isEqualTo(3);
+        List<Dose> allReturnedDoses = response.values().stream().flatMap(List::stream).toList();
+        assertThat(allReturnedDoses.stream().allMatch(dose -> dose.getId() == null)).isTrue();
         assertThat(response.values().stream().flatMap(List::stream).toList().size())
+                .isEqualTo(5 + 5 + 5);
+    }
+
+    @DisplayName("Dose graph data created for range with 2 fully active prescriptions, with a complete set of registered doses")
+    @Test
+    public void givenGetDoseGraphDataRequest_whenGetDoseGraphData_thenReturnSuccess() {
+        //given - precondition or setup
+        DoseServiceTestDataBuilder doseServiceTestDataBuilder = new DoseServiceTestDataBuilder();
+
+        GraphDataForDateRangeRequest request = doseServiceTestDataBuilder.graphDataRequestYesterdayToTomorrow();
+
+        UserModelBuilder patientBuilder = aUserModel().withRole(USERROLE.PATIENT);
+        UserModel patient = patientBuilder.build();
+
+        Medication med1 = MedicationBuilder.aMedication().withId(1L).withName("Med1").build();
+        Medication med2 = MedicationBuilder.aMedication().withId(2L).withName("Med2").build();
+
+        List<PrescriptionScheduleEntry> pseList = new ArrayList<>();
+        List<DAYSTAGE> p1DayStages = List.of(DAYSTAGE.WAKEUP, DAYSTAGE.BEDTIME);
+        List<DAYSTAGE> p2DayStages = List.of(DAYSTAGE.WAKEUP, DAYSTAGE.MIDDAY, DAYSTAGE.BEDTIME);
+
+        doseServiceTestDataBuilder.addPSEs(patient, med1, 5, p1DayStages, request.getStart(), request.getEnd(), pseList);
+        doseServiceTestDataBuilder.addPSEs(patient, med2, 10, p2DayStages, request.getStart(), request.getEnd(), pseList);
+
+        HashMap<LocalDate, List<PrescriptionScheduleEntry>> entriesByDate = new HashMap<>();
+
+        entriesByDate.put(request.getStart(), pseList);
+        entriesByDate.put(request.getEnd(), pseList);
+        entriesByDate.put(request.getStart().plusDays(1), pseList);
+
+//go over the dictionary to crete doses with correct dated evaluations
+
+        HashMap<DailyEvaluation, List<Dose>> evalToDoses = new HashMap<>();
+
+        entriesByDate.entrySet().forEach(localDateListEntry -> {
+            DailyEvaluation dailyEvaluation = aDailyEvaluation().withRecordDate(localDateListEntry.getKey()).build();
+
+            dailyEvaluation.setUserModel(patient);
+            evalToDoses.put(dailyEvaluation, localDateListEntry.getValue().stream()
+                    .map(pse -> {
+                        Dose newExistingDose = DoseServiceModelFactory.GetDummyDose(pse);
+                        newExistingDose.setId(pse.getId());
+                        newExistingDose.setDoseTime(LocalDateTime.now());
+                        newExistingDose.setEvaluation(dailyEvaluation);
+                        return newExistingDose;
+                    }).toList());
+        });
+
+        List<LocalDate> dailyEvaluationRecordDates = evalToDoses.keySet()
+                .stream()
+                .map(DailyEvaluation::getRecordDate).toList();
+
+        given(userService.findByLogin(patient.getUsername()))
+                .willReturn(patient);
+        given(evaluationDataService.findDailyEvaluationsByUserModelActiveBetween(patient, request.getStart(), request.getEnd()))
+                .willReturn(evalToDoses.keySet().stream().toList());
+
+        given(doseRepository.findByDailyEvaluationDatesAndUserModelId(dailyEvaluationRecordDates, patient.getId()))
+                .willReturn(evalToDoses.values().stream().flatMap(Collection::stream).toList());
+
+        given(prescriptionsService.getPrescriptionScheduleEntriesValidBetween(patient, request.getStart(), request.getEnd()))
+                .willReturn(entriesByDate);
+
+        given(factory.dummyDosesForRange(entriesByDate))
+                .willReturn(DoseServiceModelFactory.DummyDosesForRange(entriesByDate));
+
+        // when - action or the behaviour that we are going test
+        TreeMap<LocalDate, List<Dose>> response = doseService.getDoseGraphData(patient.getUsername(), request.getStart(),
+                request.getEnd());
+
+        // then - verify the output
+        assertThat(response.size()).isEqualTo(3);
+        List<Dose> allReturnedDoses = response.values().stream().flatMap(List::stream).toList();
+        assertThat(allReturnedDoses.stream().allMatch(dose -> dose.getId() != null)).isTrue();
+        assertThat(allReturnedDoses.size())
                 .isEqualTo(5 + 5 + 5);
     }
 

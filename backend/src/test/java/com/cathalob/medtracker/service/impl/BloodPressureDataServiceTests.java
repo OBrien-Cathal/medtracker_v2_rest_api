@@ -105,10 +105,8 @@ class BloodPressureDataServiceTests {
                 .willReturn(dailyEvaluations);
 
         List<LocalDate> evalDates = dailyEvaluations.stream().map(DailyEvaluation::getRecordDate).toList();
-        List<Long> evalUserModelIds = dailyEvaluations.stream().map(dailyEvaluation -> dailyEvaluation.getUserModel().getId()).toList();
 
-
-        given(bloodPressureReadingRepository.findByDailyEvaluationDatesAndIds(evalDates, evalUserModelIds))
+        given(bloodPressureReadingRepository.findByDailyEvaluationDatesAndUserModelId(evalDates, patient.getId()))
                 .willReturn(readings);
 
 

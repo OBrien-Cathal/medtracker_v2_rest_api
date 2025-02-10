@@ -86,6 +86,54 @@ class DoseRepositoryTests {
 
     }
 
+    @Test
+    public void given1DosePerDateForUser_whenFindByDailyEvaluationDatesAndUserModelId_thenReturn2Doses() {
+//          given
+        Dose dose = aDose().build();
+        Dose otherDose = aDose().withDailyEvaluationBuilder(
+                DailyEvaluationBuilder.aDailyEvaluation().withRecordDate(dose.getEvaluation().getRecordDate().plusDays(1))
+        ).build();
+
+        otherDose.getEvaluation().setUserModel(dose.getEvaluation().getUserModel());
+
+        persistPrerequisites(dose);
+        testEntityManager.persist(dose);
+        persistPrerequisites(otherDose);
+        testEntityManager.persist(otherDose);
+
+//      when
+        List<Dose> byEvaluation = doseRepository.findByDailyEvaluationDatesAndUserModelId(
+                List.of(
+                        dose.getEvaluation().getRecordDate(), otherDose.getEvaluation().getRecordDate()),
+                dose.getEvaluation().getUserModel().getId()
+        );
+
+//      then
+        assertThat(byEvaluation.size()).isEqualTo(2);
+    }
+
+    @Test
+    public void given1DoseForEachUser_whenFindByDailyEvaluationDatesAndUserModelId_thenReturnSingleDose() {
+//          given
+        Dose dose = aDose().build();
+        Dose otherDose = aDose().build();
+
+        persistPrerequisites(dose);
+        persistPrerequisites(otherDose);
+        testEntityManager.persist(otherDose);
+        testEntityManager.persist(dose);
+
+//      when
+        List<Dose> byEvaluation = doseRepository.findByDailyEvaluationDatesAndUserModelId(
+                List.of(
+                        dose.getEvaluation().getRecordDate()),
+                dose.getEvaluation().getUserModel().getId()
+        );
+
+//      then
+        assertThat(byEvaluation.size()).isEqualTo(1);
+    }
+
 
     private void persistPrerequisites(Dose dose) {
         PrescriptionScheduleEntry prescriptionScheduleEntry = dose.getPrescriptionScheduleEntry();
