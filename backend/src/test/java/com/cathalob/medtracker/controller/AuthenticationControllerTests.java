@@ -8,7 +8,6 @@ import com.cathalob.medtracker.payload.request.auth.SignUpRequest;
 import com.cathalob.medtracker.payload.response.auth.AccountVerificationResponse;
 import com.cathalob.medtracker.payload.response.auth.AuthenticationVerificationResponse;
 import com.cathalob.medtracker.payload.response.auth.JwtAuthenticationResponse;
-import com.cathalob.medtracker.exception.ExternalException;
 import com.cathalob.medtracker.exception.UserAlreadyExistsException;
 import com.cathalob.medtracker.exception.UserNotFound;
 import com.cathalob.medtracker.service.impl.AuthenticationServiceImpl;
@@ -87,10 +86,10 @@ class AuthenticationControllerTests {
                 .content(objectMapper.writeValueAsString(signUpRequest)));
         // then - verify the output
         response.andDo(print())
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.exceptionMessage",
-                        is(apiHandledExceptionExpectedMessage(UserAlreadyExistsException.expandedMessage(signUpRequest.getUsername()),
-                                UserAlreadyExistsException.errorCode()))));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseInfo.errors[0]",
+                        is(UserAlreadyExistsException.expandedMessage(signUpRequest.getUsername()))));
+
     }
 
     @DisplayName("Test successful sign in ")
@@ -151,10 +150,9 @@ class AuthenticationControllerTests {
         // then - verify the output
         response
                 .andDo(print())
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.exceptionMessage",
-                        is(apiHandledExceptionExpectedMessage(UserNotFound.expandedMessage(signInRequest.getUsername()),
-                                UserNotFound.errorCode()))));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseInfo.errors[0]",
+                        is(UserNotFound.expandedMessage(signInRequest.getUsername()))));
     }
 
     @Test
@@ -225,7 +223,7 @@ class AuthenticationControllerTests {
     }
 
     private String apiHandledExceptionExpectedMessage(String message, Integer code) {
-        return ExternalException.getErrorMessageWithCode(message, code);
+        return "MESSAGE!!";
 
     }
 

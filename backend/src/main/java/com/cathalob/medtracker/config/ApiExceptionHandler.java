@@ -1,9 +1,10 @@
 package com.cathalob.medtracker.config;
 
+import com.cathalob.medtracker.exception.MedTrackerException;
 import com.cathalob.medtracker.exception.model.ApiAuthenticationExceptionModel;
 import com.cathalob.medtracker.exception.model.ApiExceptionModel;
-import com.cathalob.medtracker.exception.ExternalException;
-import com.cathalob.medtracker.exception.InternalException;
+import com.cathalob.medtracker.exception.validation.ValidatorException;
+import com.cathalob.medtracker.payload.response.generic.Response;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotNull;
@@ -35,7 +36,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> getServerExceptionHandler(@NotNull Exception exception) {
 
-        if (exception instanceof ExpiredJwtException || exception instanceof AuthorizationDeniedException ) {
+        if (exception instanceof ExpiredJwtException || exception instanceof AuthorizationDeniedException) {
             ApiAuthenticationExceptionModel apiAuthenticationExceptionModel = new ApiAuthenticationExceptionModel(
                     HttpStatus.UNAUTHORIZED.value(),
                     HttpStatus.UNAUTHORIZED,
@@ -47,7 +48,8 @@ public class ApiExceptionHandler {
 
             return new ResponseEntity<>(apiAuthenticationExceptionModel, HttpStatus.UNAUTHORIZED);
 
-        } if ( exception instanceof BadCredentialsException) {
+        }
+        if (exception instanceof BadCredentialsException) {
             ApiAuthenticationExceptionModel apiAuthenticationExceptionModel = new ApiAuthenticationExceptionModel(
                     HttpStatus.UNAUTHORIZED.value(),
                     HttpStatus.UNAUTHORIZED,
@@ -75,17 +77,22 @@ public class ApiExceptionHandler {
         }
 
 
-        if (exception instanceof InternalException) {
-            logger.error("Internal: ", exception);
+        if (exception instanceof MedTrackerException) {
+            logger.error("MedTracker: ", exception);
             ApiExceptionModel apiExceptionModel = new ApiExceptionModel(
                     HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    ExternalException.getErrorMessageWithCode((InternalException) exception),
+                    exception.getMessage(),
                     exception.getCause(),
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     ZonedDateTime.now(ZoneId.of("Z"))
             );
-
             return new ResponseEntity<>(apiExceptionModel, HttpStatus.INTERNAL_SERVER_ERROR);
+
+        }
+        if (exception instanceof ValidatorException) {
+            logger.error("Validation: ", exception);
+            return ResponseEntity.ok(
+                    Response.Failed(((ValidatorException) exception).getErrors()));
 
         }
 
@@ -93,7 +100,6 @@ public class ApiExceptionHandler {
 
         ApiExceptionModel apiExceptionModel = new ApiExceptionModel(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-//                exception.getMessage(),
                 "Server Private Exception",
                 exception.getCause(),
                 HttpStatus.INTERNAL_SERVER_ERROR,

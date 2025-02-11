@@ -3,6 +3,8 @@ package com.cathalob.medtracker.payload.response.generic;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @Builder
 public class Response {
@@ -23,5 +25,8 @@ public class Response {
 
     public static Response Failed() {
         return new Response(ResponseInfo.Failed());
+    }
+    public static Response Failed(List<String> errors) {
+        return new Response(ResponseInfo.Failed(errors));
     }
 }
