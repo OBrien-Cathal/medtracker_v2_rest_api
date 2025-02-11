@@ -17,6 +17,21 @@ spring:
     init:
       mode: always
       continue-on-error: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: medtrackerdemo2025@gmail.com
+    password: jusx zvql rqgp cbja
+    properties:
+      mail:
+        debug: true
+        transport:
+          protocol: smtp
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
 initialData:
   loadFromFile: false
 website:
