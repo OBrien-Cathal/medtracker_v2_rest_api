@@ -1,5 +1,6 @@
 package com.cathalob.medtracker.service.impl;
 
+import com.cathalob.medtracker.config.client.ClientDetails;
 import com.cathalob.medtracker.factory.AccountRegistrationFactory;
 import com.cathalob.medtracker.model.AccountRegistration;
 import com.cathalob.medtracker.model.UserModel;
@@ -17,6 +18,8 @@ public class AccountRegistrationService {
     private final AccountRegistrationRepository accountRegistrationRepository;
     private final MailService mailService;
     private final AccountRegistrationFactory accountRegistrationFactory;
+    private final ClientDetails clientDetails;
+
 
     public boolean confirmRegistration(UUID registrationId, Long userId) {
         List<AccountRegistration> foundList = accountRegistrationRepository.findByUserModelIdAndConfirmedAndRegistrationId(userId,
@@ -66,7 +69,6 @@ public class AccountRegistrationService {
         mailService.sendEmail(saved.getUserModel().getUsername(),
                 "Welcome to MedTracker, new account registration",
                 registrationEmailText(accountRegistration));
-
         return true;
 
     }
@@ -74,34 +76,43 @@ public class AccountRegistrationService {
     private String unexpectedRegistrationEmailText(AccountRegistration accountRegistration) {
         return "You are receiving this email because it has been used in a signup attempt at MedTracker.\n" +
                 "If this is a mistake, please take no action.\n\n" +
-                (accountRegistration.isConfirmed() ? "Your registration is already confirmed, please sign in" : confirmationLinkText(accountRegistration));
-
-
+                (accountRegistration.isConfirmed() ?
+                        "Your registration is already confirmed, please sign in"
+                        :
+                        confirmationLinkText(accountRegistration));
     }
 
     private String confirmationLinkText(AccountRegistration accountRegistration) {
         return
                 "Please click the link below to confirm your registration.\n\n" +
-                        getRegUrl() +
-                        accountRegistration.getRegistrationId() +
-                        userIdParam() + accountRegistration.getUserModel().getId();
+                        getConfirmationUrl(accountRegistration);
     }
 
     private String registrationEmailText(AccountRegistration accountRegistration) {
         return "You are receiving this email because it has been registered at MedTracker.\n" +
                 "If this is a mistake, please take no action.\n" +
                 "Otherwise, please click the link below to confirm your registration.\n\n" +
-                getRegUrl() +
-                accountRegistration.getRegistrationId() +
-                userIdParam() + accountRegistration.getUserModel().getId();
+                getConfirmationUrl(accountRegistration);
     }
 
-    private static String userIdParam() {
-        return "&user-id=";
+    private static String userIdParam(Long userModelId) {
+        return "/" + userModelId;
     }
 
-    private static String getRegUrl() {
-        return "http://localhost:8080/api/v1/auth/account-registration/confirm?reg=";
+    private static String regParam(UUID uuid) {
+        return "/" + uuid;
+    }
+
+    private String getConfirmationUrlBase() {
+        return clientDetails.getWebsiteBaseUrl() + "/account-registration";
+    }
+
+    private String getConfirmationUrl(AccountRegistration accountRegistration) {
+
+        return getConfirmationUrlBase() +
+                regParam(accountRegistration.getRegistrationId()) +
+                userIdParam(accountRegistration.getUserModel().getId());
+
     }
 
 }

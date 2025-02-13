@@ -81,13 +81,13 @@ public class ApiExceptionHandler {
         if (exception instanceof MissingServletRequestParameterException) {
             logger.error("Missing Param: ", exception);
             ApiExceptionModel apiExceptionModel = new ApiExceptionModel(
-                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    HttpStatus.BAD_REQUEST.value(),
                     exception.getMessage(),
                     exception.getCause(),
-                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    HttpStatus.BAD_REQUEST,
                     ZonedDateTime.now(ZoneId.of("Z"))
             );
-            return new ResponseEntity<>(apiExceptionModel, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(apiExceptionModel, HttpStatus.BAD_REQUEST);
 
         }
 
