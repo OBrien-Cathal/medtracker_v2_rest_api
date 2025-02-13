@@ -1,6 +1,7 @@
 package com.cathalob.medtracker.repository;
 
 import com.cathalob.medtracker.model.tracking.DailyEvaluation;
+import com.cathalob.medtracker.testdata.UserModelBuilder;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -41,7 +42,7 @@ class DailyEvaluationRepositoryTests {
     public void givenDailyEvaluation_whenSavedAndQueried_thenReturnOnlyEvaluationsForUserId() {
 //        given
         DailyEvaluation dailyEvaluation = aDailyEvaluation().build();
-        DailyEvaluation otherDailyEvaluation = aDailyEvaluation().build();
+        DailyEvaluation otherDailyEvaluation = aDailyEvaluation().with(UserModelBuilder.aNthPatient(2)).build();
         testEntityManager.persist(dailyEvaluation.getUserModel());
         testEntityManager.persist(otherDailyEvaluation.getUserModel());
         testEntityManager.persist(otherDailyEvaluation);

@@ -30,6 +30,42 @@ FROM (VALUES ('admin@medtracker.com', '$2a$10$WSU4n.NhUE7g1lwMAeTT9OXAaGJG2s.4Uk
               cast('PRACTITIONER' as USER_ROLE))) source_data
 WHERE NOT EXISTS (SELECT NULL FROM USERMODEL);
 
+
+
+INSERT INTO ACCOUNT_REGISTRATION (USERMODEL_ID, CONFIRMED, REGISTRATION_ID, REGISTRATION_TIME, CONFIRMATION_TIME)
+SELECT *
+FROM (VALUES (1, (cast(1 as boolean)), (cast('4fd1b3de-3f98-4cc1-bee4-13948f6b7b27' as uuid)),{ts '2024-12-01 10:34:53'},
+             {ts '2024-12-01 10:34:53'}),
+             (2, (cast(1 as boolean)), (cast('4fd1b3de-3f98-4cc1-bee4-13948f6b7b27' as uuid)),{ts '2024-12-01 10:34:53'},
+             {ts '2024-12-01 10:34:53'}),
+             (3, (cast(1 as boolean)), (cast('4fd1b3de-3f98-4cc1-bee4-13948f6b7b27' as uuid)),{ts '2024-12-01 10:34:53'},
+             {ts '2024-12-01 10:34:53'}),
+             (4, (cast(1 as boolean)), (cast('4fd1b3de-3f98-4cc1-bee4-13948f6b7b27' as uuid)),{ts '2024-12-01 10:34:53'},
+             {ts '2024-12-01 10:34:53'}),
+             (5, (cast(1 as boolean)), (cast('4fd1b3de-3f98-4cc1-bee4-13948f6b7b27' as uuid)),{ts '2024-12-01 10:34:53'},
+             {ts '2024-12-01 10:34:53'}),
+             (6, (cast(1 as boolean)), (cast('4fd1b3de-3f98-4cc1-bee4-13948f6b7b27' as uuid)),{ts '2024-12-01 10:34:53'},
+             {ts '2024-12-01 10:34:53'}),
+             (7, (cast(0 as boolean)), (cast('4fd1b3de-3f98-4cc1-bee4-13948f6b7b27' as uuid)),{ts '2024-12-01 10:34:53'},
+             {ts '2024-12-01 10:34:53'}),
+             (8, (cast(0 as boolean)), (cast('4fd1b3de-3f98-4cc1-bee4-13948f6b7b27' as uuid)),{ts '2024-12-01 10:34:53'},
+             {ts '2024-12-01 10:34:53'}),
+             (9, (cast(1 as boolean)), (cast('4fd1b3de-3f98-4cc1-bee4-13948f6b7b27' as uuid)),{ts '2024-12-01 10:34:53'},
+             {ts '2024-12-01 10:34:53'}),
+             (10, (cast(1 as boolean)), (cast('4fd1b3de-3f98-4cc1-bee4-13948f6b7b27' as uuid)),{ts '2024-12-01 10:34:53'},
+             {ts '2024-12-01 10:34:53'}),
+             (11, (cast(1 as boolean)), (cast('4fd1b3de-3f98-4cc1-bee4-13948f6b7b27' as uuid)),{ts '2024-12-01 10:34:53'},
+             {ts '2024-12-01 10:34:53'}),
+             (12, (cast(1 as boolean)), (cast('4fd1b3de-3f98-4cc1-bee4-13948f6b7b27' as uuid)),{ts '2024-12-01 10:34:53'},
+             {ts '2024-12-01 10:34:53'}),
+             (13, (cast(1 as boolean)), (cast('4fd1b3de-3f98-4cc1-bee4-13948f6b7b27' as uuid)),{ts '2024-12-01 10:34:53'},
+             {ts '2024-12-01 10:34:53'}),
+             (14, (cast(1 as boolean)), (cast('4fd1b3de-3f98-4cc1-bee4-13948f6b7b27' as uuid)),{ts '2024-12-01 10:34:53'},
+             {ts '2024-12-01 10:34:53'})) source_data
+WHERE NOT EXISTS (SELECT NULL FROM ACCOUNT_REGISTRATION);
+
+
+
 INSERT INTO ROLECHANGE (NEW_ROLE, OLD_ROLE, USERMODEL_ID, REQUEST_TIME, APPROVED_BY_ID, APPROVAL_TIME)
 SELECT *
 FROM (VALUES (cast('ADMIN' as USER_ROLE), cast('USER' as USER_ROLE), 1, {ts '2024-12-01 10:34:53'}, 1,

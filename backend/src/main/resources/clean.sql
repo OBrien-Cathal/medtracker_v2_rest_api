@@ -8,3 +8,4 @@ drop table if exists prescriptionscheduleentry cascade;
 drop table if exists usermodel cascade;
 drop table if exists PATIENT_REGISTRATION cascade;
 drop table if exists ROLECHANGE cascade;
+drop table if exists ACCOUNT_REGISTRATION cascade;

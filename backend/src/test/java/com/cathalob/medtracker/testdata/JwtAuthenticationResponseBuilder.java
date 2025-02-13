@@ -5,7 +5,7 @@ import com.cathalob.medtracker.payload.response.auth.JwtAuthenticationResponse;
 public class JwtAuthenticationResponseBuilder {
     private String token = "tokenString";
     private String currentUserRole = "USER";
-    private String message = "success";
+
 
 
     public JwtAuthenticationResponseBuilder setToken(String token) {
@@ -19,13 +19,9 @@ public class JwtAuthenticationResponseBuilder {
         return this;
     }
 
-    public JwtAuthenticationResponseBuilder withMessage(String message) {
-        this.message = message;
-        return this;
-    }
 
     public JwtAuthenticationResponse build() {
-        return new JwtAuthenticationResponse(token, message, currentUserRole);
+        return new JwtAuthenticationResponse(token, currentUserRole);
     }
 
     public static JwtAuthenticationResponseBuilder jwtAuthenticationResponse() {

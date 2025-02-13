@@ -12,6 +12,7 @@ import org.springframework.test.context.jdbc.Sql;
 
 import java.util.List;
 
+import static com.cathalob.medtracker.testdata.PrescriptionBuilder.aNthPrescription;
 import static com.cathalob.medtracker.testdata.PrescriptionBuilder.aPrescription;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -48,11 +49,11 @@ class PrescriptionsRepositoryTests {
         persistPrescriptionAndDependencies(prescription);
         UserModel patientToFindBy = prescription.getPatient();
 
-        persistPrescriptionAndDependencies(aPrescription().build());
-        persistPrescriptionAndDependencies(aPrescription().build());
-        persistPrescriptionAndDependencies(aPrescription().build());
+        persistPrescriptionAndDependencies(aNthPrescription(2).build());
+        persistPrescriptionAndDependencies(aNthPrescription(3).build());
+        persistPrescriptionAndDependencies(aNthPrescription(4).build());
 
-        Prescription otherPrescription = aPrescription().build();
+        Prescription otherPrescription = aNthPrescription(5).build();
         otherPrescription.setPatient(patientToFindBy);
         persistPrescriptionAndDependencies(otherPrescription);
 

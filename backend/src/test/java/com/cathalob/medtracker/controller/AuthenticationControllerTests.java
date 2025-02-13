@@ -1,15 +1,11 @@
 package com.cathalob.medtracker.controller;
 
 import com.cathalob.medtracker.config.SecurityConfig;
-import com.cathalob.medtracker.payload.request.auth.AccountVerificationRequest;
 import com.cathalob.medtracker.payload.request.auth.AuthenticationVerificationRequest;
 import com.cathalob.medtracker.payload.request.auth.SignInRequest;
 import com.cathalob.medtracker.payload.request.auth.SignUpRequest;
-import com.cathalob.medtracker.payload.response.auth.AccountVerificationResponse;
 import com.cathalob.medtracker.payload.response.auth.AuthenticationVerificationResponse;
 import com.cathalob.medtracker.payload.response.auth.JwtAuthenticationResponse;
-import com.cathalob.medtracker.exception.UserAlreadyExistsException;
-import com.cathalob.medtracker.exception.UserNotFound;
 import com.cathalob.medtracker.service.impl.AuthenticationServiceImpl;
 import com.cathalob.medtracker.service.impl.JwtServiceImpl;
 import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
@@ -25,6 +21,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.UnexpectedRollbackException;
+
 
 import static com.cathalob.medtracker.testdata.SignUpRequestBuilder.aSignUpRequest;
 import static org.hamcrest.CoreMatchers.is;
@@ -56,7 +54,7 @@ class AuthenticationControllerTests {
     public void givenSignUpRequest_whenSignUp_thenReturnOk() throws Exception {
         //given - precondition or setup
         SignUpRequest signUpRequest = aSignUpRequest().build();
-        JwtAuthenticationResponse jwtResponse = JwtAuthenticationResponse.builder().build();
+        JwtAuthenticationResponse jwtResponse = new JwtAuthenticationResponse();
         given(authenticationService.signUp(any(SignUpRequest.class)))
                 .willReturn(jwtResponse);
 
@@ -69,16 +67,15 @@ class AuthenticationControllerTests {
         response.andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token", is(jwtResponse.getToken())))
-                .andExpect(jsonPath("$.currentUserRole", is(jwtResponse.getCurrentUserRole())))
-                .andExpect(jsonPath("$.message", is(jwtResponse.getMessage())));
+                .andExpect(jsonPath("$.currentUserRole", is(jwtResponse.getCurrentUserRole())));
     }
 
     @Test
-    public void givenSignUpRequestForExistingUsername_whenSignUp_thenThrowUserAlreadyExists() throws Exception {
+    public void givenSignUpRequestForExistingUsername_whenSignUp_thenThrowUnexpectedRollbackException() throws Exception {
         //given - precondition or setup
         SignUpRequest signUpRequest = aSignUpRequest().build();
         given(authenticationService.signUp(any(SignUpRequest.class)))
-                .willThrow(new UserAlreadyExistsException(signUpRequest.getUsername()));
+                .willThrow(new UnexpectedRollbackException("test"));
 
         // when - action or the behaviour that we are going test
         ResultActions response = mockMvc.perform(post("/api/v1/auth/signup")
@@ -87,8 +84,8 @@ class AuthenticationControllerTests {
         // then - verify the output
         response.andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseInfo.errors[0]",
-                        is(UserAlreadyExistsException.expandedMessage(signUpRequest.getUsername()))));
+                .andExpect(jsonPath("$.responseInfo.successful", is(false)));
+
 
     }
 
@@ -97,7 +94,7 @@ class AuthenticationControllerTests {
     public void givenSignInRequest_whenSignIn_thenReturnOk() throws Exception {
         //given - precondition or setup
         SignInRequest signInRequest = SignInRequestBuilder.aSignInRequest().build();
-        JwtAuthenticationResponse jwtResponse = JwtAuthenticationResponse.builder().build();
+        JwtAuthenticationResponse jwtResponse = new JwtAuthenticationResponse();
         given(authenticationService.signIn(any(SignInRequest.class)))
                 .willReturn(jwtResponse);
 
@@ -111,8 +108,7 @@ class AuthenticationControllerTests {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token", is(jwtResponse.getToken())))
-                .andExpect(jsonPath("$.currentUserRole", is(jwtResponse.getCurrentUserRole())))
-                .andExpect(jsonPath("$.message", is(jwtResponse.getMessage())));
+                .andExpect(jsonPath("$.currentUserRole", is(jwtResponse.getCurrentUserRole())));
     }
 
     @DisplayName("Sign in with bad password returns 401")
@@ -120,7 +116,6 @@ class AuthenticationControllerTests {
     public void givenSignInRequestWithWrongPassword_whenSignIn_thenReturnUnauthorized() throws Exception {
         //given - precondition or setup
         SignInRequest signInRequest = SignInRequestBuilder.aSignInRequest().build();
-        JwtAuthenticationResponse jwtResponse = JwtAuthenticationResponse.builder().build();
         given(authenticationService.signIn(any(SignInRequest.class)))
                 .willThrow(BadCredentialsException.class);
 
@@ -135,25 +130,6 @@ class AuthenticationControllerTests {
                 .andExpect(status().isUnauthorized());
     }
 
-    @Test
-    public void givenSignInRequestForNonExistentUsername_whenSignIn_thenThrowUserNotFound() throws Exception {
-        //given - precondition or setup
-        SignInRequest signInRequest = SignInRequestBuilder.aSignInRequest().build();
-        given(authenticationService.signIn(any(SignInRequest.class)))
-                .willThrow(new UserNotFound(signInRequest.getUsername()));
-
-        // when - action or the behaviour that we are going test
-        ResultActions response = mockMvc.perform(post("/api/v1/auth/signin")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(signInRequest)));
-
-        // then - verify the output
-        response
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseInfo.errors[0]",
-                        is(UserNotFound.expandedMessage(signInRequest.getUsername()))));
-    }
 
     @Test
     public void givenAuthenticationVerificationRequest_whenVerify_thenReturnAuthenticationVerificationResponseWithAuthenticatedTrue()
@@ -188,44 +164,4 @@ class AuthenticationControllerTests {
                 .andExpect(jsonPath("$.authenticated",
                         is(authenticated)));
     }
-
-    @Test
-    public void givenAccountVerificationRequest_whenVerify_thenReturnAccountVerificationResponseWithAccountExistsTrue()
-            throws Exception {
-        //given - precondition or setup
-        checkAccountExists(true);
-    }
-
-    @Test
-    public void givenAccountVerificationRequest_whenVerify_thenReturnAccountVerificationResponseWithAccountExistsFalse()
-            throws Exception {
-        //given - precondition or setup
-        checkAccountExists(false);
-    }
-
-    private void checkAccountExists(boolean accountExists) throws Exception {
-        //given
-        AccountVerificationRequest accountVerificationRequest = AccountVerificationRequest.builder().username("user@user.com").build();
-        given(authenticationService.checkAccountExists(any(AccountVerificationRequest.class)))
-                .willReturn(AccountVerificationResponse.builder().accountExists(accountExists).build());
-
-        // when - action or the behaviour that we are going test
-        ResultActions response = mockMvc.perform(post("/api/v1/auth/checkaccount")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(accountVerificationRequest)));
-
-        // then - verify the output
-        response
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accountExists",
-                        is(accountExists)));
-    }
-
-    private String apiHandledExceptionExpectedMessage(String message, Integer code) {
-        return "MESSAGE!!";
-
-    }
-
-
 }

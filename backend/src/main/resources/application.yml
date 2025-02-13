@@ -24,7 +24,7 @@ spring:
     password: jusx zvql rqgp cbja
     properties:
       mail:
-        debug: true
+        debug: false
         transport:
           protocol: smtp
         smtp:

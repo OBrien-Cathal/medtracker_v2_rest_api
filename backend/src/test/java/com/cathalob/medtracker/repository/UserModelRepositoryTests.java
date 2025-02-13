@@ -3,7 +3,7 @@ package com.cathalob.medtracker.repository;
 
 import com.cathalob.medtracker.model.UserModel;
 
-import static com.cathalob.medtracker.testdata.UserModelBuilder.aUserModel;
+import static com.cathalob.medtracker.testdata.UserModelBuilder.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.cathalob.medtracker.model.enums.USERROLE;
@@ -93,9 +93,9 @@ class UserModelRepositoryTests {
     private void persistUserForAllRoles() {
         UserModel userModelWithRoleUSER = aUserModel().build();
         testEntityManager.persist(userModelWithRoleUSER);
-        testEntityManager.persist(aUserModel().withRole(USERROLE.PATIENT).build());
-        testEntityManager.persist(aUserModel().withRole(USERROLE.PRACTITIONER).build());
-        testEntityManager.persist(aUserModel().withRole(USERROLE.ADMIN).build());
+        testEntityManager.persist(aPatient().build());
+        testEntityManager.persist(aPractitioner().build());
+        testEntityManager.persist(anAdmin().build());
     }
 
 }

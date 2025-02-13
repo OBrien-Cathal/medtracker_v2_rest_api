@@ -13,6 +13,7 @@ spring:
     init:
       mode: always
       data-locations: test-data.sql
+      schema-locations: classpath:/sql/h2/schema.sql
   datasource:
     driverClassName: org.h2.Driver
     url: jdbc:h2:file:~/h2DBs/medtracker;AUTO_SERVER=TRUE

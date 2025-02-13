@@ -82,7 +82,6 @@ public class DosesController {
             Authentication authentication) {
 
         try {
-            System.out.println("try add");
             ResponseEntity<AddDailyDoseDataRequestResponse> ok = ResponseEntity.ok(AddDailyDoseDataRequestResponse.Success(request.getDate(), doseService.addDailyDoseData(authentication.getName(),
                     doseMapper.dose(request),
                     request.getDailyDoseData().getPrescriptionScheduleEntryId(),
@@ -92,7 +91,6 @@ public class DosesController {
 
 
         } catch (DailyDoseDataException e) {
-            System.out.println("catch add");
             return ResponseEntity.ok(AddDailyDoseDataRequestResponse.Failed(request.getDate(), e.getErrors()));
         }
 

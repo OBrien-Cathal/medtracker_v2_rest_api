@@ -13,7 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.cathalob.medtracker.testdata.UserModelBuilder.aUserModel;
+import static com.cathalob.medtracker.testdata.UserModelBuilder.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
@@ -30,7 +30,7 @@ class PatientRegistrationRepositoryTests {
     public void givenPatientRegistration_whenSaved_thenReturnPatientRegistration() {
         //given - precondition or setup
         PatientRegistration patientRegistration = new PatientRegistration();
-        UserModel practitioner = aUserModel().withRole(USERROLE.PRACTITIONER).build();
+        UserModel practitioner = aPractitioner().build();
         UserModel registeringUser = aUserModel().build();
 
         patientRegistration.setPractitionerUserModel(practitioner);
@@ -49,13 +49,13 @@ class PatientRegistrationRepositoryTests {
     public void givenSavedPatientRegistrationsForMultiplePractitioners_whenFindByPractitioner_thenReturnPatientRegistrationForOnlyOnePractitioner() {
         //given - precondition or setup
 
-        UserModel practitioner = aUserModel().withRole(USERROLE.PRACTITIONER).build();
-        UserModel practitioner2 = aUserModel().withRole(USERROLE.PRACTITIONER).build();
+        UserModel practitioner = aPractitioner().build();
+        UserModel practitioner2 = aNthPractitioner(2).build();
 
         testEntityManager.persist(practitioner);
         testEntityManager.persist(practitioner2);
-        Stream.iterate(0, n -> n + 1).limit(3).forEach(n -> createAndPersistPatientRegistrationAndUserModelAndPersistPractitioner(practitioner));
-        createAndPersistPatientRegistrationAndUserModelAndPersistPractitioner(practitioner2);
+        Stream.iterate(0, n -> n + 1).limit(3).forEach(n -> createAndPersistPatientRegistrationAndUserModelAndPersistPractitioner(practitioner, n));
+        createAndPersistPatientRegistrationAndUserModelAndPersistPractitioner(practitioner2, 4);
 
         // when - action or the behaviour that we are going test
         List<PatientRegistration> byPractitionerUserModel = patientRegistrationRepository.findByPractitionerUserModel(practitioner);
@@ -70,10 +70,10 @@ class PatientRegistrationRepositoryTests {
     public void givenSavedPatientRegistrationsForMultiplePatients_whenFindByPatient_thenReturnPatientRegistrationsForThatPatientOnly() {
         //given - precondition or setup
 
-        UserModel practitioner = aUserModel().withRole(USERROLE.PRACTITIONER).build();
-        UserModel practitioner2 = aUserModel().withRole(USERROLE.PRACTITIONER).build();
-        UserModel requestingPatient = aUserModel().build();
-        UserModel otherPatient = aUserModel().build();
+        UserModel practitioner = aPractitioner().build();
+        UserModel practitioner2 = aNthPractitioner(2).build();
+        UserModel requestingPatient = aPatient().build();
+        UserModel otherPatient = aNthPatient(2).build();
 
 
         testEntityManager.persist(practitioner);
@@ -98,10 +98,10 @@ class PatientRegistrationRepositoryTests {
     public void givenSavedPatientRegistrations_whenFindByUserModelAndPractitionerUserModel_thenReturnValuesForThatCombination() {
         //given - precondition or setup
 
-        UserModel practitioner = aUserModel().withRole(USERROLE.PRACTITIONER).build();
-        UserModel practitioner2 = aUserModel().withRole(USERROLE.PRACTITIONER).build();
-        UserModel requestingPatient = aUserModel().build();
-        UserModel otherPatient = aUserModel().build();
+        UserModel practitioner = aPractitioner().build();
+        UserModel practitioner2 = aNthPractitioner(2).build();
+        UserModel requestingPatient = aPatient().build();
+        UserModel otherPatient = aNthPatient(2).build();
 
         testEntityManager.persist(practitioner);
         testEntityManager.persist(practitioner2);
@@ -120,8 +120,8 @@ class PatientRegistrationRepositoryTests {
                         && e.getPractitionerUserModel().getId().equals(practitioner.getId()));
     }
 
-    private void createAndPersistPatientRegistrationAndUserModelAndPersistPractitioner(UserModel practitioner) {
-        UserModel registeringUser = aUserModel().build();
+    private void createAndPersistPatientRegistrationAndUserModelAndPersistPractitioner(UserModel practitioner, int index) {
+        UserModel registeringUser = aNthUser(index).build();
         testEntityManager.persist(registeringUser);
         createAndPersistPatientRegistrationAndPersistPractitioner(practitioner, registeringUser);
     }

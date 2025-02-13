@@ -24,5 +24,6 @@ public class MapperConfig {
     public BloodPressureMapper bloodPressureMapper() {
         return new BloodPressureMapper();
     }
+
 }
 

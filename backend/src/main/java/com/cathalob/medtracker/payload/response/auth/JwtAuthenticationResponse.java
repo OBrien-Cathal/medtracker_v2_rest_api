@@ -1,17 +1,28 @@
 package com.cathalob.medtracker.payload.response.auth;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.cathalob.medtracker.payload.response.generic.Response;
+import com.cathalob.medtracker.payload.response.generic.ResponseInfo;
+import lombok.*;
 
 @Data
-@Builder
+
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class JwtAuthenticationResponse {
+
+public class JwtAuthenticationResponse extends Response {
+
+    public JwtAuthenticationResponse(ResponseInfo responseInfo, String token, String currentUserRole) {
+        super(responseInfo);
+        this.token = token;
+        this.currentUserRole = currentUserRole;
+    }
+
+    public JwtAuthenticationResponse(ResponseInfo responseInfo) {
+        super(responseInfo);
+    }
+
     private String token;
-    private String message;
     private String currentUserRole;
 
 }

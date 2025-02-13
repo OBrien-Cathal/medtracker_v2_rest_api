@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -53,7 +54,7 @@ public class ApiExceptionHandler {
             ApiAuthenticationExceptionModel apiAuthenticationExceptionModel = new ApiAuthenticationExceptionModel(
                     HttpStatus.UNAUTHORIZED.value(),
                     HttpStatus.UNAUTHORIZED,
-                    "Authentication failed: this combination of username and password does not exist",
+                    "Authentication failed: No user exists for the submitted email and password",
                     exception.getMessage(),
                     httpServletRequest.getRequestURL().toString(),
                     ZonedDateTime.now(ZoneId.of("Z"))
@@ -77,6 +78,19 @@ public class ApiExceptionHandler {
         }
 
 
+        if (exception instanceof MissingServletRequestParameterException) {
+            logger.error("Missing Param: ", exception);
+            ApiExceptionModel apiExceptionModel = new ApiExceptionModel(
+                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    exception.getMessage(),
+                    exception.getCause(),
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    ZonedDateTime.now(ZoneId.of("Z"))
+            );
+            return new ResponseEntity<>(apiExceptionModel, HttpStatus.INTERNAL_SERVER_ERROR);
+
+        }
+
         if (exception instanceof MedTrackerException) {
             logger.error("MedTracker: ", exception);
             ApiExceptionModel apiExceptionModel = new ApiExceptionModel(
@@ -90,7 +104,7 @@ public class ApiExceptionHandler {
 
         }
         if (exception instanceof ValidatorException) {
-            logger.error("Validation: ", exception);
+            logger.error("Unhandled Validation: ", exception);
             return ResponseEntity.ok(
                     Response.Failed(((ValidatorException) exception).getErrors()));
 

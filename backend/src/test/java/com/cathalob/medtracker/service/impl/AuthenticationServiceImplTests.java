@@ -1,14 +1,12 @@
 package com.cathalob.medtracker.service.impl;
 
-import com.cathalob.medtracker.payload.request.auth.AccountVerificationRequest;
+import com.cathalob.medtracker.exception.UserAuthenticationValidatorException;
+import com.cathalob.medtracker.factory.AuthenticationFactory;
 import com.cathalob.medtracker.payload.request.auth.AuthenticationVerificationRequest;
 import com.cathalob.medtracker.payload.request.auth.SignInRequest;
 import com.cathalob.medtracker.payload.request.auth.SignUpRequest;
-import com.cathalob.medtracker.payload.response.auth.AccountVerificationResponse;
 import com.cathalob.medtracker.payload.response.auth.AuthenticationVerificationResponse;
 import com.cathalob.medtracker.payload.response.auth.JwtAuthenticationResponse;
-import com.cathalob.medtracker.exception.UserAlreadyExistsException;
-import com.cathalob.medtracker.exception.UserNotFound;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.repository.UserModelRepository;
 import com.cathalob.medtracker.testdata.UserModelBuilder;
@@ -42,10 +40,15 @@ class AuthenticationServiceImplTests {
     private JwtServiceImpl jwtService;
     @Mock
     private AuthenticationManager authenticationManager;
+    @Mock
+    private AccountRegistrationService accountRegistrationService;
+    @Mock
+    private AuthenticationFactory authenticationFactory;
     @InjectMocks
     private AuthenticationServiceImpl authenticationService;
 
-    @DisplayName("Sign Up request returns jwtAuthenticationResponse")
+
+    @DisplayName("Sign Up request returns jwtAuthenticationResponse without token")
     @Test
     public void givenSignupRequest_whenSignup_thenReturnJwtAuthenticationResponse() {
         //given - precondition or setup
@@ -57,41 +60,49 @@ class AuthenticationServiceImplTests {
         given(userModelRepository.findByUsername(signUpRequest.getUsername()))
                 .willReturn(Optional.empty());
         given(passwordEncoder.encode(userModel.getPassword())).willReturn(userModel.getPassword());
-//        given(userModelRepository.save(userModel)).willReturn(userModel);
-        String tokenString = "tokenString";
-        given(jwtService.generateToken(getUserDetails(userModel))).willReturn(tokenString);
+        given(authenticationFactory.signUpUserModel(userModel.getUsername(), userModel.getPassword()))
+                .willReturn(userModel);
 
+        given(userModelRepository.save(userModel)).willReturn(userModel);
+        given(accountRegistrationService.registerUserModel(userModel))
+                .willReturn(true);
         // when - action or the behaviour that we are going test
         JwtAuthenticationResponse jwtAuthenticationResponse = authenticationService.signUp(signUpRequest);
 
         // then - verify the output
         verify(userModelRepository, times(1)).save(any(UserModel.class));
         assertThat(jwtAuthenticationResponse).isNotNull();
-        assertThat(jwtAuthenticationResponse.getToken()).isEqualTo(tokenString);
-        assertThat(jwtAuthenticationResponse.getCurrentUserRole()).isEqualTo(userModel.getRole().name());
-        assertThat(jwtAuthenticationResponse.getMessage()).isEqualTo("success");
+        assertThat(jwtAuthenticationResponse.getToken()).isNull();
+        assertThat(jwtAuthenticationResponse.getCurrentUserRole()).isNull();
+        assertThat(jwtAuthenticationResponse.getResponseInfo().isSuccessful()).isTrue();
     }
 
-    @DisplayName("Sign Up existent user throws UserAlreadyExists exception")
+    @DisplayName("Sign Up existent user does not save a new user but returns success")
     @Test
     public void givenSignUpRequestForExistingUser_whenSignUp_thenThrowUserAlreadyExists() {
         //given - precondition or setup
-        UserModel userModel = UserModelBuilder.aUserModel().build();
+        UserModel userModel = UserModelBuilder.aUserModel().withId(1L).build();
         SignUpRequest signUpRequest = SignUpRequest.builder()
                 .username(userModel.getUsername())
                 .password(userModel.getPassword())
                 .build();
         given(userModelRepository.findByUsername(signUpRequest.getUsername()))
                 .willReturn(Optional.of(userModel));
-
+        given(accountRegistrationService.registerUserModel(userModel))
+                .willReturn(false);
         // when - action or the behaviour that we are going test
-        assertThrows(UserAlreadyExistsException.class, () -> authenticationService.signUp(signUpRequest));
+        JwtAuthenticationResponse jwtAuthenticationResponse = authenticationService.signUp(signUpRequest);
 
         // then - verify the output
+        assertThat(jwtAuthenticationResponse).isNotNull();
+        assertThat(jwtAuthenticationResponse.getToken()).isNull();
+        assertThat(jwtAuthenticationResponse.getCurrentUserRole()).isNull();
+        assertThat(jwtAuthenticationResponse.getResponseInfo().isSuccessful()).isTrue();
         verify(userModelRepository, never()).save(any(UserModel.class));
+
     }
 
-    @DisplayName("Sign In request returns jwtAuthenticationResponse")
+    @DisplayName("Successful Sign In request returns jwtAuthenticationResponse")
     @Test
     public void givenSignInRequest_whenSignIn_thenReturnJwtAuthenticationResponse() {
         //given - precondition or setup
@@ -102,6 +113,8 @@ class AuthenticationServiceImplTests {
                 .build();
         given(userModelRepository.findByUsername(signInRequest.getUsername()))
                 .willReturn(Optional.of(userModel));
+        given(accountRegistrationService.isUserRegistrationConfirmed(userModel))
+                .willReturn(true);
         String tokenString = "tokenString";
         given(jwtService.generateToken(getUserDetails(userModel))).willReturn(tokenString);
 
@@ -112,10 +125,30 @@ class AuthenticationServiceImplTests {
         assertThat(jwtAuthenticationResponse).isNotNull();
         assertThat(jwtAuthenticationResponse.getToken()).isEqualTo(tokenString);
         assertThat(jwtAuthenticationResponse.getCurrentUserRole()).isEqualTo(userModel.getRole().name());
-        assertThat(jwtAuthenticationResponse.getMessage()).isEqualTo("success");
+        assertThat(jwtAuthenticationResponse.getResponseInfo().isSuccessful()).isTrue();
     }
 
-    @DisplayName("Sign In non existent user throws UserNotFound exception")
+    @DisplayName("Sign In unconfirmed user throws validation exception")
+    @Test
+    public void givenUnconfirmedUser_whenSignIn_thenThrowValidationError() {
+        //given - precondition or setup
+        UserModel userModel = UserModelBuilder.aUserModel().build();
+        SignInRequest signInRequest = SignInRequest.builder()
+                .username(userModel.getUsername())
+                .password(userModel.getPassword())
+                .build();
+        given(userModelRepository.findByUsername(signInRequest.getUsername()))
+                .willReturn(Optional.of(userModel));
+        given(accountRegistrationService.isUserRegistrationConfirmed(userModel))
+                .willReturn(false);
+        // when - action or the behaviour that we are going test
+        assertThrows(UserAuthenticationValidatorException.class, () -> authenticationService.signIn(signInRequest));
+
+        // then - verify the output
+        verify(jwtService, never()).generateToken(any(UserDetails.class));
+    }
+
+    @DisplayName("Sign In non existent user throws validation exception")
     @Test
     public void givenSignInRequestForNonExistingUser_whenSignIn_thenThrowUserNotFound() {
         //given - precondition or setup
@@ -128,48 +161,10 @@ class AuthenticationServiceImplTests {
                 .willReturn(Optional.empty());
 
         // when - action or the behaviour that we are going test
-        assertThrows(UserNotFound.class, () -> authenticationService.signIn(signInRequest));
+        assertThrows(UserAuthenticationValidatorException.class, () -> authenticationService.signIn(signInRequest));
 
         // then - verify the output
         verify(jwtService, never()).generateToken(any(UserDetails.class));
-    }
-
-    @DisplayName("Check account exists succeeds for existing account")
-    @Test
-    public void givenAccountVerificationRequestForExistingUsername_whenCheckAccountExists_thenReturnAccountVerificationResponseTrue() {
-        //given - precondition or setup
-        UserModel userModel = UserModelBuilder.aUserModel().build();
-        AccountVerificationRequest accountVerificationRequest = AccountVerificationRequest.builder()
-                .username(userModel.getUsername())
-                .build();
-        given(userModelRepository.findByUsername(accountVerificationRequest.getUsername()))
-                .willReturn(Optional.of(userModel));
-
-        // when - action or the behaviour that we are going test
-        AccountVerificationResponse accountVerificationResponse = authenticationService.checkAccountExists(accountVerificationRequest);
-
-        // then - verify the output
-        assertThat(accountVerificationResponse).isNotNull();
-        assertThat(accountVerificationResponse.isAccountExists()).isEqualTo(true);
-    }
-
-    @DisplayName("Check account exists fails for non existing account")
-    @Test
-    public void givenAccountVerificationRequestForNonExistingUsername_whenCheckAccountExists_thenReturnAccountVerificationResponseFalse() {
-        //given - precondition or setup
-        UserModel userModel = UserModelBuilder.aUserModel().build();
-        AccountVerificationRequest accountVerificationRequest = AccountVerificationRequest.builder()
-                .username(userModel.getUsername())
-                .build();
-        given(userModelRepository.findByUsername(accountVerificationRequest.getUsername()))
-                .willReturn(Optional.empty());
-
-        // when - action or the behaviour that we are going test
-        AccountVerificationResponse accountVerificationResponse = authenticationService.checkAccountExists(accountVerificationRequest);
-
-        // then - verify the output
-        assertThat(accountVerificationResponse).isNotNull();
-        assertThat(accountVerificationResponse.isAccountExists()).isEqualTo(false);
     }
 
     @DisplayName("Verify Authentication succeeds for valid jwt token")

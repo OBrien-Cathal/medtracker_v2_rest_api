@@ -1,15 +1,20 @@
 package com.cathalob.medtracker.repository;
 
 
+import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
 import com.cathalob.medtracker.model.tracking.DailyEvaluation;
 import com.cathalob.medtracker.model.tracking.Dose;
 
 import static com.cathalob.medtracker.testdata.DoseBuilder.aDose;
+import static com.cathalob.medtracker.testdata.DoseBuilder.aSecondDose;
+import static com.cathalob.medtracker.testdata.UserModelBuilder.aUserModel;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.cathalob.medtracker.testdata.DailyEvaluationBuilder;
+import com.cathalob.medtracker.testdata.PrescriptionBuilder;
+import com.cathalob.medtracker.testdata.UserModelBuilder;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -39,14 +44,15 @@ class DoseRepositoryTests {
         Dose saved = doseRepository.save(dose);
 
 //      then
-        assertThat(saved.getId()).isGreaterThan(1L);
+        assertThat(saved.getId()).isGreaterThan(0);
     }
 
     @Test
     public void givenDose_whenSavedAndQueried_thenReturnOnlyDosesForUserModelId() {
 //          given
         Dose dose = aDose().build();
-        Dose otherDose = aDose().build();
+        Dose otherDose = aSecondDose()
+                .build();
 
         persistPrerequisites(dose);
         persistPrerequisites(otherDose);
@@ -68,7 +74,8 @@ class DoseRepositoryTests {
     public void givenDose_whenFindByDailyEvaluation_thenReturnDoseList() {
 //          given
         Dose dose = aDose().build();
-        Dose otherDose = aDose().build();
+        Dose otherDose = aSecondDose()
+                .build();
 
         persistPrerequisites(dose);
         persistPrerequisites(otherDose);
@@ -90,11 +97,17 @@ class DoseRepositoryTests {
     public void given1DosePerDateForUser_whenFindByDailyEvaluationDatesAndUserModelId_thenReturn2Doses() {
 //          given
         Dose dose = aDose().build();
-        Dose otherDose = aDose().withDailyEvaluationBuilder(
-                DailyEvaluationBuilder.aDailyEvaluation().withRecordDate(dose.getEvaluation().getRecordDate().plusDays(1))
-        ).build();
+        Dose otherDose = aSecondDose().withDailyEvaluationBuilder(
+                        DailyEvaluationBuilder.aDailyEvaluation()
+                                .withRecordDate(dose.getEvaluation().getRecordDate().plusDays(1)))
+                .build();
 
-        otherDose.getEvaluation().setUserModel(dose.getEvaluation().getUserModel());
+
+        UserModel userModelWithMultipleDoses = dose.getEvaluation().getUserModel();
+
+        otherDose.getEvaluation().setUserModel(userModelWithMultipleDoses);
+        otherDose.setPrescriptionScheduleEntry(dose.getPrescriptionScheduleEntry());
+
 
         persistPrerequisites(dose);
         testEntityManager.persist(dose);
@@ -105,7 +118,7 @@ class DoseRepositoryTests {
         List<Dose> byEvaluation = doseRepository.findByDailyEvaluationDatesAndUserModelId(
                 List.of(
                         dose.getEvaluation().getRecordDate(), otherDose.getEvaluation().getRecordDate()),
-                dose.getEvaluation().getUserModel().getId()
+                userModelWithMultipleDoses.getId()
         );
 
 //      then
@@ -116,7 +129,8 @@ class DoseRepositoryTests {
     public void given1DoseForEachUser_whenFindByDailyEvaluationDatesAndUserModelId_thenReturnSingleDose() {
 //          given
         Dose dose = aDose().build();
-        Dose otherDose = aDose().build();
+        Dose otherDose = aSecondDose()
+                .build();
 
         persistPrerequisites(dose);
         persistPrerequisites(otherDose);
@@ -139,9 +153,10 @@ class DoseRepositoryTests {
         PrescriptionScheduleEntry prescriptionScheduleEntry = dose.getPrescriptionScheduleEntry();
         Prescription prescription = prescriptionScheduleEntry.getPrescription();
 
-        testEntityManager.persist(prescription.getPatient());
-        testEntityManager.persist(prescription.getPractitioner());
+
+        testEntityManager.persist(dose.getEvaluation().getUserModel());
         testEntityManager.persist(dose.getEvaluation());
+        testEntityManager.persist(prescription.getPractitioner());
         testEntityManager.persist(prescription.getMedication());
         testEntityManager.persist(prescription);
         testEntityManager.persist(prescriptionScheduleEntry);

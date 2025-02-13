@@ -45,7 +45,7 @@ class RoleChangeRepositoryTests {
     public void givenApprovedRoleChange_whenSave_thenReturnSavedRoleChange() {
         //given - precondition or setup
 
-        UserModelBuilder approvedBy = UserModelBuilder.aUserModel().withRole(USERROLE.ADMIN);
+        UserModelBuilder approvedBy = UserModelBuilder.anAdmin();
         RoleChange roleChange = aRoleChange().withApprovedByUserModelBuilder(approvedBy).withApprovalTime(LocalDateTime.now()).build();
         testEntityManager.persist(roleChange.getUserModel());
         testEntityManager.persist(roleChange.getApprovedBy());

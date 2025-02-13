@@ -10,8 +10,8 @@ public class PrescriptionBuilder {
     private int doseMg = 10;
     private MedicationBuilder medicationBuilder = new MedicationBuilder();
 
-    private UserModelBuilder patientUserModelBuilder = new UserModelBuilder().withRole(USERROLE.PATIENT);
-    private UserModelBuilder practitionerUserModelBuilder = new UserModelBuilder().withRole(USERROLE.PRACTITIONER);
+    private UserModelBuilder patientUserModelBuilder = UserModelBuilder.aPatient();
+    private UserModelBuilder practitionerUserModelBuilder = UserModelBuilder.aPractitioner();
 
     private LocalDateTime beginTime = LocalDateTime.now();
 
@@ -60,6 +60,12 @@ public class PrescriptionBuilder {
 
     public static PrescriptionBuilder aPrescription() {
         return new PrescriptionBuilder();
+    }
+
+    public static PrescriptionBuilder aNthPrescription(int ordinal) {
+        return aPrescription()
+                .withPatient(UserModelBuilder.aNthPatient(ordinal))
+                .withPractitioner(UserModelBuilder.aNthPractitioner(ordinal));
     }
 
     public PrescriptionBuilder but() {
