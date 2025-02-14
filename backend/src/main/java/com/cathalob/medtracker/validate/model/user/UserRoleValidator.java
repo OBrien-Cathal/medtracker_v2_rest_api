@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.validate.model;
+package com.cathalob.medtracker.validate.model.user;
 
 import com.cathalob.medtracker.exception.validation.UserRoleValidationException;
 import com.cathalob.medtracker.model.enums.USERROLE;

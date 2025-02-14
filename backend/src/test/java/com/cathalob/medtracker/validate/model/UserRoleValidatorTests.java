@@ -4,7 +4,7 @@ import com.cathalob.medtracker.exception.validation.UserRoleValidationException;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.testdata.UserModelBuilder;
-import com.cathalob.medtracker.validate.ObjectPresenceValidator;
+import com.cathalob.medtracker.validate.model.user.UserRoleValidator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

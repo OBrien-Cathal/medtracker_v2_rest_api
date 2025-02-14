@@ -34,7 +34,7 @@ public class PrescriptionScheduleEntryValidator extends Validator {
 
     public void validatePrescription(Prescription prescription) {
         try {
-            PrescriptionValidator.aPrescriptionValidator(prescription).validate();
+            PrescriptionValidator.aPrescriptionValidator(prescription, null).validate();
         } catch (PrescriptionValidatorException e) {
             addErrors(e.getErrors());
         }

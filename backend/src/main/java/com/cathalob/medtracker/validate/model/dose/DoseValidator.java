@@ -1,10 +1,10 @@
-package com.cathalob.medtracker.validate.model;
+package com.cathalob.medtracker.validate.model.dose;
 
 import com.cathalob.medtracker.exception.validation.DailyEvaluationValidationException;
-import com.cathalob.medtracker.exception.validation.PrescriptionScheduleEntryValidatorException;
 import com.cathalob.medtracker.exception.validation.dose.DailyDoseDataException;
 import com.cathalob.medtracker.model.tracking.Dose;
 import com.cathalob.medtracker.validate.Validator;
+import com.cathalob.medtracker.validate.model.DailyEvaluationValidator;
 
 import java.time.LocalDateTime;
 
@@ -52,11 +52,8 @@ public class DoseValidator extends Validator {
     }
 
     private void validatePrescriptionScheduleEntry() {
-        try {
-            PrescriptionScheduleEntryValidator.aPrescriptionScheduleEntryValidator(dose.getPrescriptionScheduleEntry()).validate();
-        } catch (PrescriptionScheduleEntryValidatorException e) {
-            addErrors(e.getErrors());
-        }
+        if (dose.getPrescriptionScheduleEntry() == null || dose.getPrescriptionScheduleEntry().getId() == null)
+            addError("Doses can only be entered for existing prescription schedules");
     }
 
     public static DoseValidator AddDoseValidator(Dose dose) {

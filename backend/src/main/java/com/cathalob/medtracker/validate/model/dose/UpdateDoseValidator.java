@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.validate.model;
+package com.cathalob.medtracker.validate.model.dose;
 
 import com.cathalob.medtracker.model.tracking.Dose;
 

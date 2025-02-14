@@ -1,6 +1,7 @@
 package com.cathalob.medtracker.validate;
 
 import com.cathalob.medtracker.exception.validation.ObjectPresenceValidatorException;
+import com.cathalob.medtracker.validate.model.ObjectPresenceValidator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

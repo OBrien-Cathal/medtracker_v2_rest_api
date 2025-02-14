@@ -4,6 +4,7 @@ import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
 import com.cathalob.medtracker.payload.data.PrescriptionDetailsData;
 import com.cathalob.medtracker.payload.data.PrescriptionOverviewData;
+import com.cathalob.medtracker.puremodel.PrescriptionDetails;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,6 +22,11 @@ public class PrescriptionMapper {
                 prescription.getEndTime());
     }
 
+
+    public Prescription prescription(PrescriptionDetailsData prescriptionDetailsData) {
+        return Prescription(prescriptionDetailsData);
+    }
+
     public static Prescription Prescription(PrescriptionDetailsData prescriptionDetailsData) {
         Prescription prescription = new Prescription();
         prescription.setId(prescriptionDetailsData.getId());
@@ -31,11 +37,8 @@ public class PrescriptionMapper {
         } else {
             prescription.setBeginTime(prescriptionDetailsData.getBeginTime());
         }
-        if (prescriptionDetailsData.getEndTime() == null) {
-            prescription.setEndTime(LocalDateTime.now().plusDays(5));
-        } else {
-            prescription.setEndTime(prescriptionDetailsData.getEndTime());
-        }
+        prescription.setEndTime(prescriptionDetailsData.getEndTime());
+
         return prescription;
     }
 
@@ -52,4 +55,22 @@ public class PrescriptionMapper {
                 .prescriptionScheduleEntries(byPrescription)
                 .build();
     }
+
+    public PrescriptionDetailsData prescriptionDetails(PrescriptionDetails prescriptionDetails) {
+
+        return PrescriptionDetails(prescriptionDetails.getPrescription(), prescriptionDetails.getPrescriptionScheduleEntries());
+    }
+
+    public List<PrescriptionOverviewData> overviews(List<Prescription> prescriptions) {
+        return Overviews(prescriptions);
+
+    }
+
+    public static List<PrescriptionOverviewData> Overviews(List<Prescription> prescriptions) {
+        return prescriptions.stream().map(PrescriptionMapper::Overview).toList();
+
+    }
+
+
+
 }

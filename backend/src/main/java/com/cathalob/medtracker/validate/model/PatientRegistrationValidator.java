@@ -4,6 +4,7 @@ import com.cathalob.medtracker.exception.validation.PatientRegistrationException
 import com.cathalob.medtracker.exception.validation.UserModelValidationException;
 import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.validate.Validator;
+import com.cathalob.medtracker.validate.model.user.UserModelValidator;
 
 public class PatientRegistrationValidator extends Validator {
     private final PatientRegistration patientRegistration;

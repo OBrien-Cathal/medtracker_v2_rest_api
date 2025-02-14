@@ -1,5 +1,6 @@
 package com.cathalob.medtracker.controller;
 
+import com.cathalob.medtracker.mapper.PrescriptionMapper;
 import com.cathalob.medtracker.model.enums.DAYSTAGE;
 import com.cathalob.medtracker.payload.data.PrescriptionDetailsData;
 import com.cathalob.medtracker.payload.data.PrescriptionOverviewData;
@@ -7,6 +8,7 @@ import com.cathalob.medtracker.payload.response.SubmitPrescriptionDetailsRespons
 import com.cathalob.medtracker.payload.response.GetPrescriptionDetailsResponse;
 
 import com.cathalob.medtracker.service.impl.PrescriptionsService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,39 +23,40 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PrescriptionsController {
 
+    private final PrescriptionMapper prescriptionMapper;
+
     private final PrescriptionsService prescriptionsService;
 
     @GetMapping
     @PreAuthorize("hasRole('ROLE_PATIENT')")
     public ResponseEntity<List<PrescriptionOverviewData>> getPrescriptions(
             Authentication authentication) {
-        List<PrescriptionOverviewData> prescriptions =
-                prescriptionsService.getPrescriptions(authentication.getName());
-        return ResponseEntity.ok(prescriptions);
+
+        return ResponseEntity.ok(
+                prescriptionMapper.overviews(
+                        prescriptionsService.getPrescriptions(authentication.getName())));
     }
 
     @GetMapping("/patient")
     @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
     public ResponseEntity<List<PrescriptionOverviewData>> getPatientPrescriptions(@RequestParam(required = false, name = "id") Long patientId, Authentication authentication) {
-        List<PrescriptionOverviewData> prescriptions =
-                prescriptionsService.getPatientPrescriptions(authentication.getName(), patientId);
-        return ResponseEntity.ok(prescriptions);
+
+        return ResponseEntity.ok(
+                prescriptionMapper.overviews(
+                        prescriptionsService.getPatientPrescriptions(authentication.getName(), patientId)));
     }
 
-    @PostMapping("/add")
-    @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
-    public ResponseEntity<SubmitPrescriptionDetailsResponse> addPrescription(@RequestBody PrescriptionDetailsData prescriptionDetailsData,
-                                                                             Authentication authentication) {
-        SubmitPrescriptionDetailsResponse response = prescriptionsService.addPrescriptionDetails(prescriptionDetailsData);
-        return ResponseEntity.ok(response);
-    }
 
-    @PostMapping("/update")
+    @PostMapping("/submit-prescription")
     @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
-    public ResponseEntity<SubmitPrescriptionDetailsResponse> updatePrescription(@RequestBody PrescriptionDetailsData prescriptionDetailsData,
-                                                                             Authentication authentication) {
-        SubmitPrescriptionDetailsResponse response = prescriptionsService.updatePrescriptionDetails(prescriptionDetailsData);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<SubmitPrescriptionDetailsResponse> submitPrescription(Authentication authentication,
+                                                                                @RequestBody @Valid PrescriptionDetailsData prescriptionDetailsData) {
+
+        return ResponseEntity.ok(SubmitPrescriptionDetailsResponse.Success(prescriptionsService.submitPrescription(authentication.getName(),
+                prescriptionMapper.prescription(prescriptionDetailsData),
+                prescriptionDetailsData.getPrescriptionScheduleEntries(),
+                prescriptionDetailsData.getPatientId(),
+                prescriptionDetailsData.getMedication().getId())));
     }
 
 
@@ -63,14 +66,15 @@ public class PrescriptionsController {
             @RequestParam(required = false, name = "id") Long prescriptionId,
             Authentication authentication) {
 
-        GetPrescriptionDetailsResponse prescriptionDetails =
-                prescriptionsService.getPrescriptionDetails(authentication.getName(), prescriptionId);
-        return ResponseEntity.ok(prescriptionDetails);
+        return ResponseEntity.ok(GetPrescriptionDetailsResponse.Success(
+                prescriptionMapper.prescriptionDetails(
+                        prescriptionsService.getPrescriptionDetails(authentication.getName(),
+                                prescriptionId))));
     }
 
     @GetMapping("/day-stages")
     @PreAuthorize("hasRole('ROLE_PRACTITIONER')||hasRole('ROLE_PATIENT')")
-    public ResponseEntity<List<String>> getDayStages( ) {
+    public ResponseEntity<List<String>> getDayStages() {
         return ResponseEntity.ok(Arrays.stream(DAYSTAGE.values()).map(DAYSTAGE::name).toList());
     }
 }

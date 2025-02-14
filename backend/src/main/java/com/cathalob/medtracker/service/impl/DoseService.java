@@ -5,14 +5,13 @@ import com.cathalob.medtracker.exception.validation.dose.DoseGraphDataException;
 import com.cathalob.medtracker.factory.DoseServiceModelFactory;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
-import com.cathalob.medtracker.model.tracking.BloodPressureReading;
 import com.cathalob.medtracker.model.tracking.DailyEvaluation;
 import com.cathalob.medtracker.model.tracking.Dose;
 import com.cathalob.medtracker.repository.DoseRepository;
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.PrescriptionScheduleEntryRepository;
 import com.cathalob.medtracker.service.UserService;
-import com.cathalob.medtracker.validate.model.DoseValidator;
+import com.cathalob.medtracker.validate.model.dose.DoseValidator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -81,7 +80,7 @@ public class DoseService {
         List<Dose> byId = doseRepository.findByPrescriptionScheduleEntryAndEvaluation(prescriptionScheduleEntry, dailyEvaluation);
         newDose.setPrescriptionScheduleEntry(prescriptionScheduleEntry);
         newDose.setEvaluation(dailyEvaluation);
-
+        System.out.println(newDose.getPrescriptionScheduleEntry());
         if (byId.isEmpty()) {
             DoseValidator.AddDoseValidator(newDose).validate();
         } else {

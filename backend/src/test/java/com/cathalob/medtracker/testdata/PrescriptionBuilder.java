@@ -1,6 +1,5 @@
 package com.cathalob.medtracker.testdata;
 
-import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.prescription.Prescription;
 
 import java.time.LocalDateTime;
@@ -13,7 +12,7 @@ public class PrescriptionBuilder {
     private UserModelBuilder patientUserModelBuilder = UserModelBuilder.aPatient();
     private UserModelBuilder practitionerUserModelBuilder = UserModelBuilder.aPractitioner();
 
-    private LocalDateTime beginTime = LocalDateTime.now();
+    private LocalDateTime beginTime = LocalDateTime.now().plusDays(1);
 
     private LocalDateTime endTime;
 

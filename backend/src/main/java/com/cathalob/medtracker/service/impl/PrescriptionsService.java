@@ -1,32 +1,31 @@
 package com.cathalob.medtracker.service.impl;
 
-import com.cathalob.medtracker.mapper.PrescriptionMapper;
+import com.cathalob.medtracker.exception.validation.PrescriptionValidatorException;
+import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.DAYSTAGE;
-import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.prescription.Medication;
 import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
-import com.cathalob.medtracker.payload.data.PrescriptionDetailsData;
-import com.cathalob.medtracker.payload.data.PrescriptionOverviewData;
-import com.cathalob.medtracker.payload.response.SubmitPrescriptionDetailsResponse;
-import com.cathalob.medtracker.payload.response.GetPrescriptionDetailsResponse;
+
+import com.cathalob.medtracker.puremodel.PrescriptionDetails;
 import com.cathalob.medtracker.repository.MedicationRepository;
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.PrescriptionScheduleEntryRepository;
 import com.cathalob.medtracker.repository.PrescriptionsRepository;
 import com.cathalob.medtracker.service.UserService;
+import com.cathalob.medtracker.validate.actions.GetPrescriptionDetailsValidator;
+import com.cathalob.medtracker.validate.model.PrescriptionValidator;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.chrono.ChronoLocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
 
 @Service
 @Slf4j
@@ -40,13 +39,13 @@ public class PrescriptionsService {
 
 
     //    Used by controller!!
-    public List<PrescriptionOverviewData> getPrescriptions(String username) {
+    public List<Prescription> getPrescriptions(String username) {
         UserModel userModel = userService.findByLogin(username);
         if (userModel == null) return List.of();
-        return getPrescriptions(userModel).stream().map((PrescriptionMapper::Overview)).toList();
+        return getPrescriptions(userModel);
     }
 
-    public List<PrescriptionOverviewData> getPatientPrescriptions(String practitionerUsername, Long patientId) {
+    public List<Prescription> getPatientPrescriptions(String practitionerUsername, Long patientId) {
         Optional<UserModel> maybePatient = userService.findUserModelById(patientId);
         if (maybePatient.isEmpty()) return List.of();
         UserModel practitioner = userService.findByLogin(practitionerUsername);
@@ -54,58 +53,51 @@ public class PrescriptionsService {
             return List.of();
         }
 //        check if the pract can see these prescriptions, send error that user does not exist instead of empty list, subclass response
-        return getPrescriptions(maybePatient.get()).stream().map((PrescriptionMapper::Overview)).toList();
+        return getPrescriptions(maybePatient.get());
     }
 
-    public GetPrescriptionDetailsResponse getPrescriptionDetails(String practitionerUsername, Long prescriptionId) {
+    public PrescriptionDetails getPrescriptionDetails(String practitionerUsername, Long prescriptionId) {
         Prescription prescriptionOrNull = prescriptionsRepository.findById(prescriptionId).orElse(null);
-        if (prescriptionOrNull == null)
-            return GetPrescriptionDetailsResponse.Failed(List.of("Prescription with ID does not exist (ID: " + prescriptionId + ")"));
+        UserModel requestingUserModel = userService.findByLogin(practitionerUsername);
 
-        UserModel practitionerOrPatient = userService.findByLogin(practitionerUsername);
-        if (practitionerOrPatient.getRole().equals(USERROLE.PRACTITIONER)) {
+        UserModel patient = prescriptionOrNull == null ? null : prescriptionOrNull.getPatient();
+        List<PatientRegistration> patientRegistrations = patientRegistrationRepository.findByUserModelAndPractitionerUserModel(patient, requestingUserModel);
 
+        new GetPrescriptionDetailsValidator(prescriptionOrNull, requestingUserModel, patientRegistrations).validate();
 
-            UserModel patient = prescriptionOrNull.getPatient();
-            if (patientRegistrationRepository.findByUserModelAndPractitionerUserModel(patient, practitionerOrPatient).isEmpty()) {
-                return GetPrescriptionDetailsResponse.Failed(List.of("Not allowed to view prescriptions of unregistered patient"));
-            }
-
-            return GetPrescriptionDetailsResponse.Success(
-                    PrescriptionMapper.PrescriptionDetails(
-                            prescriptionOrNull,
-                            prescriptionScheduleEntryRepository.findByPrescription(prescriptionOrNull)));
-        } else {
-            if (practitionerOrPatient.getId().equals(prescriptionOrNull.getPatient().getId())) {
-                return GetPrescriptionDetailsResponse.Success(
-                        PrescriptionMapper.PrescriptionDetails(
-                                prescriptionOrNull,
-                                prescriptionScheduleEntryRepository.findByPrescription(prescriptionOrNull)));
-            }
-        }
-
-        return GetPrescriptionDetailsResponse.Failed(List.of("Not authorized"));
+        return new PrescriptionDetails(prescriptionOrNull, prescriptionScheduleEntryRepository.findByPrescription(prescriptionOrNull));
     }
 
-    public SubmitPrescriptionDetailsResponse addPrescriptionDetails(PrescriptionDetailsData prescriptionDetailsData) {
-        System.out.println("addPrescriptionDetails");
-        System.out.println(prescriptionDetailsData);
-        Prescription prescription = PrescriptionMapper.Prescription(prescriptionDetailsData);
-        setReferencesFromPrescriptionDetails(prescriptionDetailsData, prescription);
-        System.out.println(prescription);
 
-        List<String> errors = validateAddPrescription(prescription);
-        if (!errors.isEmpty()) {
-            return SubmitPrescriptionDetailsResponse.Failed(errors);
-        }
+    public Long submitPrescription(String practitionerUsername,
+                                   Prescription prescription,
+                                   List<PrescriptionScheduleEntry> prescriptionScheduleEntryList,
+                                   Long patientId,
+                                   Long medicationId) {
 
+        Prescription existingPrescription = prescription.getId() == null ? null :
+                prescriptionsRepository.findById(prescription.getId())
+                        .orElseThrow(() -> new PrescriptionValidatorException(
+                                List.of("Prescription with ID does not exist (ID: " + prescription.getId() + ")")));
+
+        prescription.setPatient(userService.findUserModelById(patientId).orElse(null));
+        UserModel submittingUser = userService.findByLogin(practitionerUsername);
+
+        List<PatientRegistration> registration = patientRegistrationRepository.findByUserModelAndPractitionerUserModel(prescription.getPatient(), submittingUser);
+        UserModel registeredPractitioner = registration.isEmpty() ? null : registration.get(0).getPractitionerUserModel();
+        prescription.setPractitioner(registeredPractitioner);
+        prescription.setMedication(medicationRepository.findById(medicationId).orElse(null));
+
+        PrescriptionValidator.aPrescriptionValidator(prescription, existingPrescription).validate();
 
         Prescription saved = prescriptionsRepository.save(prescription);
-        updatePrescriptionSchedule(prescriptionDetailsData, saved);
-        return SubmitPrescriptionDetailsResponse.Success(saved.getId());
+        updatePrescriptionSchedule(prescriptionScheduleEntryList, saved);
+
+        return saved.getId();
     }
 
-    private void updatePrescriptionSchedule(PrescriptionDetailsData prescriptionDetailsData,
+
+    private void updatePrescriptionSchedule(List<PrescriptionScheduleEntry> prescriptionScheduleEntryList,
                                             Prescription prescription) {
         List<PrescriptionScheduleEntry> toAdd = new ArrayList<>();
         List<PrescriptionScheduleEntry> toRemove = new ArrayList<>();
@@ -115,13 +107,13 @@ public class PrescriptionsService {
         Map<DAYSTAGE, PrescriptionScheduleEntry> existingByDayStage = existingSchedule
                 .stream()
                 .collect(Collectors.toMap(PrescriptionScheduleEntry::getDayStage, Function.identity()));
-        for (PrescriptionScheduleEntry prescriptionScheduleEntry : prescriptionDetailsData.getPrescriptionScheduleEntries()) {
+        for (PrescriptionScheduleEntry prescriptionScheduleEntry : prescriptionScheduleEntryList) {
             if (!existingByDayStage.containsKey(prescriptionScheduleEntry.getDayStage())) {
                 toAdd.add(prescriptionScheduleEntry);
             }
         }
 
-        Map<DAYSTAGE, PrescriptionScheduleEntry> newByDayStage = prescriptionDetailsData.getPrescriptionScheduleEntries().stream()
+        Map<DAYSTAGE, PrescriptionScheduleEntry> newByDayStage = prescriptionScheduleEntryList.stream()
                 .collect(Collectors.toMap(PrescriptionScheduleEntry::getDayStage, Function.identity()));
 
         for (PrescriptionScheduleEntry existingScheduleEntry : existingSchedule) {
@@ -133,60 +125,6 @@ public class PrescriptionsService {
         prescriptionScheduleEntryRepository.deleteAll(toRemove);
         prescriptionScheduleEntryRepository.saveAll(toAdd);
 
-    }
-
-    private List<String> validateAddPrescription(Prescription prescription) {
-        ArrayList<String> errors = new ArrayList<>();
-        if ((prescription.getId() != null)) {
-            errors.add("Added prescriptions cannot have an ID, provided: " + prescription.getId());
-        }
-        errors.addAll(basicValidatePrescription(prescription));
-        return errors;
-    }
-
-    public SubmitPrescriptionDetailsResponse updatePrescriptionDetails(PrescriptionDetailsData prescriptionDetailsData) {
-        System.out.println("updatePrescriptionDetails");
-        System.out.println(prescriptionDetailsData);
-        Prescription prescription = PrescriptionMapper.Prescription(prescriptionDetailsData);
-        setReferencesFromPrescriptionDetails(prescriptionDetailsData, prescription);
-        System.out.println(prescription);
-        Prescription existingPrescriptionOrNull = prescriptionsRepository.findById(prescription.getId()).orElse(null);
-        List<String> errors = validateUpdatePrescription(prescription, existingPrescriptionOrNull);
-        if (!errors.isEmpty()) {
-            return SubmitPrescriptionDetailsResponse.Failed(errors);
-        }
-
-        Prescription saved = prescriptionsRepository.save(prescription);
-        updatePrescriptionSchedule(prescriptionDetailsData, saved);
-
-        return SubmitPrescriptionDetailsResponse.Success(saved.getId());
-    }
-
-    private void setReferencesFromPrescriptionDetails(PrescriptionDetailsData prescriptionDetailsData, Prescription prescription) {
-        prescription.setPatient(userService.findUserModelById(prescriptionDetailsData.getPatientId()).orElse(null));
-        prescription.setPractitioner(userService.findUserModelById(prescriptionDetailsData.getPractitionerId()).orElse(null));
-        prescription.setMedication(medicationRepository.findById(prescriptionDetailsData.getMedication().getId()).orElse(null));
-    }
-
-    private List<String> validateUpdatePrescription(Prescription prescription, Prescription existingPrescription) {
-        ArrayList<String> errors = new ArrayList<>();
-        if ((prescription.getId() == null)) {
-            errors.add("No ID provided to update");
-        }
-        if (existingPrescription == null) {
-            errors.add("Prescription with ID does not exist (ID: " + prescription.getId() + ")");
-        }
-        errors.addAll(basicValidatePrescription(prescription));
-        return errors;
-    }
-
-    private List<String> basicValidatePrescription(Prescription prescription) {
-        ArrayList<String> errors = new ArrayList<>();
-
-        if (prescription.getDoseMg() < 0) {
-            errors.add("Dose mg should be greater than 0");
-        }
-        return errors;
     }
 
     //    Internal use
@@ -247,14 +185,9 @@ public class PrescriptionsService {
                 .stream().collect(Collectors.toMap(Prescription::getId, Function.identity()));
     }
 
-    private List<PrescriptionScheduleEntry> getPrescriptionScheduleEntries(List<Long> prescriptionIds) {
-        return prescriptionScheduleEntryRepository.findByPrescriptionIds(prescriptionIds);
-    }
-
     public Map<Long, PrescriptionScheduleEntry> getPrescriptionScheduleEntriesById() {
         return prescriptionScheduleEntryRepository.findAll().stream().collect(Collectors.toMap(PrescriptionScheduleEntry::getId, Function.identity()));
     }
-
 
     public void savePrescriptions(List<Prescription> newPrescriptions) {
         prescriptionsRepository.saveAll(newPrescriptions);

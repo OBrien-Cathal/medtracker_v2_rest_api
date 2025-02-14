@@ -5,6 +5,7 @@ import com.cathalob.medtracker.exception.validation.UserModelValidationException
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.tracking.DailyEvaluation;
 import com.cathalob.medtracker.validate.Validator;
+import com.cathalob.medtracker.validate.model.user.UserModelValidator;
 
 public class DailyEvaluationValidator extends Validator {
     private final DailyEvaluation dailyEvaluation;

@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.validate.model;
+package com.cathalob.medtracker.validate.model.user;
 
 import com.cathalob.medtracker.exception.validation.UserModelValidationException;
 import com.cathalob.medtracker.exception.validation.UserRoleValidationException;
@@ -39,6 +39,10 @@ public class UserModelValidator extends Validator {
 
     public static PatientAndUserUserModelValidator PatientAndUserUserModelValidator(UserModel userModel) {
         return new PatientAndUserUserModelValidator(userModel);
+    }
+
+    public static PatientAndPractitionerUserModelValidator PatientAndPractitionerUserModelValidator(UserModel userModel) {
+        return new PatientAndPractitionerUserModelValidator(userModel);
     }
 
 

@@ -211,9 +211,11 @@ class DoseServiceTests {
 
         Dose existingDose = aDose().withId(1L).build();
 
-        DailyEvaluation evaluation = existingDose.getEvaluation();
-        PrescriptionScheduleEntry existingPrescriptionScheduleEntry = existingDose.getPrescriptionScheduleEntry();
-        UserModel patient = evaluation.getUserModel();
+        UserModel patient = aUserModel().withRole(USERROLE.PATIENT).build();
+        DailyEvaluation evaluation = aDailyEvaluation().withRecordDate(request.getDate()).build();
+        evaluation.setUserModel(patient);
+        PrescriptionScheduleEntry prescriptionScheduleEntry = aPrescriptionScheduleEntry().withId(1L).build();
+
 
         Dose addOrUpdateDose = DoseMapper.Dose(request);
 
@@ -222,9 +224,9 @@ class DoseServiceTests {
         given(evaluationDataService.findOrCreateDailyEvaluationForPatientAndDate(patient, request.getDate()))
                 .willReturn(evaluation);
         given(prescriptionScheduleEntryRepository.findById(request.getDailyDoseData().getPrescriptionScheduleEntryId()))
-                .willReturn(Optional.of(existingPrescriptionScheduleEntry));
+                .willReturn(Optional.of(prescriptionScheduleEntry));
 
-        given(doseRepository.findByPrescriptionScheduleEntryAndEvaluation(existingPrescriptionScheduleEntry, evaluation))
+        given(doseRepository.findByPrescriptionScheduleEntryAndEvaluation(prescriptionScheduleEntry, evaluation))
                 .willReturn(List.of(existingDose));
 
         given(doseRepository.save(addOrUpdateDose)).willReturn(addOrUpdateDose);

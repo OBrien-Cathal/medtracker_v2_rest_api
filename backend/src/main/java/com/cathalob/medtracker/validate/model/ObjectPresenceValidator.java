@@ -1,6 +1,7 @@
-package com.cathalob.medtracker.validate;
+package com.cathalob.medtracker.validate.model;
 
 import com.cathalob.medtracker.exception.validation.ObjectPresenceValidatorException;
+import com.cathalob.medtracker.validate.Validator;
 
 public class ObjectPresenceValidator extends Validator {
     private Object object;
