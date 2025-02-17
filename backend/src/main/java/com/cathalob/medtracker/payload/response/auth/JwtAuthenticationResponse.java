@@ -12,9 +12,10 @@ import lombok.*;
 
 public class JwtAuthenticationResponse extends Response {
 
-    public JwtAuthenticationResponse(ResponseInfo responseInfo, String token, String currentUserRole) {
+    public JwtAuthenticationResponse(ResponseInfo responseInfo, String username, String token, String currentUserRole) {
         super(responseInfo);
         this.token = token;
+        this.username = username;
         this.currentUserRole = currentUserRole;
     }
 
@@ -22,6 +23,8 @@ public class JwtAuthenticationResponse extends Response {
         super(responseInfo);
     }
 
+
+    private String username;
     private String token;
     private String currentUserRole;
 

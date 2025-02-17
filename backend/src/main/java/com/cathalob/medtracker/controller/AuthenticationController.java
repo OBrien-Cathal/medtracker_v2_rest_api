@@ -35,7 +35,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<JwtAuthenticationResponse> signIp(@RequestBody @Valid SignInRequest request) {
+    public ResponseEntity<JwtAuthenticationResponse> signIn(@RequestBody @Valid SignInRequest request) {
         return ResponseEntity.ok(authenticationService.signIn(request));
     }
 

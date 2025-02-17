@@ -73,7 +73,7 @@ public class AuthenticationServiceImpl implements com.cathalob.medtracker.servic
         UserDetails userDetails = getUserDetails(user);
         var jwt = jwtService.generateToken(userDetails);
 
-        return new JwtAuthenticationResponse(ResponseInfo.Success("Sign in successful"), jwt, user.getRole().name());
+        return new JwtAuthenticationResponse(ResponseInfo.Success("Sign in successful"), user.getUsername(), jwt, user.getRole().name());
     }
 
     private static UserDetails getUserDetails(UserModel user) {
