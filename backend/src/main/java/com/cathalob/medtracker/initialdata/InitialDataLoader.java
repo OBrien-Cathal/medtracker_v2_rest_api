@@ -32,15 +32,15 @@ import java.util.*;
 public class InitialDataLoader implements ApplicationRunner {
     private final ImportCache importCache;
     private final EvaluationDataService evaluationDataService;
-    private final PatientsService patientsService;
+    private final BloodPressureDataService bloodPressureDataService;
     private final PrescriptionsService prescriptionsService;
     private final UserServiceImpl userService;
     private final DoseService doseService;
 
-    public InitialDataLoader(EvaluationDataService evaluationDataService, PatientsService patientsService, PrescriptionsService prescriptionsService, UserServiceImpl userService, DoseService doseService) {
+    public InitialDataLoader(EvaluationDataService evaluationDataService, BloodPressureDataService bloodPressureDataService, PrescriptionsService prescriptionsService, UserServiceImpl userService, DoseService doseService) {
         this.importCache = new ImportCache();
         this.evaluationDataService = evaluationDataService;
-        this.patientsService = patientsService;
+        this.bloodPressureDataService = bloodPressureDataService;
         this.prescriptionsService = prescriptionsService;
         this.userService = userService;
         this.doseService = doseService;
@@ -221,7 +221,7 @@ public class InitialDataLoader implements ApplicationRunner {
     }
 
     public void processBloodPressureReadingsExcelFile() {
-        BloodPressureFileImporter bloodPressureFileImporter = new BloodPressureFileImporter(evaluationDataService, patientsService);
+        BloodPressureFileImporter bloodPressureFileImporter = new BloodPressureFileImporter(evaluationDataService, bloodPressureDataService);
         bloodPressureFileImporter.setImportCache(importCache);
         bloodPressureFileImporter
                 .processFileNamed("./backend/src/main/resources/initialDataFiles/bloodPressureReadings.xlsx");

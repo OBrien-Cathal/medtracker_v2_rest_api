@@ -1,11 +1,12 @@
 package com.cathalob.medtracker.controller;
 
 import com.cathalob.medtracker.exception.validation.PatientRegistrationException;
+import com.cathalob.medtracker.mapper.PatientRegistrationMapper;
+import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.payload.data.PatientRegistrationData;
 import com.cathalob.medtracker.payload.request.patient.ApprovePatientRegistrationRequest;
 import com.cathalob.medtracker.payload.request.patient.PatientRegistrationRequest;
-import com.cathalob.medtracker.payload.response.generic.GenericResponse;
 import com.cathalob.medtracker.payload.response.patient.ApprovePatientRegistrationResponse;
 import com.cathalob.medtracker.payload.response.patient.PatientRegistrationResponse;
 import com.cathalob.medtracker.service.impl.PatientsService;
@@ -15,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -25,6 +25,7 @@ import java.util.List;
 public class PatientsController {
 
     private final PatientsService patientsService;
+    private final PatientRegistrationMapper patientRegistrationMapper;
 
     @GetMapping
     @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
@@ -32,39 +33,38 @@ public class PatientsController {
         return ResponseEntity.ok(patientsService.getPatientUserModelsForPractitioner(authentication.getName()));
     }
 
+    @PreAuthorize("hasRole('ROLE_PRACTITIONER')||hasRole('ROLE_PATIENT')||hasRole('ROLE_USER')")
     @GetMapping("/registrations")
     public ResponseEntity<List<PatientRegistrationData>> getPatientRegistrations(Authentication authentication) {
-        return ResponseEntity.ok(patientsService.getPatientRegistrations(authentication.getName()));
+        return ResponseEntity.ok(
+                patientRegistrationMapper.patientRegistrationData(
+                        patientsService.getPatientRegistrations(authentication.getName())));
     }
 
     @PostMapping("/registrations/submit")
+    @PreAuthorize("hasRole('ROLE_USER')||hasRole('ROLE_PATIENT')")
     public ResponseEntity<PatientRegistrationResponse> registerPatient(
             Authentication authentication,
             @RequestBody PatientRegistrationRequest request) {
-        PatientRegistrationResponse response;
-        try {
-            response = patientsService.registerPatient(authentication.getName(), request.getPractitionerId());
-        } catch (PatientRegistrationException e) {
-            response = PatientRegistrationResponse.Failed(e.getErrors());
-        }
 
-        return ResponseEntity.ok(response);
+        try {
+            return ResponseEntity.ok(PatientRegistrationResponse.Success(
+                    patientsService.registerPatient(authentication.getName(),
+                            request.getPractitionerId())));
+        } catch (PatientRegistrationException e) {
+            return ResponseEntity.ok(PatientRegistrationResponse.Failed(e.getErrors()));
+        }
     }
 
     @PostMapping("/registrations/approve")
+    @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
     public ResponseEntity<ApprovePatientRegistrationResponse> approvePatientRegistration(Authentication authentication, @RequestBody ApprovePatientRegistrationRequest request) {
-        return ResponseEntity.ok(patientsService.approvePatientRegistration(authentication.getName(), request.getPatientRegistrationId()));
-    }
 
-    @PostMapping("/upload/dose-upload")
-    public ResponseEntity<GenericResponse> reapDoseDataFromExcelUpload(@RequestParam("dosesFile") MultipartFile reapExcelDataFile, Authentication authentication) {
-        patientsService.importDoseFile(reapExcelDataFile, (authentication.getName()));
-        return ResponseEntity.ok(GenericResponse.Success());
-    }
-
-    @PostMapping("/upload/blood-pressure-upload")
-    public ResponseEntity<GenericResponse> reapBloodPressureDataFromExcelUpload(@RequestParam("bloodPressureFile") MultipartFile reapExcelDataFile, Authentication authentication) {
-        patientsService.importBloodPressureFile(reapExcelDataFile, (authentication.getName()));
-        return ResponseEntity.ok(GenericResponse.Success());
+        try {
+            return ResponseEntity.ok(ApprovePatientRegistrationResponse.Success(patientsService.approvePatientRegistration(authentication.getName(),
+                    request.getPatientRegistrationId())));
+        } catch (PatientRegistrationException e) {
+            return ResponseEntity.ok(ApprovePatientRegistrationResponse.Failed(request.getPatientRegistrationId(), e.getErrors()));
+        }
     }
 }

@@ -3,7 +3,6 @@ package com.cathalob.medtracker.service.impl;
 import com.cathalob.medtracker.config.SecurityConfig;
 import com.cathalob.medtracker.exception.validation.medication.MedicationValidationException;
 import com.cathalob.medtracker.model.prescription.Medication;
-import com.cathalob.medtracker.payload.response.AddMedicationResponse;
 import com.cathalob.medtracker.repository.MedicationRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -39,9 +38,9 @@ class MedicationsServiceTests {
         Medication medication = aMedication().withId(1L).build();
         given(medicationRepository.save(medication)).willReturn(medication);
         // when - action or the behaviour that we are going test
-        AddMedicationResponse requestResponse = medicationsService.addMedication(medication);
+        Long requestResponse = medicationsService.addMedication(medication);
         // then - verify the output
-        Assertions.assertThat(requestResponse.getResponseInfo().isSuccessful()).isTrue();
+        Assertions.assertThat(requestResponse).isEqualTo(1);
     }
 
     @DisplayName("Fail validation: Medication with name already exists ")

@@ -3,7 +3,7 @@ package com.cathalob.medtracker.fileupload;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.DAYSTAGE;
 import com.cathalob.medtracker.model.tracking.BloodPressureReading;
-import com.cathalob.medtracker.service.impl.PatientsService;
+import com.cathalob.medtracker.service.impl.BloodPressureDataService;
 import com.cathalob.medtracker.service.impl.EvaluationDataService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,24 +21,24 @@ import java.util.List;
 public class BloodPressureFileImporter extends FileImporter {
     private final EvaluationDataService evaluationDataService;
 
-    private final PatientsService patientsService;
+    private final BloodPressureDataService bloodPressureDataService;
 
 
 
-    public BloodPressureFileImporter(UserModel userModel, EvaluationDataService evaluationDataService, PatientsService patientsService) {
+    public BloodPressureFileImporter(UserModel userModel, EvaluationDataService evaluationDataService, BloodPressureDataService bloodPressureDataService) {
         super(new ImportCache());
         importCache.setUserModel(userModel);
 
         this.evaluationDataService = evaluationDataService;
-        this.patientsService = patientsService;
+        this.bloodPressureDataService = bloodPressureDataService;
         importCache.loadDailyEvaluations(this.evaluationDataService);
 
     }
 
-    public BloodPressureFileImporter(EvaluationDataService evaluationDataService, PatientsService patientsService) {
+    public BloodPressureFileImporter(EvaluationDataService evaluationDataService, BloodPressureDataService bloodPressureDataService) {
         super();
         this.evaluationDataService = evaluationDataService;
-        this.patientsService = patientsService;
+        this.bloodPressureDataService = bloodPressureDataService;
     }
 
     public void processWorkbook(XSSFWorkbook workbook) {
@@ -99,7 +99,7 @@ public class BloodPressureFileImporter extends FileImporter {
                 dose.setDailyEvaluation(importCache.getDailyEvaluation(dose.getReadingTime().toLocalDate()))
         );
 
-        patientsService.saveBloodPressureReadings(newBloodPressureReadings);
+        bloodPressureDataService.saveBloodPressureReadings(newBloodPressureReadings);
     }
 
 

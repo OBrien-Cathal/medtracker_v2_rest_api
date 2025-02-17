@@ -1,9 +1,6 @@
 package com.cathalob.medtracker.config.factory;
 
-import com.cathalob.medtracker.factory.AccountDetailsFactory;
-import com.cathalob.medtracker.factory.AccountRegistrationFactory;
-import com.cathalob.medtracker.factory.DoseServiceModelFactory;
-import com.cathalob.medtracker.factory.AuthenticationFactory;
+import com.cathalob.medtracker.factory.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
@@ -28,4 +25,12 @@ public class FactoryConfig {
     public AuthenticationFactory userModelFactory(){
         return new AuthenticationFactory();
     }
+
+    @Bean
+    public PatientRegistrationFactory patientRegistrationFactory(){
+        return new PatientRegistrationFactory();
+    }
+
+    @Bean
+    public RoleChangeServiceFactory roleChangeServiceFactory() {return new RoleChangeServiceFactory();}
 }

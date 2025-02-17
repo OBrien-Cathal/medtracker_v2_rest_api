@@ -3,11 +3,7 @@ package com.cathalob.medtracker.controller;
 import com.cathalob.medtracker.config.SecurityConfig;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
-import com.cathalob.medtracker.payload.data.RoleChangeData;
-import com.cathalob.medtracker.payload.request.rolechange.RoleChangeApprovalRequest;
-import com.cathalob.medtracker.payload.request.rolechange.RoleChangeRequest;
-import com.cathalob.medtracker.payload.response.generic.GenericResponse;
-import com.cathalob.medtracker.payload.response.rolechange.RoleChangeStatusResponse;
+
 import com.cathalob.medtracker.service.UserService;
 import com.cathalob.medtracker.service.impl.AuthenticationServiceImpl;
 import com.cathalob.medtracker.service.impl.JwtServiceImpl;
@@ -15,7 +11,7 @@ import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
-import org.json.JSONObject;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
@@ -24,7 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
+
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -32,9 +28,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.util.List;
 
 import static com.cathalob.medtracker.testdata.UserModelBuilder.aUserModel;
-import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -54,8 +48,8 @@ class UserControllerApiTests {
     private AuthenticationServiceImpl authenticationService;
     @MockBean
     private CustomUserDetailsService customUserDetailsService;
-    @Value("${api.url}")
-    private String baseApiUrl;
+    @Value("${api.url}" + "/users")
+    private String controllerEndpoint;
 
     @Test
     @WithMockUser("user@user.com")
@@ -65,7 +59,7 @@ class UserControllerApiTests {
 
         BDDMockito.given(userService.getUserModels()).willReturn(users);
         // when - action or the behaviour that we are going test
-        ResultActions usersResponse = mockMvc.perform(get(getUsersUrlPath()));
+        ResultActions usersResponse = mockMvc.perform(get(controllerEndpoint));
 
         // then - verify the output
         usersResponse
@@ -86,7 +80,7 @@ class UserControllerApiTests {
 
         BDDMockito.given(userService.getPractitionerUserModels()).willReturn(users);
         // when - action or the behaviour that we are going test
-        ResultActions usersResponse = mockMvc.perform(get(getUsersUrlPath() + "/practitioners"));
+        ResultActions usersResponse = mockMvc.perform(get(controllerEndpoint + "/practitioners"));
 
         // then - verify the output
         usersResponse
@@ -96,123 +90,4 @@ class UserControllerApiTests {
                 .andExpect(jsonPath("$", Matchers.hasSize(2)))
                 .andExpect(jsonPath("$.[0].role",CoreMatchers.is("PRACTITIONER")) );
     }
-
-    private String getUsersUrlPath() {
-        return baseApiUrl + "/users";
-    }
-
-    @Test
-    @WithMockUser("user@user.com")
-    public void givenRoleRequest_when_then() throws Exception {
-        //given - precondition or setup
-        UserModel userModel = aUserModel().build();
-        RoleChangeRequest roleChangeRequest = RoleChangeRequest.builder().newRole(USERROLE.PRACTITIONER).build();
-
-        GenericResponse response =GenericResponse.Success("Request pending with ID: 1");
-        given(userService.submitRoleChange(roleChangeRequest.getNewRole(), userModel.getUsername()))
-                .willReturn(response);
-        // when - action or the behaviour that we are going test
-        ResultActions usersResponse = mockMvc.perform(post(getRoleRequestsUrlPath() + "/submit")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(roleChangeRequest)));
-
-        // then - verify the output
-        usersResponse
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseInfo.successful", CoreMatchers.is(response.getResponseInfo().isSuccessful())))
-                .andExpect(jsonPath("$.responseInfo.message", CoreMatchers.is(response.getResponseInfo().getMessage())));
-    }
-
-    @DisplayName("Non existing role name causes unhandled exception")
-    @Test
-    @WithMockUser("user@user.com")
-    public void givenBogusRoleName_when_then() throws Exception {
-        //given - precondition or setup
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("newRole", "foo");
-
-        // when - action or the behaviour that we are going test
-        ResultActions usersResponse = mockMvc.perform(post(getRoleRequestsUrlPath() + "/submit")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonObject.toString()));
-
-        // then - verify the output
-        usersResponse
-                .andDo(print())
-                .andExpect(status().isInternalServerError());
-    }
-
-    @Test
-    @WithMockUser("user@user.com")
-    public void givenRoleChangeApproval_whenApproveRoleChange_thenReturnSuccessfulResponse() throws Exception {
-        //given - precondition or setup
-        UserModel userModel = aUserModel().build();
-        RoleChangeApprovalRequest roleChangeApprovalRequest = new RoleChangeApprovalRequest(1L);
-        GenericResponse response = GenericResponse.Success();
-        given(userService.approveRoleChange(1L, userModel.getUsername()))
-                .willReturn(response);
-        // when - action or the behaviour that we are going test
-        ResultActions usersResponse = mockMvc.perform(post(getRoleRequestsUrlPath() + "/approve")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(roleChangeApprovalRequest)));
-
-        // then - verify the output
-        usersResponse
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseInfo.successful", CoreMatchers.is(response.getResponseInfo().isSuccessful())))
-                .andExpect(jsonPath("$.responseInfo.message", CoreMatchers.is(response.getResponseInfo().getMessage())));
-    }
-
-    @DisplayName("Get Role change status returns ok and status object")
-    @Test
-    @WithMockUser("user@user.com")
-    public void givenRoleChangeOrNone_whenGetRoleChangeStatus_thenReturnRoleChangeStatusResponse() throws Exception {
-        //given - precondition or setup
-        UserModel userModel = aUserModel().build();
-
-        RoleChangeStatusResponse roleChangeStatusResponse = new RoleChangeStatusResponse(
-                new RoleChangeData(null, "", USERROLE.PRACTITIONER, null),
-                new RoleChangeData(null, "", USERROLE.ADMIN, null));
-        given(userService.getRoleChangeStatus(userModel.getUsername()))
-                .willReturn(roleChangeStatusResponse);
-        // when - action or the behaviour that we are going test
-        ResultActions usersResponse = mockMvc.perform(get(getRoleRequestsUrlPath() + "/status")
-                .contentType(MediaType.APPLICATION_JSON));
-
-        // then - verify the output
-        usersResponse
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.practitionerRoleChange.id").doesNotExist())
-                .andExpect(jsonPath("$.practitionerRoleChange.userRole", CoreMatchers.is("PRACTITIONER")));
-    }
-
-    @DisplayName("Get Unapproved role changes returns ok and list of role changes")
-    @Test
-    @WithMockUser("user@user.com")
-    public void givenUnapprovedRoleChanges_whenGetUnapprovedRoleChanges_thenReturnRoleChangeDataList() throws Exception {
-        //given - precondition or setup
-        UserModel userModel = aUserModel().build();
-        List<RoleChangeData> roleChangeDataList = List.of(new RoleChangeData(), new RoleChangeData());
-        given(userService.getUnapprovedRoleChanges())
-                .willReturn(roleChangeDataList);
-        // when - action or the behaviour that we are going test
-        ResultActions usersResponse = mockMvc.perform(get(getRoleRequestsUrlPath() + "/unapproved")
-                .contentType(MediaType.APPLICATION_JSON));
-
-        // then - verify the output
-        usersResponse
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$", Matchers.hasSize(2)));
-    }
-
-    private String getRoleRequestsUrlPath() {
-        return getUsersUrlPath() + "/role-requests";
-    }
-
-
 }

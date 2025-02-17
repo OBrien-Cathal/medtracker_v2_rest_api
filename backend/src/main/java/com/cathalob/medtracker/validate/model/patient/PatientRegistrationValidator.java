@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.validate.model;
+package com.cathalob.medtracker.validate.model.patient;
 
 import com.cathalob.medtracker.exception.validation.PatientRegistrationException;
 import com.cathalob.medtracker.exception.validation.UserModelValidationException;

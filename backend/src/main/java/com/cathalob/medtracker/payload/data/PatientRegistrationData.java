@@ -2,12 +2,14 @@ package com.cathalob.medtracker.payload.data;
 
 import com.cathalob.medtracker.model.PatientRegistration;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @RequiredArgsConstructor
+@Builder
 public class PatientRegistrationData {
     private Long id;
     private Long userModelId;

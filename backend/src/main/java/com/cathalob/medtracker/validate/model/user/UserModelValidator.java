@@ -36,6 +36,9 @@ public class UserModelValidator extends Validator {
     public static PatientUserModelValidator PatientUserModelValidator(UserModel userModel) {
         return new PatientUserModelValidator(userModel);
     }
+    public static PatientUserModelValidator USERUserModelValidator(UserModel userModel) {
+        return new PatientUserModelValidator(userModel);
+    }
 
     public static PatientAndUserUserModelValidator PatientAndUserUserModelValidator(UserModel userModel) {
         return new PatientAndUserUserModelValidator(userModel);

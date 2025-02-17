@@ -2,7 +2,6 @@ package com.cathalob.medtracker.service.impl;
 
 import com.cathalob.medtracker.exception.validation.medication.MedicationValidationException;
 import com.cathalob.medtracker.model.prescription.Medication;
-import com.cathalob.medtracker.payload.response.AddMedicationResponse;
 import com.cathalob.medtracker.repository.MedicationRepository;
 import com.cathalob.medtracker.validate.model.MedicationValidator;
 import lombok.RequiredArgsConstructor;
@@ -24,11 +23,11 @@ public class MedicationsService {
         return medicationRepository.findAll();
     }
 
-    public AddMedicationResponse addMedication(Medication medication) throws MedicationValidationException {
+    public Long addMedication(Medication medication) throws MedicationValidationException {
         validateMedication(medication);
         Medication saved = medicationRepository.save(medication);
+        return saved.getId();
 
-        return AddMedicationResponse.Success(saved.getId());
     }
 
     private void validateMedication(Medication medication) {

@@ -28,12 +28,12 @@ public class MedicationsController {
     @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
     @PostMapping("/add")
     public ResponseEntity<AddMedicationResponse> addMedication(@RequestBody @Valid Medication medication) {
-        AddMedicationResponse response;
+
         try {
-            response = medicationsService.addMedication(medication);
+            return ResponseEntity.ok(AddMedicationResponse.Success(medicationsService.addMedication(medication)));
         } catch (MedicationValidationException exception) {
-           response = AddMedicationResponse.Failed(List.of(exception.getMessage()));
+            return ResponseEntity.ok(AddMedicationResponse.Failed(exception.getErrors()));
         }
-        return ResponseEntity.ok(response);
+
     }
 }
