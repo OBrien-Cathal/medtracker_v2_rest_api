@@ -14,6 +14,7 @@ import com.cathalob.medtracker.payload.request.graph.GraphDataForDateRangeReques
 import com.cathalob.medtracker.payload.request.graph.PatientGraphDataForDateRangeRequest;
 import com.cathalob.medtracker.payload.request.patient.AddDatedBloodPressureReadingRequest;
 import com.cathalob.medtracker.payload.request.patient.DatedBloodPressureDataRequest;
+import com.cathalob.medtracker.payload.response.TimeSeriesGraphDataResponse;
 import com.cathalob.medtracker.service.impl.*;
 import com.cathalob.medtracker.testdata.BloodPressureReadingBuilder;
 import com.cathalob.medtracker.testdata.UserModelBuilder;
@@ -182,8 +183,8 @@ class BloodPressureControllerTests {
     @Test
     @WithMockUser(value = "user@user.com", roles = {"PATIENT"})
     public void givenPATIENTValidGraphDataRequest_whenGetSystoleGraphData_thenReturnSuccess() throws Exception {
-        given(bloodPressureMapper.getSystoleGraphData(new TreeMap<>()))
-                .willReturn(new GraphData());
+        given(bloodPressureMapper.getSystoleGraphDataResponse(new TreeMap<>()))
+                .willReturn(TimeSeriesGraphDataResponse.Success(new GraphData()));
         setupAndVerifyForBPGraphDataRequest("systole-graph-data");
     }
 
@@ -192,8 +193,8 @@ class BloodPressureControllerTests {
     @Test
     @WithMockUser(value = "user@user.com", roles = {"PRACTITIONER"})
     public void givenPRACTITIONERGraphDataRequest_whenGetPatientSystoleGraphData_thenReturnResponse() throws Exception {
-        given(bloodPressureMapper.getSystoleGraphData(new TreeMap<>()))
-                .willReturn(new GraphData());
+        given(bloodPressureMapper.getSystoleGraphDataResponse(new TreeMap<>()))
+                .willReturn(TimeSeriesGraphDataResponse.Success(new GraphData()));
         setupAndVerifyForPatientBPGraphDataRequest("systole-graph-data/patient");
     }
 
@@ -210,8 +211,8 @@ class BloodPressureControllerTests {
     @Test
     @WithMockUser(value = "user@user.com", roles = {"PATIENT"})
     public void givenPATIENTValidGraphDataRequest_whenGetDiastoleGraphData_thenReturnSuccess() throws Exception {
-        given(bloodPressureMapper.getDiastoleGraphData(new TreeMap<>()))
-                .willReturn(new GraphData());
+        given(bloodPressureMapper.getDiastoleGraphDataResponse(new TreeMap<>()))
+                .willReturn(TimeSeriesGraphDataResponse.Success(new GraphData()));
         setupAndVerifyForBPGraphDataRequest("diastole-graph-data");
     }
 
@@ -220,8 +221,8 @@ class BloodPressureControllerTests {
     @Test
     @WithMockUser(value = "user@user.com", roles = {"PRACTITIONER"})
     public void givenPRACTITIONERGraphDataRequest_whenGetPatientDiastoleGraphData_thenReturnResponse() throws Exception {
-        given(bloodPressureMapper.getDiastoleGraphData(new TreeMap<>()))
-                .willReturn(new GraphData());
+        given(bloodPressureMapper.getDiastoleGraphDataResponse(new TreeMap<>()))
+                .willReturn(TimeSeriesGraphDataResponse.Success(new GraphData()));
         setupAndVerifyForPatientBPGraphDataRequest("diastole-graph-data/patient");
     }
 
@@ -241,8 +242,8 @@ class BloodPressureControllerTests {
     @Test
     @WithMockUser(value = "user@user.com", roles = {"PATIENT"})
     public void givenPATIENTValidGraphDataRequest_whenGetHeartRateGraphData_thenReturnSuccess() throws Exception {
-        given(bloodPressureMapper.getHeartRateGraphData(new TreeMap<>()))
-                .willReturn(new GraphData());
+        given(bloodPressureMapper.getHeartRateGraphDataResponse(new TreeMap<>()))
+                .willReturn(TimeSeriesGraphDataResponse.Success(new GraphData()));
         setupAndVerifyForBPGraphDataRequest("heart-rate-graph-data");
     }
 
@@ -251,8 +252,8 @@ class BloodPressureControllerTests {
     @Test
     @WithMockUser(value = "user@user.com", roles = {"PRACTITIONER"})
     public void givenPRACTITIONERGraphDataRequest_whenGetPatientHeartRateGraphData_thenReturnResponse() throws Exception {
-        given(bloodPressureMapper.getHeartRateGraphData(new TreeMap<>()))
-                .willReturn(new GraphData());
+        given(bloodPressureMapper.getHeartRateGraphDataResponse(new TreeMap<>()))
+                .willReturn(TimeSeriesGraphDataResponse.Success(new GraphData()));
         setupAndVerifyForPatientBPGraphDataRequest("heart-rate-graph-data/patient");
     }
 

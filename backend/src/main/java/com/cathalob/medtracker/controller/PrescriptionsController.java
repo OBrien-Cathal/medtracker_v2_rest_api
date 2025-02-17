@@ -52,11 +52,12 @@ public class PrescriptionsController {
     public ResponseEntity<SubmitPrescriptionDetailsResponse> submitPrescription(Authentication authentication,
                                                                                 @RequestBody @Valid PrescriptionDetailsData prescriptionDetailsData) {
 
-        return ResponseEntity.ok(SubmitPrescriptionDetailsResponse.Success(prescriptionsService.submitPrescription(authentication.getName(),
-                prescriptionMapper.prescription(prescriptionDetailsData),
-                prescriptionDetailsData.getPrescriptionScheduleEntries(),
-                prescriptionDetailsData.getPatientId(),
-                prescriptionDetailsData.getMedication().getId())));
+        return ResponseEntity.ok(prescriptionMapper.submitPrescriptionResponse(
+                prescriptionsService.submitPrescription(authentication.getName(),
+                        prescriptionMapper.prescription(prescriptionDetailsData),
+                        prescriptionDetailsData.getPrescriptionScheduleEntries(),
+                        prescriptionDetailsData.getPatientId(),
+                        prescriptionDetailsData.getMedication().getId())));
     }
 
 
@@ -66,10 +67,10 @@ public class PrescriptionsController {
             @RequestParam(required = false, name = "id") Long prescriptionId,
             Authentication authentication) {
 
-        return ResponseEntity.ok(GetPrescriptionDetailsResponse.Success(
-                prescriptionMapper.prescriptionDetails(
+        return ResponseEntity.ok(
+                prescriptionMapper.getPrescriptionDetailsResponse(
                         prescriptionsService.getPrescriptionDetails(authentication.getName(),
-                                prescriptionId))));
+                                prescriptionId)));
     }
 
     @GetMapping("/day-stages")

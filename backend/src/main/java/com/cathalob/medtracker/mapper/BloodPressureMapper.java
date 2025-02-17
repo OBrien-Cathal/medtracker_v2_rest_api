@@ -5,6 +5,7 @@ import com.cathalob.medtracker.model.tracking.BloodPressureReading;
 import com.cathalob.medtracker.payload.data.BloodPressureData;
 import com.cathalob.medtracker.payload.data.GraphData;
 import com.cathalob.medtracker.payload.request.patient.AddDatedBloodPressureReadingRequest;
+import com.cathalob.medtracker.payload.response.TimeSeriesGraphDataResponse;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -47,14 +48,23 @@ public class BloodPressureMapper {
     }
 
 
-    public GraphData getSystoleGraphData(TreeMap<LocalDate, List<BloodPressureReading>> columnsToValues) {
-        return GetGraphData(columnsToValues, BloodPressureReading::getSystole);
+    public static TimeSeriesGraphDataResponse timeSeriesGraphDataResponse(GraphData graphData) {
+        return TimeSeriesGraphDataResponse.Success(graphData);
     }
-    public GraphData getDiastoleGraphData(TreeMap<LocalDate, List<BloodPressureReading>> columnsToValues) {
-        return GetGraphData(columnsToValues, BloodPressureReading::getDiastole);
+
+    public TimeSeriesGraphDataResponse getSystoleGraphDataResponse(TreeMap<LocalDate, List<BloodPressureReading>> columnsToValues) {
+        return timeSeriesGraphDataResponse(GetGraphData(columnsToValues, BloodPressureReading::getSystole));
     }
-    public GraphData getHeartRateGraphData(TreeMap<LocalDate, List<BloodPressureReading>> columnsToValues) {
-        return GetGraphData(columnsToValues, BloodPressureReading::getHeartRate);
+
+
+    public TimeSeriesGraphDataResponse getDiastoleGraphDataResponse(TreeMap<LocalDate, List<BloodPressureReading>> columnsToValues) {
+        return timeSeriesGraphDataResponse(GetGraphData(columnsToValues, BloodPressureReading::getDiastole));
+    }
+
+
+    public TimeSeriesGraphDataResponse getHeartRateGraphDataResponse(TreeMap<LocalDate, List<BloodPressureReading>> columnsToValues) {
+        return timeSeriesGraphDataResponse(GetGraphData(columnsToValues, BloodPressureReading::getHeartRate));
+
     }
 
     public static GraphData GetGraphData(TreeMap<LocalDate, List<BloodPressureReading>> datesToReadings,

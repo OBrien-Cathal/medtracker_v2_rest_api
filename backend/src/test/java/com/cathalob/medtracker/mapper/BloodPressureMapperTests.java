@@ -46,7 +46,7 @@ class BloodPressureMapperTests {
         // when - action or the behaviour that we are going test
 
         BloodPressureMapper bloodPressureMapper = new BloodPressureMapper();
-        GraphData systoleGraphData = bloodPressureMapper.getSystoleGraphData(columnsToValues);
+        GraphData systoleGraphData = bloodPressureMapper.getSystoleGraphDataResponse(columnsToValues).getGraphData();
 
         // then - verify the output
         assertThat(systoleGraphData.getColumnNames().size()).isEqualTo(4);

@@ -6,6 +6,9 @@ import com.cathalob.medtracker.mapper.PrescriptionMapper;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.payload.data.PrescriptionDetailsData;
+import com.cathalob.medtracker.payload.response.GetPrescriptionDetailsResponse;
+import com.cathalob.medtracker.payload.response.SubmitPrescriptionDetailsResponse;
+import com.cathalob.medtracker.puremodel.PrescriptionDetails;
 import com.cathalob.medtracker.service.impl.AuthenticationServiceImpl;
 import com.cathalob.medtracker.service.impl.JwtServiceImpl;
 import com.cathalob.medtracker.service.impl.PrescriptionsService;
@@ -83,6 +86,35 @@ class PrescriptionsControllerTests {
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$", Matchers.hasSize(1)));
 
+    }
+
+    @DisplayName("Successful GetPrescriptionDetails returns success response")
+    @Test
+    @WithMockUser(value = "user@user.com", roles = {"PRACTITIONER"})
+    public void givenSuccessfulGetPrescriptionsRequestAsPRACTITIONER_whenGetPrescriptions_thenReturnSuccessResponse() throws Exception {
+        //given - precondition or setup
+        UserModel userModel = UserModelBuilder.aUserModel().build();
+
+        Prescription pre = aPrescription().build();
+
+        PrescriptionDetails details = new PrescriptionDetails(pre, List.of());
+        given(prescriptionsService.getPrescriptionDetails(userModel.getUsername(), 1L))
+                .willReturn(details);
+
+        given(prescriptionMapper.getPrescriptionDetailsResponse(details))
+                .willReturn(GetPrescriptionDetailsResponse.Success(new PrescriptionDetailsData()));
+
+        // when - action or the behaviour that we are going test
+        ResultActions usersResponse = mockMvc.perform(
+                get("/api/v1/prescriptions/prescription-details")
+                        .param("id", "1"));
+
+        // then - verify the output
+        usersResponse
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseInfo.successful", is(true)));
+
 
     }
 
@@ -111,6 +143,9 @@ class PrescriptionsControllerTests {
 
         given(prescriptionMapper.prescription(request))
                 .willReturn(newPrescription);
+        given(prescriptionMapper.submitPrescriptionResponse(1L))
+                .willReturn(SubmitPrescriptionDetailsResponse.Success(1L));
+
 
         given(prescriptionsService.submitPrescription(prescription.getPractitioner().getUsername(),
                 newPrescription,

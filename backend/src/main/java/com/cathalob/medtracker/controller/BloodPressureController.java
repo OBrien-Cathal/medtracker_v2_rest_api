@@ -33,8 +33,8 @@ public class BloodPressureController {
             Authentication authentication) {
         try {
 
-            return ResponseEntity.ok(TimeSeriesGraphDataResponse.Success(bloodPressureMapper.getSystoleGraphData(
-                    bloodPressureDataService.getBloodPressureReadingsForDateRange(authentication.getName(), request.getStart(), request.getEnd()))));
+            return ResponseEntity.ok(bloodPressureMapper.getSystoleGraphDataResponse(
+                    bloodPressureDataService.getBloodPressureReadingsForDateRange(authentication.getName(), request.getStart(), request.getEnd())));
 
         } catch (BloodPressureGraphDataException e) {
             return ResponseEntity.ok(TimeSeriesGraphDataResponse.Failure(e.getErrors()));
@@ -49,11 +49,11 @@ public class BloodPressureController {
             @RequestBody PatientGraphDataForDateRangeRequest request,
             Authentication authentication) {
         try {
-            return ResponseEntity.ok(TimeSeriesGraphDataResponse.Success(bloodPressureMapper.getSystoleGraphData(
+            return ResponseEntity.ok(bloodPressureMapper.getSystoleGraphDataResponse(
                     bloodPressureDataService.getPatientBloodPressureReadingsForDateRange(request.getPatientId(),
                             authentication.getName(),
                             request.getStart(),
-                            request.getEnd()))));
+                            request.getEnd())));
 
         } catch (BloodPressureGraphDataException e) {
             return ResponseEntity.ok(TimeSeriesGraphDataResponse.Failure(e.getErrors()));
@@ -67,8 +67,8 @@ public class BloodPressureController {
             Authentication authentication) {
         try {
 
-            return ResponseEntity.ok(TimeSeriesGraphDataResponse.Success(bloodPressureMapper.getDiastoleGraphData(
-                    bloodPressureDataService.getBloodPressureReadingsForDateRange(authentication.getName(), request.getStart(), request.getEnd()))));
+            return ResponseEntity.ok(bloodPressureMapper.getDiastoleGraphDataResponse(
+                    bloodPressureDataService.getBloodPressureReadingsForDateRange(authentication.getName(), request.getStart(), request.getEnd())));
 
         } catch (BloodPressureGraphDataException e) {
             return ResponseEntity.ok(TimeSeriesGraphDataResponse.Failure(e.getErrors()));
@@ -83,11 +83,11 @@ public class BloodPressureController {
             @RequestBody PatientGraphDataForDateRangeRequest request,
             Authentication authentication) {
         try {
-            return ResponseEntity.ok(TimeSeriesGraphDataResponse.Success(bloodPressureMapper.getDiastoleGraphData(
+            return ResponseEntity.ok(bloodPressureMapper.getDiastoleGraphDataResponse(
                     bloodPressureDataService.getPatientBloodPressureReadingsForDateRange(request.getPatientId(),
                             authentication.getName(),
                             request.getStart(),
-                            request.getEnd()))));
+                            request.getEnd())));
 
         } catch (BloodPressureGraphDataException e) {
             return ResponseEntity.ok(TimeSeriesGraphDataResponse.Failure(e.getErrors()));
@@ -102,7 +102,7 @@ public class BloodPressureController {
             Authentication authentication) {
         try {
 
-            return ResponseEntity.ok(TimeSeriesGraphDataResponse.Success(bloodPressureMapper.getHeartRateGraphData(
+            return ResponseEntity.ok((bloodPressureMapper.getHeartRateGraphDataResponse(
                     bloodPressureDataService.getBloodPressureReadingsForDateRange(authentication.getName(), request.getStart(), request.getEnd()))));
 
         } catch (BloodPressureGraphDataException e) {
@@ -118,11 +118,11 @@ public class BloodPressureController {
             @RequestBody PatientGraphDataForDateRangeRequest request,
             Authentication authentication) {
         try {
-            return ResponseEntity.ok(TimeSeriesGraphDataResponse.Success(bloodPressureMapper.getHeartRateGraphData(
+            return ResponseEntity.ok(bloodPressureMapper.getHeartRateGraphDataResponse(
                     bloodPressureDataService.getPatientBloodPressureReadingsForDateRange(request.getPatientId(),
                             authentication.getName(),
                             request.getStart(),
-                            request.getEnd()))));
+                            request.getEnd())));
 
         } catch (BloodPressureGraphDataException e) {
             return ResponseEntity.ok(TimeSeriesGraphDataResponse.Failure(e.getErrors()));
