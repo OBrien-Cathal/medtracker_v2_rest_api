@@ -2,6 +2,7 @@
 ## Live version
 A running version of the api and front end can be reached at http://ec2-34-247-155-30.eu-west-1.compute.amazonaws.com/
 
+This version is significantly out of date, and not representative of the current state of the project.
 
 ## Description
 
