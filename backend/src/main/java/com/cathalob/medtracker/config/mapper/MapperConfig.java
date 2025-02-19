@@ -38,5 +38,10 @@ public class MapperConfig {
     public RoleChangeMapper roleChangeMapper() {
         return new RoleChangeMapper();
     }
+
+    @Bean
+    public BulkDataMapper bulkDataMapper() {
+        return new BulkDataMapper();
+    }
 }
 

@@ -18,4 +18,9 @@ public interface BloodPressureReadingRepository extends JpaRepository<BloodPress
     List<BloodPressureReading> findByDailyEvaluationDatesAndUserModelId(List<LocalDate> dates, Long id);
 
 
+
+    @Query( "select o from BLOODPRESSUREREADING o where o.dailyEvaluation.userModel.id = :id" )
+    List<BloodPressureReading> findByUserModelId( Long id);
+
+
 }

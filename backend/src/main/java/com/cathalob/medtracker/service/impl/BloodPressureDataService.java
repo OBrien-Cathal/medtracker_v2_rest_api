@@ -37,7 +37,7 @@ public class BloodPressureDataService {
         return getBloodPressureGraphData(userService.findByLogin(username), start, end, false);
     }
 
-    public  TreeMap<LocalDate, List<BloodPressureReading>> getPatientBloodPressureReadingsForDateRange(Long patientUserModelId, String practitionerUsername, LocalDate start, LocalDate end) {
+    public TreeMap<LocalDate, List<BloodPressureReading>> getPatientBloodPressureReadingsForDateRange(Long patientUserModelId, String practitionerUsername, LocalDate start, LocalDate end) {
         UserModel practitioner = userService.findByLogin(practitionerUsername);
 //        validate that the practitioner is a doc of the patient, and allowed to see the patient data
         Optional<UserModel> maybePatient = userService.findUserModelById(patientUserModelId);
@@ -47,7 +47,7 @@ public class BloodPressureDataService {
             throw new BloodPressureGraphDataException(List.of("Only registered practitioners can view this patients data"));
         }
 
-        return  getBloodPressureGraphData(maybePatient.get(), start, end, false);
+        return getBloodPressureGraphData(maybePatient.get(), start, end, false);
     }
 
     public List<BloodPressureReading> getBloodPressureData(
@@ -61,19 +61,26 @@ public class BloodPressureDataService {
         return bloodPressureReadingRepository.findByDailyEvaluation(evaluationDataService.findForPatientAndDate(patient, date));
     }
 
+
     public Long addBloodPressureReading(BloodPressureReading newReading,
                                         LocalDate date,
                                         String username) {
         UserModel patient = userService.findByLogin(username);
 
-        if (!patient.getRole().equals(USERROLE.PATIENT))
+        if (!patient.getRole().equals(USERROLE.PATIENT)) {
             throw new AddBloodPressureDailyDataException(List.of("User is not a patient"));
+        }
 
         DailyEvaluation dailyEvaluation = evaluationDataService.findOrCreateDailyEvaluationForPatientAndDate(patient, date);
         newReading.setDailyEvaluation(dailyEvaluation);
 
         BloodPressureReading saved = bloodPressureReadingRepository.save(newReading);
         return saved.getId();
+
+    }
+
+    public List<BloodPressureReading> getAllBloodPressureReadings(String username) {
+        return bloodPressureReadingRepository.findByUserModelId(userService.findByLogin(username).getId());
     }
 
 
@@ -82,7 +89,7 @@ public class BloodPressureDataService {
         return bloodPressureReadingRepository.findByDailyEvaluationDatesAndUserModelId(
                 dailyEvaluations.stream().map(DailyEvaluation::getRecordDate).toList(),
                 patient.getId()
-                );
+        );
     }
 
     private TreeMap<LocalDate, List<BloodPressureReading>> getBloodPressureGraphData(UserModel patient, LocalDate start, LocalDate end, boolean interpolate) {
@@ -109,5 +116,6 @@ public class BloodPressureDataService {
         return byDateForFullRange;
 
     }
+
 
 }

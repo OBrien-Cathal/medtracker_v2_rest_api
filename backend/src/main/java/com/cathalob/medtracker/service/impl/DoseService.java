@@ -143,4 +143,7 @@ public class DoseService {
     }
 
 
+    public List<Dose> getAllDoses(String username) {
+        return doseRepository.findDosesForUserId(userService.findByLogin(username).getId());
+    }
 }

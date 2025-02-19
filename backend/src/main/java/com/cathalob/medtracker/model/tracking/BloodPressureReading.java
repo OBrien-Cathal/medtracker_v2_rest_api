@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor
-public class BloodPressureReading {
+public class BloodPressureReading implements Comparable<BloodPressureReading> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,9 +39,25 @@ public class BloodPressureReading {
     private Integer heartRate;
 
 
-
     public boolean hasData() {
         return systole != null && diastole != null && heartRate != null;
+    }
+
+
+    @Override
+    public int compareTo(BloodPressureReading o) {
+
+        if (!this.getDailyEvaluation().getRecordDate().isEqual(o.getDailyEvaluation().getRecordDate())) {
+            return this.getDailyEvaluation().getRecordDate().compareTo(o.getDailyEvaluation().getRecordDate());
+        }
+
+        if (this.dayStage.ordinal() != o.getDayStage().ordinal()) {
+            return this.dayStage.ordinal() - o.dayStage.ordinal();
+        }
+
+        return this.readingTime.toLocalTime().compareTo(o.getReadingTime().toLocalTime());
+
+
     }
 }
 

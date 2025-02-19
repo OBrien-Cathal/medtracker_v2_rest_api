@@ -39,6 +39,11 @@ public class BloodPressureReadingBuilder {
         this.readingTime = readingTime;
         return this;
     }
+    public BloodPressureReadingBuilder withReadingTimeAndEvaluationDate(LocalDateTime readingTime) {
+        this.dailyEvaluationBuilder.withRecordDate(readingTime.toLocalDate());
+        this.readingTime = readingTime;
+        return this;
+    }
 
     public BloodPressureReadingBuilder withDailyEvaluationBuilder(DailyEvaluationBuilder dailyEvaluationBuilder) {
         this.dailyEvaluationBuilder = dailyEvaluationBuilder;
