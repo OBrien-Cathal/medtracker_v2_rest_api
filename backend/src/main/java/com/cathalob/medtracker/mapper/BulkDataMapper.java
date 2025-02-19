@@ -7,12 +7,23 @@ import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.core.io.ByteArrayResource;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
 public class BulkDataMapper {
+
+    public ByteArrayResource bloodPressureFileContentResource(List<BloodPressureReading> readings) throws IOException {
+        return new ByteArrayResource(bloodPressureFileContent(readings));
+    }
+
+    public ByteArrayResource doseFileContentResource(List<Dose> readings) throws IOException {
+        return new ByteArrayResource(doseFileContent(readings));
+    }
+
+
 
     public byte[] bloodPressureFileContent(List<BloodPressureReading> readings) throws IOException {
 

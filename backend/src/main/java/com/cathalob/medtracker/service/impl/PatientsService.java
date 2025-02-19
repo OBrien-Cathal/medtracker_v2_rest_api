@@ -95,6 +95,10 @@ public class PatientsService {
         if (patientRegistration.getUserModel().getRole().equals(USERROLE.USER)) {
 //            Add role change if this is the first time a user has requested a patient registration
             RoleChange roleChange = factory.roleChange(patientRegistration);
+
+            patientRegistration.getUserModel().setRole(USERROLE.PATIENT);
+
+            userService.saveUserModel(patientRegistration.getUserModel());
             roleChangeRepository.save(roleChange);
         }
     }

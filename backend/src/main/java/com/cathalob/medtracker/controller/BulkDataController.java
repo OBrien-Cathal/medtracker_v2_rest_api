@@ -14,12 +14,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.HashMap;
+
 @RequestMapping("/api/v1/bulk-data")
 @RequiredArgsConstructor
 @RestController
 public class BulkDataController {
     private final BulkDataService bulkDataService;
     private final BulkDataMapper bulkDataMapper;
+
 
 
     @PostMapping("/dose-upload")
@@ -37,17 +41,8 @@ public class BulkDataController {
 
     @GetMapping("/blood-pressure-download")
     public ResponseEntity<ByteArrayResource> getBloodPressureFileToDownload(Authentication authentication) {
-
         try {
-            HttpHeaders header = new HttpHeaders();
-            header.setContentType(new MediaType("application", "force-download"));
-            header.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=BloodPressure_DataBackup.xlsx");
-            byte[] bytes = bulkDataMapper.bloodPressureFileContent(
-                    bulkDataService.getAllBloodPressureReadings(authentication.getName()));
-
-
-            return new ResponseEntity<>(new ByteArrayResource(bytes), header, HttpStatus.CREATED);
-
+            return getResponseEntity(getBloodPressureFileContentResource(authentication), bloodPressureFileName());
 
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -58,22 +53,57 @@ public class BulkDataController {
 
     @GetMapping("/dose-download")
     public ResponseEntity<ByteArrayResource> getDoseFileToDownload(Authentication authentication) {
-
         try {
-            HttpHeaders header = new HttpHeaders();
-            header.setContentType(new MediaType("application", "force-download"));
-            header.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Dose_DataBackup.xlsx");
-            byte[] bytes = bulkDataMapper.doseFileContent(
-                    bulkDataService.getAllDoses(authentication.getName()));
-
-
-            return new ResponseEntity<>(new ByteArrayResource(bytes), header, HttpStatus.CREATED);
-
+            return getResponseEntity(getDoseFileContentResource(authentication), doseFileName());
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+    }
+
+    @GetMapping("/archive")
+    public ResponseEntity<GenericResponse> getArchiveAllDataToEmail(Authentication authentication) throws IOException {
+        HashMap<String, ByteArrayResource> attachments = new HashMap<>();
+
+        try {
+            attachments.put(BulkDataController.bloodPressureFileName(), getBloodPressureFileContentResource(authentication));
+            attachments.put(BulkDataController.doseFileName(), getDoseFileContentResource(authentication));
+
+            bulkDataService.sendDataArchiveMailMessage(attachments, authentication.getName());
+
+            return ResponseEntity.ok(GenericResponse.Success());
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private static String bloodPressureFileName() {
+        return "BloodPressure_DataBackup.xlsx";
+    }
+
+    private static String doseFileName() {
+        return "Dose_DataBackup.xlsx";
+    }
+
+    private ByteArrayResource getDoseFileContentResource(Authentication authentication) throws IOException {
+        return bulkDataMapper.doseFileContentResource(
+                bulkDataService.getAllDoses(authentication.getName()));
+    }
+
+    private ByteArrayResource getBloodPressureFileContentResource(Authentication authentication) throws IOException {
+        return bulkDataMapper.bloodPressureFileContentResource(
+                bulkDataService.getAllBloodPressureReadings(authentication.getName()));
+    }
+
+
+    private ResponseEntity<ByteArrayResource> getResponseEntity(ByteArrayResource byteArrayResource, String filename) {
+
+        HttpHeaders header = new HttpHeaders();
+        header.setContentType(new MediaType("application", "force-download"));
+        header.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename);
+
+        return new ResponseEntity<>(byteArrayResource, header, HttpStatus.CREATED);
     }
 }

@@ -58,11 +58,10 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
                 .stream().collect(Collectors.toMap(UserModel::getId, Function.identity()));
     }
 
+    @Override
     public UserModel saveUserModel(UserModel userModel) {
         return userModelRepository.save(userModel);
     }
-
-
 
 
     @Override

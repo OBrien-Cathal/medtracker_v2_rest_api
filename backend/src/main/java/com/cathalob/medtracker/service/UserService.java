@@ -21,5 +21,7 @@ public interface UserService {
     List<UserModel> getPractitionerUserModels();
 
 
+    UserModel saveUserModel(UserModel userModel);
+
     boolean submitPasswordChangeRequest();
 }
