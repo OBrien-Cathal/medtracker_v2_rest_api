@@ -175,9 +175,9 @@ class PatientsServiceTests {
     }
 
 
-    @DisplayName("(RegisterPatient) fail due to non existent practitioner user")
+    @DisplayName("(RegisterPatient) failure due to non existent practitioner user does not save registration")
     @Test
-    public void givenPatientRegistrationRequestWithBogusPractitionerId_whenRegisterPatient_thenReturnFailedPatientRegistrationResponse() {
+    public void givenPatientRegistrationRequestWithBogusPractitionerId_whenRegisterPatient_thenThrowException() {
         //given - precondition or setup
         UserModel toRegister = aUserModel().build();
         UserModel practitioner = aUserModel().withId(1L).withRole(USERROLE.PRACTITIONER).build();
@@ -201,9 +201,38 @@ class PatientsServiceTests {
     }
 
 
-    @DisplayName("Successful approvePatientRegistration - returns reg id")
+    @DisplayName("Successful approvePatientRegistration for USER creates RoleChange and saves new PATIENT role AND returns reg id")
     @Test
-    public void givenApprovePatientRegistrationRequest_whenApprovedPatientRegistration_thenReturnFailedApprovePatientRegistrationResponse() {
+    public void givenApprovePatientRegistrationRequestForUSER_whenApprovedPatientRegistration_thenReturnRegId() {
+        //given - precondition or setup
+        UserModel toRegister = aUserModel().build();
+        UserModel practitioner = aPractitioner().build();
+
+        given(userService.findByLogin(practitioner.getUsername()))
+                .willReturn(practitioner);
+
+        PatientRegistration patientRegistration = new PatientRegistration(1L, toRegister, practitioner, false);
+        given(patientRegistrationRepository.findById(patientRegistration.getId()))
+                .willReturn(Optional.of(patientRegistration));
+
+        given(patientRegistrationRepository.save(patientRegistration))
+                .willReturn(patientRegistration);
+        RoleChange newRoleChange = new RoleChange();
+        given(factory.roleChange(patientRegistration))
+                .willReturn(newRoleChange);
+        // when - action or the behaviour that we are going test
+        Long savedId = patientsService.approvePatientRegistration(practitioner.getUsername(), patientRegistration.getId());
+
+        // then - verify the output
+        verify(roleChangeRepository, times(1)).save(newRoleChange);
+        verify(userService, times(1)).saveUserModel(patientRegistration.getUserModel());
+        assertThat(patientRegistration.getUserModel().getRole().equals(USERROLE.PATIENT)).isTrue();
+        assertThat(savedId).isNotNull();
+        assertThat(savedId).isEqualTo(1L);
+    }
+    @DisplayName("Successful approvePatientRegistration - for PATIENT does not save a new role AND returns reg id")
+    @Test
+    public void givenApprovePatientRegistrationRequest_whenApprovedPatientRegistration_thenReturnRegId() {
         //given - precondition or setup
         UserModel toRegister = aPatient().build();
         UserModel practitioner = aPractitioner().build();
@@ -221,6 +250,10 @@ class PatientsServiceTests {
         Long savedId = patientsService.approvePatientRegistration(practitioner.getUsername(), patientRegistration.getId());
 
         // then - verify the output
+        verify(roleChangeRepository, never()).save(any(RoleChange.class));
+        verify(userService, never()).saveUserModel(any(UserModel.class));
+        verify(factory, never()).roleChange(any(PatientRegistration.class));
+
         assertThat(savedId).isNotNull();
         assertThat(savedId).isEqualTo(1L);
     }
