@@ -5,6 +5,8 @@ import com.cathalob.medtracker.payload.data.AccountDetailsData;
 
 public class AccountDetailsMapper {
     public AccountDetailsData accountDetailsData(AccountDetails accountDetails) {
+        if (accountDetails== null) return AccountDetailsData.builder().build();
+
         return AccountDetailsData.builder()
                 .firstName(accountDetails.getFirstName())
                 .surname(accountDetails.getSurname())
