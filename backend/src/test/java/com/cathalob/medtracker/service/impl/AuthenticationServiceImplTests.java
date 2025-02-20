@@ -44,8 +44,11 @@ class AuthenticationServiceImplTests {
     private AccountRegistrationService accountRegistrationService;
     @Mock
     private AuthenticationFactory authenticationFactory;
+    @Mock
+    private SignInRecordsServiceImpl signInRecordsService;
     @InjectMocks
     private AuthenticationServiceImpl authenticationService;
+
 
 
     @DisplayName("Sign Up request returns jwtAuthenticationResponse without token")

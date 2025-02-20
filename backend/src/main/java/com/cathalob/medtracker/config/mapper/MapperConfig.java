@@ -43,5 +43,10 @@ public class MapperConfig {
     public BulkDataMapper bulkDataMapper() {
         return new BulkDataMapper();
     }
+
+    @Bean
+    public SignInRecordsMapper signInRecordsMapper() {
+        return new SignInRecordsMapper();
+    }
 }
 

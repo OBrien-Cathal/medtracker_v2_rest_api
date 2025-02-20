@@ -11,6 +11,7 @@ import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.payload.response.generic.ResponseInfo;
 import com.cathalob.medtracker.repository.UserModelRepository;
 import com.cathalob.medtracker.service.JwtService;
+import com.cathalob.medtracker.service.SignInRecordsService;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,7 @@ public class AuthenticationServiceImpl implements com.cathalob.medtracker.servic
     private final AuthenticationManager authenticationManager;
     private final AccountRegistrationService accountRegistrationService;
     private final AuthenticationFactory authenticationFactory;
+    private final SignInRecordsService signInRecordsService;
 
     @Override
     public JwtAuthenticationResponse signUp(SignUpRequest request) {
@@ -69,6 +71,8 @@ public class AuthenticationServiceImpl implements com.cathalob.medtracker.servic
 
         if (user == null || !accountRegistrationService.isUserRegistrationConfirmed(user))
             throw new UserAuthenticationValidatorException(List.of("No confirmed registered user exists for submitted email and password"));
+
+        signInRecordsService.addSignInRecord(user);
 
         UserDetails userDetails = getUserDetails(user);
         var jwt = jwtService.generateToken(userDetails);

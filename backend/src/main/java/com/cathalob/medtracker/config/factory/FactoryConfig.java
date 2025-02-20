@@ -22,15 +22,23 @@ public class FactoryConfig {
     }
 
     @Bean
-    public AuthenticationFactory userModelFactory(){
+    public AuthenticationFactory userModelFactory() {
         return new AuthenticationFactory();
     }
 
     @Bean
-    public PatientRegistrationFactory patientRegistrationFactory(){
+    public PatientRegistrationFactory patientRegistrationFactory() {
         return new PatientRegistrationFactory();
     }
 
     @Bean
-    public RoleChangeServiceFactory roleChangeServiceFactory() {return new RoleChangeServiceFactory();}
+    public RoleChangeServiceFactory roleChangeServiceFactory() {
+        return new RoleChangeServiceFactory();
+    }
+
+    @Bean
+    public SignInRecordsServiceFactory signInRecordFactory() {
+        return new SignInRecordsServiceFactory();
+    }
+
 }
