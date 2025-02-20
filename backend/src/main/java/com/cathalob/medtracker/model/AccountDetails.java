@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 public class AccountDetails {
     @Id
     private Long id;
-
     @MapsId
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "USERMODEL_ID", nullable = false)

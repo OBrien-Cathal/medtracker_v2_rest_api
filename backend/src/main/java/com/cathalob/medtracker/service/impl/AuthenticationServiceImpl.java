@@ -39,6 +39,7 @@ public class AuthenticationServiceImpl implements com.cathalob.medtracker.servic
     private final AccountRegistrationService accountRegistrationService;
     private final AuthenticationFactory authenticationFactory;
     private final SignInRecordsService signInRecordsService;
+    private final AccountDetailsService accountDetailsService;
 
     @Override
     public JwtAuthenticationResponse signUp(SignUpRequest request) {
@@ -50,13 +51,17 @@ public class AuthenticationServiceImpl implements com.cathalob.medtracker.servic
                         lowerCaseUsername,
                         passwordEncoder.encode(request.getPassword())));
 
-        boolean userAlreadyExists = user.getId() == null;
+        boolean isNewUser = user.getId() == null;
         try {
-            if (userAlreadyExists) userModelRepository.save(user);
+            if (isNewUser) {
+                userModelRepository.save(user);
+                accountDetailsService.addAccountDetails(user);
+            }
         } catch (DataIntegrityViolationException exception) {
             log.info(exception.getMessage());
             return new JwtAuthenticationResponse(ResponseInfo.Success("A registration confirmation was sent to the submitted email address"));
         }
+
         accountRegistrationService.registerUserModel(user);
         return new JwtAuthenticationResponse(ResponseInfo.Success("A registration confirmation was sent to the submitted email address"));
     }

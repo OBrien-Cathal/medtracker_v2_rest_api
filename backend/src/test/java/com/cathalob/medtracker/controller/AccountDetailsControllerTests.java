@@ -1,8 +1,10 @@
 package com.cathalob.medtracker.controller;
 
 import com.cathalob.medtracker.config.SecurityConfig;
+import com.cathalob.medtracker.mapper.AccountDetailsMapper;
 import com.cathalob.medtracker.model.AccountDetails;
 import com.cathalob.medtracker.model.UserModel;
+import com.cathalob.medtracker.payload.data.AccountDetailsData;
 import com.cathalob.medtracker.service.impl.*;
 import com.cathalob.medtracker.testdata.UserModelBuilder;
 import org.assertj.core.api.Assertions;
@@ -21,6 +23,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -39,7 +42,10 @@ class AccountDetailsControllerTests {
     @MockBean
     private AccountDetailsService accountDetailsService;
 
-    @DisplayName("(Stub implementation) Request for details returns account details object")
+    @MockBean
+    private AccountDetailsMapper accountDetailsMapper;
+
+    @DisplayName("Request for details returns account details object")
     @Test
     @WithMockUser(value = "user@user.com")
     public void givenExistingAccountDetails_whenDetailsRequested_thenReturnAccountDetails() throws Exception {
@@ -47,8 +53,10 @@ class AccountDetailsControllerTests {
         AccountDetails accountDetails = new AccountDetails();
         UserModel user = UserModelBuilder.aUserModel().withId(3L).build();
         accountDetails.setFirstName("TEST");
-        BDDMockito.given(accountDetailsService.getDetails(user.getUsername()))
+        given(accountDetailsService.getDetails(user.getUsername()))
                 .willReturn(accountDetails);
+        given(accountDetailsMapper.accountDetailsData(accountDetails))
+                .willReturn(AccountDetailsData.builder().firstName("TEST").build());
         // when - action or the behaviour that we are going test
         ResultActions usersResponse = mockMvc.perform(
                 get("/api/v1/account-details")
@@ -62,14 +70,43 @@ class AccountDetailsControllerTests {
                         .jsonPath("$.firstName", CoreMatchers.is(accountDetails.getFirstName())));
     }
 
-    @DisplayName("(Stub implementation) Update account details returns account details id")
+    @DisplayName("Request for patient details returns account details object, requested by PRACTITIONER")
+    @Test
+    @WithMockUser(value = "user@user.com", roles = {"PRACTITIONER"})
+    public void givenExistingAccountDetails_whenDetailsRequestedByPRACTITIONER_thenReturnAccountDetails() throws Exception {
+        //given - precondition or setup
+        AccountDetails accountDetails = new AccountDetails();
+        UserModel user = UserModelBuilder.aUserModel().withId(3L).build();
+        accountDetails.setFirstName("TEST");
+
+        given(accountDetailsService.getDetails(user.getUsername(), 1L))
+                .willReturn(accountDetails);
+        given(accountDetailsMapper.accountDetailsData(accountDetails))
+                .willReturn(AccountDetailsData.builder().firstName("TEST").build());
+        // when - action or the behaviour that we are going test
+        ResultActions usersResponse = mockMvc.perform(
+                get("/api/v1/account-details/patient")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("patient-id", "" + 1L));
+        // then - verify the output
+        System.out.println(usersResponse);
+        usersResponse
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers
+                        .jsonPath("$.firstName", CoreMatchers.is(accountDetails.getFirstName())));
+    }
+
+    @DisplayName(" Update account details returns account details id")
     @Test
     @WithMockUser(value = "user@user.com")
     public void givenServiceUpdatesAccountDetails_whenAccountDetailsPosted_thenReturnAccountDetailsID() throws Exception {
         //given - precondition or setup
         UserModel user = UserModelBuilder.aUserModel().withId(3L).build();
 
-        BDDMockito.given(accountDetailsService.updateAccountDetails(user.getUsername()))
+        given(accountDetailsService.updateAccountDetails(user.getUsername(),
+                "First",
+                "Second"))
                 .willReturn(1L);
         // when - action or the behaviour that we are going test
         ResultActions usersResponse = mockMvc.perform(

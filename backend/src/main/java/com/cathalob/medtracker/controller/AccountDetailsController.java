@@ -1,14 +1,14 @@
 package com.cathalob.medtracker.controller;
 
-import com.cathalob.medtracker.model.AccountDetails;
+import com.cathalob.medtracker.mapper.AccountDetailsMapper;
+import com.cathalob.medtracker.payload.data.AccountDetailsData;
 import com.cathalob.medtracker.service.impl.AccountDetailsService;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 
 @RestController
@@ -17,17 +17,29 @@ import org.springframework.web.bind.annotation.RestController;
 
 public class AccountDetailsController {
     private final AccountDetailsService accountDetailsService;
+    private final AccountDetailsMapper accountDetailsMapper;
+
 
     @GetMapping()
-    public ResponseEntity<AccountDetails> getAccountDetails(Authentication authentication) {
-        AccountDetails details = accountDetailsService.getDetails(authentication.getName());
-        System.out.println(details);
-        return ResponseEntity.ok(details);
+    public ResponseEntity<AccountDetailsData> getAccountDetails(Authentication authentication) {
+        return ResponseEntity.ok(
+                accountDetailsMapper.accountDetailsData(
+                        accountDetailsService.getDetails(authentication.getName())));
+    }
+
+    @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
+    @GetMapping("/patient")
+    public ResponseEntity<AccountDetailsData> getAccountDetails(@RequestParam(name = "patient-id") @NotNull Long patientId, Authentication authentication) {
+        return ResponseEntity.ok(
+                accountDetailsMapper.accountDetailsData(
+                        accountDetailsService.getDetails(authentication.getName(), patientId)));
     }
 
     @PostMapping()
     public ResponseEntity<Long> updateAccountDetails(Authentication authentication) {
-        return ResponseEntity.ok(accountDetailsService.updateAccountDetails(authentication.getName()));
+        return ResponseEntity.ok(accountDetailsService.updateAccountDetails(authentication.getName(),
+                "First",
+                "Second"));
     }
 
 }

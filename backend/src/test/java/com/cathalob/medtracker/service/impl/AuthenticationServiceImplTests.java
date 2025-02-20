@@ -46,8 +46,11 @@ class AuthenticationServiceImplTests {
     private AuthenticationFactory authenticationFactory;
     @Mock
     private SignInRecordsServiceImpl signInRecordsService;
+    @Mock
+    private AccountDetailsService accountDetailsService;
     @InjectMocks
     private AuthenticationServiceImpl authenticationService;
+
 
 
 
@@ -69,6 +72,8 @@ class AuthenticationServiceImplTests {
         given(userModelRepository.save(userModel)).willReturn(userModel);
         given(accountRegistrationService.registerUserModel(userModel))
                 .willReturn(true);
+        given(accountDetailsService.addAccountDetails(userModel))
+                .willReturn(1L);
         // when - action or the behaviour that we are going test
         JwtAuthenticationResponse jwtAuthenticationResponse = authenticationService.signUp(signUpRequest);
 

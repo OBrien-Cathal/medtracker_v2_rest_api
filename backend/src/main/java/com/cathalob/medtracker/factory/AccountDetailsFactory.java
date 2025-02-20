@@ -9,8 +9,8 @@ public class AccountDetailsFactory {
 
         AccountDetails accountDetails = new AccountDetails();
         accountDetails.setUserModel(userModel);
-        accountDetails.setFirstName("First name");
-        accountDetails.setSurname("Second name");
+//        accountDetails.setFirstName("First name");
+//        accountDetails.setSurname("Second name");
 
         return accountDetails;
     }

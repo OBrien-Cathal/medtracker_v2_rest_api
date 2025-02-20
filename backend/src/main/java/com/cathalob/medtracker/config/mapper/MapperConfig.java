@@ -48,5 +48,10 @@ public class MapperConfig {
     public SignInRecordsMapper signInRecordsMapper() {
         return new SignInRecordsMapper();
     }
+
+    @Bean
+    public AccountDetailsMapper accountDetailsServiceMapper(){
+        return new AccountDetailsMapper();
+    }
 }
 

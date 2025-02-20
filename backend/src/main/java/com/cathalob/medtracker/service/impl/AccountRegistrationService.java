@@ -7,6 +7,7 @@ import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.repository.AccountRegistrationRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.UUID;
 
 @Service
 @AllArgsConstructor
+@Transactional
 public class AccountRegistrationService {
     private final AccountRegistrationRepository accountRegistrationRepository;
     private final MailService mailService;
