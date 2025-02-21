@@ -203,7 +203,7 @@ class DoseServiceTests {
     public void givenUpdateValidDoseDataEntry_whenAddDailyDoseData_thenReturnSuccessResponse() {
         //given - precondition or setup
         AddDailyDoseDataRequest request = AddDailyDoseDataRequest.builder()
-                .date(LocalDate.now().plusDays(1))
+                .date(LocalDate.now().plusDays(-1))
                 .dailyDoseData(DailyDoseData.builder()
                         .prescriptionScheduleEntryId(1L)
                         .build())
@@ -214,7 +214,9 @@ class DoseServiceTests {
         UserModel patient = aUserModel().withRole(USERROLE.PATIENT).build();
         DailyEvaluation evaluation = aDailyEvaluation().withRecordDate(request.getDate()).build();
         evaluation.setUserModel(patient);
-        PrescriptionScheduleEntry prescriptionScheduleEntry = aPrescriptionScheduleEntry().withId(1L).build();
+        PrescriptionScheduleEntry prescriptionScheduleEntry = aPrescriptionScheduleEntry()
+                .with(aPrescription().withBeginTime(LocalDateTime.now().plusDays(-2)))
+                .withId(1L).build();
 
 
         Dose addOrUpdateDose = DoseMapper.Dose(request);
@@ -249,7 +251,7 @@ class DoseServiceTests {
     public void givenAddValidNewDoseDataEntry_whenAddDailyDoseData_thenReturnFailureResponse() {
         //given - precondition or setup
         AddDailyDoseDataRequest request = AddDailyDoseDataRequest.builder()
-                .date(LocalDate.now().plusDays(1))
+                .date(LocalDate.now().plusDays(-1))
                 .dailyDoseData(DailyDoseData.builder()
                         .prescriptionScheduleEntryId(1L)
                         .build())
@@ -258,7 +260,9 @@ class DoseServiceTests {
         UserModel patient = aUserModel().withRole(USERROLE.PATIENT).build();
         DailyEvaluation evaluation = aDailyEvaluation().withRecordDate(request.getDate()).build();
         evaluation.setUserModel(patient);
-        PrescriptionScheduleEntry prescriptionScheduleEntry = aPrescriptionScheduleEntry().withId(1L).build();
+        PrescriptionScheduleEntry prescriptionScheduleEntry = aPrescriptionScheduleEntry()
+                .with(aPrescription().withBeginTime(LocalDateTime.now().plusDays(-2)))
+                .withId(1L).build();
         Dose newDose = DoseMapper.Dose(request);
 
         given(userService.findByLogin(patient.getUsername()))

@@ -1,14 +1,15 @@
 package com.cathalob.medtracker.service.impl;
 
 import com.cathalob.medtracker.exception.validation.PrescriptionValidatorException;
+import com.cathalob.medtracker.exception.validation.medication.MedicationValidationException;
 import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.DAYSTAGE;
-import com.cathalob.medtracker.model.prescription.Medication;
 import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
 
 import com.cathalob.medtracker.puremodel.PrescriptionDetails;
+import com.cathalob.medtracker.puremodel.PrescriptionImport;
 import com.cathalob.medtracker.repository.MedicationRepository;
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.PrescriptionScheduleEntryRepository;
@@ -19,6 +20,7 @@ import com.cathalob.medtracker.validate.model.PrescriptionValidator;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.chrono.ChronoLocalDate;
@@ -26,7 +28,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-
+@Transactional
 @Service
 @Slf4j
 @AllArgsConstructor
@@ -69,11 +71,37 @@ public class PrescriptionsService {
     }
 
 
+    public List<PrescriptionDetails> getAllPrescriptionDetailsEnteredBy(String practitionerUsername) {
+
+        UserModel requestingUserModel = userService.findByLogin(practitionerUsername);
+
+        List<Prescription> byPractitioner = prescriptionsRepository.findByPractitioner(requestingUserModel);
+
+        HashMap<Prescription, List<PrescriptionScheduleEntry>> collect = prescriptionScheduleEntryRepository.findByPrescriptionIds(byPractitioner.stream()
+                        .map(Prescription::getId).toList()).stream()
+                .collect(Collectors.groupingBy(PrescriptionScheduleEntry::getPrescription,
+                        HashMap::new,
+                        Collectors.toList()));
+
+        return collect.entrySet().stream()
+                .map(prescriptionListEntry ->
+
+                        PrescriptionDetails.builder()
+                                .prescription(prescriptionListEntry.getKey())
+                                .prescriptionScheduleEntries(prescriptionListEntry.getValue())
+                                .build()
+
+                ).toList();
+
+    }
+
+
     public Long submitPrescription(String practitionerUsername,
                                    Prescription prescription,
                                    List<PrescriptionScheduleEntry> prescriptionScheduleEntryList,
                                    Long patientId,
                                    Long medicationId) {
+
 
         Prescription existingPrescription = prescription.getId() == null ? null :
                 prescriptionsRepository.findById(prescription.getId())
@@ -128,14 +156,7 @@ public class PrescriptionsService {
     }
 
     //    Internal use
-    public void saveMedications(List<Medication> medicationList) {
-        medicationRepository.saveAll(medicationList);
-    }
 
-    public Map<Long, Medication> getMedicationsById() {
-        return medicationRepository.findAll()
-                .stream().collect(Collectors.toMap(Medication::getId, Function.identity()));
-    }
 
     public List<Prescription> getPrescriptions(UserModel userModel) {
         return prescriptionsRepository.findByPatient(userModel);
@@ -176,25 +197,60 @@ public class PrescriptionsService {
     }
 
 
-    private List<Prescription> getAllPrescriptions() {
-        return prescriptionsRepository.findAll();
+
+
+
+    public HashMap<Long, HashMap<String, PrescriptionScheduleEntry>> getPrescriptionScheduleEntriesByPrescriptionIdAndDayStageName() {
+        Map<Long, List<PrescriptionScheduleEntry>> pseByPrescriptionId = prescriptionScheduleEntryRepository.findAll().stream()
+                .collect(Collectors.groupingBy(prescriptionScheduleEntry -> prescriptionScheduleEntry.getPrescription().getId()));
+
+        HashMap<Long, HashMap<String, PrescriptionScheduleEntry>> pseListByDsByPse = new HashMap<>();
+
+        pseByPrescriptionId.forEach((prescriptionId, entries) ->
+        {
+            HashMap<String, PrescriptionScheduleEntry> entryHashMap = entries.stream()
+                    .collect(Collectors
+                            .toMap(prescriptionScheduleEntry ->
+                                            prescriptionScheduleEntry.getDayStage().name(),
+                                    Function.identity(),
+                                    (existing, replacement) -> existing,
+                                    HashMap::new));
+            pseListByDsByPse.put(prescriptionId, entryHashMap);
+
+        });
+
+        return pseListByDsByPse;
     }
 
-    public Map<Long, Prescription> getPrescriptionsById() {
-        return getAllPrescriptions()
-                .stream().collect(Collectors.toMap(Prescription::getId, Function.identity()));
-    }
 
-    public Map<Long, PrescriptionScheduleEntry> getPrescriptionScheduleEntriesById() {
-        return prescriptionScheduleEntryRepository.findAll().stream().collect(Collectors.toMap(PrescriptionScheduleEntry::getId, Function.identity()));
-    }
+    public void savePrescriptions(String username, List<PrescriptionImport> imports) {
 
-    public void savePrescriptions(List<Prescription> newPrescriptions) {
-        prescriptionsRepository.saveAll(newPrescriptions);
-    }
+        List<String> practitionerNames = imports.stream().map(PrescriptionImport::getPractitionerUserName).distinct().toList();
 
-    public void savePrescriptionScheduleEntries(List<PrescriptionScheduleEntry> newPrescriptionScheduleEntries) {
-        prescriptionScheduleEntryRepository.saveAll(newPrescriptionScheduleEntries);
+        if (practitionerNames.size() > 1) throw new MedicationValidationException(
+                List.of("Prescriptions can only be uploaded for a single practitioner"));
+
+        if (!practitionerNames.stream().allMatch(s -> s.equals(username))) throw new MedicationValidationException(
+                List.of("All prescriptions must be for the uploading practitioner"));
+
+        imports.forEach(prescriptionImport -> {
+
+                    List<PrescriptionScheduleEntry> pseList = prescriptionImport.getDayStageList().stream()
+                            .map(daystage -> {
+                                PrescriptionScheduleEntry entry = new PrescriptionScheduleEntry();
+                                entry.setDayStage(daystage);
+                                return entry;
+                            }).toList();
+
+                    submitPrescription(
+                            username,
+                            prescriptionImport.getPrescription(),
+                            pseList,
+                            prescriptionImport.getPatientId(),
+                            prescriptionImport.getMedicationId());
+
+                }
+        );
     }
 
 }

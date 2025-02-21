@@ -1,10 +1,8 @@
 package com.cathalob.medtracker.fileupload;
 
-import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.DAYSTAGE;
 import com.cathalob.medtracker.model.tracking.BloodPressureReading;
 import com.cathalob.medtracker.service.impl.BloodPressureDataService;
-import com.cathalob.medtracker.service.impl.EvaluationDataService;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.poi.ss.usermodel.Row;
@@ -19,27 +17,13 @@ import java.util.List;
 
 @Slf4j
 public class BloodPressureFileImporter extends FileImporter {
-    private final EvaluationDataService evaluationDataService;
-
     private final BloodPressureDataService bloodPressureDataService;
 
-
-
-    public BloodPressureFileImporter(UserModel userModel, EvaluationDataService evaluationDataService, BloodPressureDataService bloodPressureDataService) {
-        super(new ImportCache());
-        importCache.setUserModel(userModel);
-
-        this.evaluationDataService = evaluationDataService;
-        this.bloodPressureDataService = bloodPressureDataService;
-        importCache.loadDailyEvaluations(this.evaluationDataService);
-
-    }
-
-    public BloodPressureFileImporter(EvaluationDataService evaluationDataService, BloodPressureDataService bloodPressureDataService) {
-        super();
-        this.evaluationDataService = evaluationDataService;
+    public BloodPressureFileImporter(String userModelName, BloodPressureDataService bloodPressureDataService) {
+        super(userModelName);
         this.bloodPressureDataService = bloodPressureDataService;
     }
+
 
     public void processWorkbook(XSSFWorkbook workbook) {
         List<BloodPressureReading> newBloodPressureReadings = new ArrayList<>();
@@ -90,17 +74,6 @@ public class BloodPressureFileImporter extends FileImporter {
             }
         });
 
-
-        List<LocalDate> dates = newBloodPressureReadings.stream().map(BloodPressureReading::getReadingTime).map(LocalDateTime::toLocalDate).distinct().toList();
-
-        importCache.ensureDailyEvaluations(dates, evaluationDataService);
-
-        newBloodPressureReadings.forEach(dose ->
-                dose.setDailyEvaluation(importCache.getDailyEvaluation(dose.getReadingTime().toLocalDate()))
-        );
-
-        bloodPressureDataService.saveBloodPressureReadings(newBloodPressureReadings);
+        bloodPressureDataService.saveBloodPressureReadings(newBloodPressureReadings, username);
     }
-
-
 }

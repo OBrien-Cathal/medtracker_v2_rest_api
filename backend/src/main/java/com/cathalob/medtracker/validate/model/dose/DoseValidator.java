@@ -32,8 +32,8 @@ public class DoseValidator extends Validator {
 
     private void validateDoseReadingTime() {
         LocalDateTime doseTime = dose.getDoseTime();
-        if (doseTime.toLocalDate().isBefore(LocalDateTime.now().toLocalDate())) {
-            addError("Cannot submit dose readings before the schedule day");
+        if (doseTime.toLocalDate().isAfter(LocalDateTime.now().toLocalDate())) {
+            addError("Cannot submit dose readings for dates in the future");
         }
 
         LocalDateTime prescriptionBegin = dose.getPrescriptionScheduleEntry().getPrescription().getBeginTime();

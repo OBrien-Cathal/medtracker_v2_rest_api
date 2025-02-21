@@ -81,8 +81,8 @@ public class PrescriptionValidator extends Validator {
         if (prescription.getBeginTime() == null) {
             addError("Prescription start time must be specified");
         }
-        if (prescription.getBeginTime().isBefore(LocalDateTime.now()))
-            addError("Cannot update prescriptions that have already began");
+//        if (prescription.getBeginTime().isBefore(LocalDateTime.now()))
+//            addError("Cannot update prescriptions that have already begun");
     }
 
     private void validateEndTime() {

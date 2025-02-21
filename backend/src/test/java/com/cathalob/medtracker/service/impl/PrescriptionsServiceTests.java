@@ -13,6 +13,7 @@ import com.cathalob.medtracker.repository.PrescriptionsRepository;
 
 import com.cathalob.medtracker.service.UserService;
 import com.cathalob.medtracker.testdata.MedicationBuilder;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -146,7 +147,7 @@ class PrescriptionsServiceTests {
         verify(prescriptionsRepository, never()).save(any(Prescription.class));
     }
 
-
+    @Disabled("Validation is too restrictive, should be replaced with a check if any doses have been submitted yet")
     @DisplayName("Validator for SubmitPrescription when begin is in past throws validation error")
     @Test
     public void givenValidatorFailure_whenSubmitPrescriptions_thenThrowValidationError() {

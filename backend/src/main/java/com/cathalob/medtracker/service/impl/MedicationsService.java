@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -19,6 +22,7 @@ public class MedicationsService {
 
     private final MedicationRepository medicationRepository;
 
+    //    Controller ----------------------------
     public List<Medication> getMedications() {
         return medicationRepository.findAll();
     }
@@ -30,9 +34,21 @@ public class MedicationsService {
 
     }
 
+//    Internal ----------------------------
+
     private void validateMedication(Medication medication) {
         List<Medication> existing = medicationRepository.findByName(medication.getName());
 
         MedicationValidator.AMedicationValidator(medication, existing.isEmpty() ? null : existing.get(0)).validate();
+    }
+
+    public void addMedications(String username, List<Medication> newMedications) {
+        newMedications.forEach(this::addMedication);
+    }
+
+
+    public Map<Long, Medication> getMedicationsById() {
+        return medicationRepository.findAll()
+                .stream().collect(Collectors.toMap(Medication::getId, Function.identity()));
     }
 }

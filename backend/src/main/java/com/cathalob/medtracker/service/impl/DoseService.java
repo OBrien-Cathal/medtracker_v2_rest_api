@@ -14,13 +14,14 @@ import com.cathalob.medtracker.service.UserService;
 import com.cathalob.medtracker.validate.model.dose.DoseValidator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-
+@Transactional
 @Service
 @AllArgsConstructor
 public class DoseService {
@@ -33,8 +34,24 @@ public class DoseService {
     private final DoseServiceModelFactory factory;
 
 
-    public void saveDoses(List<Dose> newDoses) {
-        doseRepository.saveAll(newDoses);
+    public void saveDoses(String username, HashMap<Long, HashMap<String, List<Dose>>> doseListByDsByPrescriptionId) {
+        HashMap<Long, HashMap<String, PrescriptionScheduleEntry>> pseByDsAndPrescriptionId = prescriptionsService.getPrescriptionScheduleEntriesByPrescriptionIdAndDayStageName();
+
+
+        doseListByDsByPrescriptionId.forEach((prescriptionId, dosesByDayStageName) -> {
+
+            HashMap<String, PrescriptionScheduleEntry> pseByDsName = pseByDsAndPrescriptionId.get(prescriptionId);
+            if (pseByDsName != null) {
+                dosesByDayStageName.forEach((dsName, doseList) -> {
+                    PrescriptionScheduleEntry foundPSE = pseByDsName.get(dsName);
+                    if(foundPSE != null){
+                       doseList.forEach(dose -> {
+                           addDailyDoseData(username, dose, foundPSE.getId(), dose.getDoseTime().toLocalDate());
+                       });
+                    }
+                });
+            }
+        });
     }
 
     public Map<Long, Dose> getDosesById() {
@@ -80,7 +97,6 @@ public class DoseService {
         List<Dose> byId = doseRepository.findByPrescriptionScheduleEntryAndEvaluation(prescriptionScheduleEntry, dailyEvaluation);
         newDose.setPrescriptionScheduleEntry(prescriptionScheduleEntry);
         newDose.setEvaluation(dailyEvaluation);
-        System.out.println(newDose.getPrescriptionScheduleEntry());
         if (byId.isEmpty()) {
             DoseValidator.AddDoseValidator(newDose).validate();
         } else {

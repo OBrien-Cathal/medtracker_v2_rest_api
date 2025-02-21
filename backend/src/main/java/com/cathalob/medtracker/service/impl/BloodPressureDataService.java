@@ -28,10 +28,7 @@ public class BloodPressureDataService {
     private final PatientRegistrationRepository patientRegistrationRepository;
     private final EvaluationDataService evaluationDataService;
 
-
-    public void saveBloodPressureReadings(List<BloodPressureReading> bloodPressureReadings) {
-        bloodPressureReadingRepository.saveAll(bloodPressureReadings);
-    }
+//  Controller---------------------------------
 
     public TreeMap<LocalDate, List<BloodPressureReading>> getBloodPressureReadingsForDateRange(@NonNull String username, LocalDate start, LocalDate end) {
         return getBloodPressureGraphData(userService.findByLogin(username), start, end, false);
@@ -83,6 +80,15 @@ public class BloodPressureDataService {
         return bloodPressureReadingRepository.findByUserModelId(userService.findByLogin(username).getId());
     }
 
+//    Importer-------------------------------------
+
+public void saveBloodPressureReadings(List<BloodPressureReading> bloodPressureReadings, String username) {
+    bloodPressureReadings.forEach(reading -> {
+        addBloodPressureReading(reading, reading.getReadingTime().toLocalDate(), username);
+    });
+}
+
+//    Internal------------------------------------------
 
     private List<BloodPressureReading> getBloodPressureReadingsForEvaluations(UserModel patient, List<DailyEvaluation> dailyEvaluations) {
 

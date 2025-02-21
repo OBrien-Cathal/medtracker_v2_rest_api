@@ -12,17 +12,15 @@ import java.io.IOException;
 @Setter
 @Slf4j
 public abstract class FileImporter {
-    public ImportCache importCache;
+    protected String username;
 
-    public FileImporter() {
+    public FileImporter(String username) {
+        this.username = username;
     }
 
-    public FileImporter(ImportCache importCache) {
-        this.importCache = importCache;
-    }
 
     public void processMultipartFile(MultipartFile fileToImport) {
-        this.logProcessing(importCache.getUserModel().getUsername(), fileToImport.getOriginalFilename());
+        this.logProcessing(username, fileToImport.getOriginalFilename());
         XSSFWorkbook workbook = null;
         try {
             workbook = new XSSFWorkbook(fileToImport.getInputStream());
@@ -37,8 +35,9 @@ public abstract class FileImporter {
             }
         }
     }
+
     public void processFileNamed(String filename) {
-        this.logProcessing("System", filename);
+        this.logProcessing("System as: (" + username + ")", filename);
         XSSFWorkbook workbook = null;
         try {
             workbook = new XSSFWorkbook(new FileInputStream(filename));
@@ -54,9 +53,10 @@ public abstract class FileImporter {
         }
     }
 
-    public void logProcessing(String username, String filename){
-        log.info(this.getClass() + " User: " + username + " FN: " + filename);
+    public void logProcessing(String logUsername, String filename) {
+        log.info(this.getClass() + " User: " + logUsername + " FN: " + filename);
     }
+
     abstract public void processWorkbook(XSSFWorkbook workbook);
 
 }
