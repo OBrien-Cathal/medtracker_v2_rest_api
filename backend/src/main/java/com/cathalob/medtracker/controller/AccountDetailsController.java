@@ -2,6 +2,7 @@ package com.cathalob.medtracker.controller;
 
 import com.cathalob.medtracker.mapper.AccountDetailsMapper;
 import com.cathalob.medtracker.payload.data.AccountDetailsData;
+import com.cathalob.medtracker.payload.response.generic.GenericResponse;
 import com.cathalob.medtracker.service.impl.AccountDetailsService;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -36,10 +37,11 @@ public class AccountDetailsController {
     }
 
     @PostMapping()
-    public ResponseEntity<Long> updateAccountDetails(Authentication authentication) {
-        return ResponseEntity.ok(accountDetailsService.updateAccountDetails(authentication.getName(),
-                "First",
-                "Second"));
+    public ResponseEntity<GenericResponse> updateAccountDetails(@RequestBody AccountDetailsData request, Authentication authentication) {
+        accountDetailsService.updateAccountDetails(authentication.getName(),
+                request.getFirstName(),
+                request.getSurname());
+        return ResponseEntity.ok(GenericResponse.Success("Account details updated successfully"));
     }
 
 }

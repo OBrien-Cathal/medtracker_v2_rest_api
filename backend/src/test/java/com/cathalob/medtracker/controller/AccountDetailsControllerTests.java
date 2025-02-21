@@ -7,6 +7,7 @@ import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.payload.data.AccountDetailsData;
 import com.cathalob.medtracker.service.impl.*;
 import com.cathalob.medtracker.testdata.UserModelBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.DisplayName;
@@ -22,11 +23,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @Import(SecurityConfig.class)
 @WebMvcTest(controllers = AccountDetailsController.class)
@@ -39,6 +42,9 @@ class AccountDetailsControllerTests {
     private AuthenticationServiceImpl authenticationService;
     @Autowired
     private MockMvc mockMvc;
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @MockBean
     private AccountDetailsService accountDetailsService;
 
@@ -104,21 +110,25 @@ class AccountDetailsControllerTests {
         //given - precondition or setup
         UserModel user = UserModelBuilder.aUserModel().withId(3L).build();
 
+        AccountDetailsData request = AccountDetailsData.builder().firstName("First").surname("Second").build();
+
         given(accountDetailsService.updateAccountDetails(user.getUsername(),
-                "First",
-                "Second"))
+                request.getFirstName(),
+                request.getSurname()))
                 .willReturn(1L);
+
+
         // when - action or the behaviour that we are going test
         ResultActions usersResponse = mockMvc.perform(
                 post("/api/v1/account-details")
-                        .contentType(MediaType.APPLICATION_JSON));
+                        .contentType(MediaType.APPLICATION_JSON)
+                 .content(objectMapper.writeValueAsString(request)));
         // then - verify the output
 
         usersResponse
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers
-                        .jsonPath("$", CoreMatchers.is(1)));
+                .andExpect(jsonPath("$.responseInfo.successful", is(true)));
     }
 
 
