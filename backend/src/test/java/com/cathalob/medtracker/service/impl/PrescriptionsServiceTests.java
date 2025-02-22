@@ -6,12 +6,10 @@ import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.prescription.Prescription;
-import com.cathalob.medtracker.repository.MedicationRepository;
-import com.cathalob.medtracker.repository.PatientRegistrationRepository;
-import com.cathalob.medtracker.repository.PrescriptionScheduleEntryRepository;
-import com.cathalob.medtracker.repository.PrescriptionsRepository;
+import com.cathalob.medtracker.repository.*;
 
 import com.cathalob.medtracker.service.UserService;
+import com.cathalob.medtracker.testdata.DoseBuilder;
 import com.cathalob.medtracker.testdata.MedicationBuilder;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -51,6 +49,8 @@ class PrescriptionsServiceTests {
     private MedicationRepository medicationRepository;
     @Mock
     private PrescriptionScheduleEntryRepository prescriptionScheduleEntryRepository;
+    @Mock
+    private DoseRepository doseRepository;
 
     @DisplayName("(GetPrescriptions) Returns prescriptions for existing requesting user")
     @Test
@@ -147,8 +147,8 @@ class PrescriptionsServiceTests {
         verify(prescriptionsRepository, never()).save(any(Prescription.class));
     }
 
-    @Disabled("Validation is too restrictive, should be replaced with a check if any doses have been submitted yet")
-    @DisplayName("Validator for SubmitPrescription when begin is in past throws validation error")
+
+    @DisplayName("SubmitPrescription when doses already exist throws validation error")
     @Test
     public void givenValidatorFailure_whenSubmitPrescriptions_thenThrowValidationError() {
         //given - precondition or setup
@@ -171,6 +171,8 @@ class PrescriptionsServiceTests {
 
         given(medicationRepository.findById(prescription.getMedication().getId()))
                 .willReturn(Optional.of(prescription.getMedication()));
+        given(doseRepository.findByPrescriptionId(prescription.getId()))
+                .willReturn(List.of(DoseBuilder.aDose().build()));
 
         // when - action or the behaviour that we are going test
         assertThrows(PrescriptionValidatorException.class, () -> prescriptionsService.submitPrescription(
@@ -212,9 +214,12 @@ class PrescriptionsServiceTests {
                 .willReturn(List.of());
         given(prescriptionScheduleEntryRepository.saveAll(List.of()))
                 .willReturn(List.of());
+        given(doseRepository.findByPrescriptionId(prescription.getId()))
+                .willReturn(List.of());
 
         given(prescriptionsRepository.save(prescription))
                 .willReturn(prescription);
+
 
         // when - action or the behaviour that we are going test
         Long savedId = prescriptionsService.submitPrescription(

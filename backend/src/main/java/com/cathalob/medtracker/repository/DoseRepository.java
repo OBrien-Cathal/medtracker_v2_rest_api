@@ -16,6 +16,9 @@ public interface DoseRepository extends JpaRepository<Dose, Long> {
     List<Dose> findByEvaluation(DailyEvaluation dailyEvaluation);
     List<Dose> findByPrescriptionScheduleEntryAndEvaluation(PrescriptionScheduleEntry prescriptionScheduleEntry, DailyEvaluation dailyEvaluation);
 
+    @Query("FROM DOSE e WHERE e.prescriptionScheduleEntry.prescription.id = :prescriptionId")
+    List<Dose> findByPrescriptionId(Long prescriptionId );
+
 
     @Query( "select o from DOSE o where o.evaluation.recordDate in :dates AND o.evaluation.userModel.id = :id" )
     List<Dose> findByDailyEvaluationDatesAndUserModelId(List<LocalDate> dates, Long id);

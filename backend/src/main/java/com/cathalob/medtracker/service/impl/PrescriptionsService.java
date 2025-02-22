@@ -8,12 +8,10 @@ import com.cathalob.medtracker.model.enums.DAYSTAGE;
 import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
 
+import com.cathalob.medtracker.model.tracking.Dose;
 import com.cathalob.medtracker.puremodel.PrescriptionDetails;
 import com.cathalob.medtracker.puremodel.PrescriptionImport;
-import com.cathalob.medtracker.repository.MedicationRepository;
-import com.cathalob.medtracker.repository.PatientRegistrationRepository;
-import com.cathalob.medtracker.repository.PrescriptionScheduleEntryRepository;
-import com.cathalob.medtracker.repository.PrescriptionsRepository;
+import com.cathalob.medtracker.repository.*;
 import com.cathalob.medtracker.service.UserService;
 import com.cathalob.medtracker.validate.actions.GetPrescriptionDetailsValidator;
 import com.cathalob.medtracker.validate.model.PrescriptionValidator;
@@ -38,6 +36,7 @@ public class PrescriptionsService {
     private final PrescriptionScheduleEntryRepository prescriptionScheduleEntryRepository;
     private final PrescriptionsRepository prescriptionsRepository;
     private final PatientRegistrationRepository patientRegistrationRepository;
+    private final DoseRepository doseRepository;
 
 
     //    Used by controller!!
@@ -116,7 +115,11 @@ public class PrescriptionsService {
         prescription.setPractitioner(registeredPractitioner);
         prescription.setMedication(medicationRepository.findById(medicationId).orElse(null));
 
-        PrescriptionValidator.aPrescriptionValidator(prescription, existingPrescription).validate();
+
+        List<Dose> existingDoses = (existingPrescription != null) ? doseRepository.findByPrescriptionId(existingPrescription.getId()) : List.of();
+
+
+        PrescriptionValidator.aPrescriptionValidator(prescription, existingPrescription, existingDoses).validate();
 
         Prescription saved = prescriptionsRepository.save(prescription);
         updatePrescriptionSchedule(prescriptionScheduleEntryList, saved);

@@ -34,15 +34,11 @@ public class PrescriptionScheduleEntryValidator extends Validator {
 
     public void validatePrescription(Prescription prescription) {
         try {
-            PrescriptionValidator.aPrescriptionValidator(prescription, null).validate();
+            PrescriptionValidator.aPrescriptionValidator(prescription, null, null).validate();
         } catch (PrescriptionValidatorException e) {
             addErrors(e.getErrors());
         }
 
-    }
-
-    public static PrescriptionScheduleEntryValidator aPrescriptionScheduleEntryValidator(PrescriptionScheduleEntry prescriptionScheduleEntry) {
-        return new PrescriptionScheduleEntryValidator(prescriptionScheduleEntry, null);
     }
 
 }

@@ -3,19 +3,23 @@ package com.cathalob.medtracker.validate.model;
 import com.cathalob.medtracker.exception.validation.PrescriptionValidatorException;
 import com.cathalob.medtracker.exception.validation.UserModelValidationException;
 import com.cathalob.medtracker.model.prescription.Prescription;
+import com.cathalob.medtracker.model.tracking.Dose;
 import com.cathalob.medtracker.validate.Validator;
 import com.cathalob.medtracker.validate.model.user.UserModelValidator;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class PrescriptionValidator extends Validator {
 
     private final Prescription prescription;
     private final Prescription existingPrescription;
+    private final List<Dose> existingDoses;
 
-    public PrescriptionValidator(Prescription prescription, Prescription existingPrescription) {
+    public PrescriptionValidator(Prescription prescription, Prescription existingPrescription, List<Dose> existingDoses) {
         this.prescription = prescription;
         this.existingPrescription = existingPrescription;
+        this.existingDoses = existingDoses;
     }
 
     @Override
@@ -32,11 +36,19 @@ public class PrescriptionValidator extends Validator {
         validateObjectPresence(prescription);
         if (isUpdate()) validatePrescriptionUpdate();
         validateMedication();
+        validateExistingDoses();
+
         validateBeginTime();
         validateEndTime();
         validateDoseMg();
         validatePatient();
         validatePractitioner();
+    }
+
+    private void validateExistingDoses() {
+        if(existingDoses != null && !existingDoses.isEmpty()){
+            addError("Cannot update prescriptions that have existing user dose data");
+        }
     }
 
     private void validatePatient() {
@@ -112,8 +124,8 @@ public class PrescriptionValidator extends Validator {
 
     }
 
-    public static PrescriptionValidator aPrescriptionValidator(Prescription prescription, Prescription existingPrescription) {
-        return new PrescriptionValidator(prescription, existingPrescription);
+    public static PrescriptionValidator aPrescriptionValidator(Prescription prescription, Prescription existingPrescription, List<Dose> existingDoses) {
+        return new PrescriptionValidator(prescription, existingPrescription, existingDoses);
     }
 
 }
