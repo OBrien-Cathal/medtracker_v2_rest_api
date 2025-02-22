@@ -78,26 +78,6 @@ FROM (VALUES (1, (cast(1 as boolean)), (cast('4fd1b3de-3f98-4cc1-bee4-13948f6b7b
               {ts '2024-12-01 10:34:53'})) source_data
 WHERE NOT EXISTS (SELECT NULL FROM ACCOUNT_REGISTRATION);
 
-INSERT INTO ACCOUNT_DETAILS (FIRST_NAME, SURNAME, USERMODEL_ID, ID)
-SELECT *
-FROM (VALUES ('Firstname', 'Surname', 1, 1),
-              ('Firstname', 'Surname', 2, 2),
-              ('Firstname', 'Surname', 3, 3),
-              ('Firstname', 'Surname', 4, 4),
-              ('Firstname', 'Surname', 5, 5),
-              ('Firstname', 'Surname', 6, 6),
-              ('Firstname', 'Surname', 7, 7),
-              ('Firstname', 'Surname', 8, 8),
-              ('Firstname', 'Surname', 9, 9),
-              ('Firstname', 'Surname', 10, 10),
-              ('Firstname', 'Surname', 11, 11),
-              ('Firstname', 'Surname', 12, 12),
-              ('Firstname', 'Surname', 12, 13),
-              ('Firstname', 'Surname', 14, 14)) source_data
-WHERE NOT EXISTS (SELECT NULL FROM ACCOUNT_DETAILS);
-
-
-
 INSERT INTO ROLECHANGE (NEW_ROLE, OLD_ROLE, USERMODEL_ID, REQUEST_TIME, APPROVED_BY_ID, APPROVAL_TIME)
 SELECT *
 FROM (VALUES (cast('ADMIN' as USER_ROLE), cast('USER' as USER_ROLE), 1, {ts '2024-12-01 10:34:53'}, 1,
@@ -122,6 +102,8 @@ FROM (VALUES (cast('ADMIN' as USER_ROLE), cast('USER' as USER_ROLE), 1, {ts '202
               {ts '2024-12-01 10:34:53'})) source_data
 WHERE NOT EXISTS (SELECT NULL FROM ROLECHANGE);
 
+
+
 INSERT INTO PATIENT_REGISTRATION (USERMODEL_ID, PRACTITIONER_ID, REGISTERED)
 SELECT *
 FROM (VALUES (3, 2, cast(1 as boolean)),
@@ -130,12 +112,30 @@ FROM (VALUES (3, 2, cast(1 as boolean)),
              (12, 2, cast(0 as boolean))) source_data
 WHERE NOT EXISTS (SELECT NULL FROM PATIENT_REGISTRATION);
 
-
 INSERT INTO MEDICATION (NAME)
 SELECT 'FOO_MED'
 WHERE NOT EXISTS (SELECT ID
                   FROM MEDICATION
                   WHERE ID = '1');
+
+
+INSERT INTO ACCOUNT_DETAILS (FIRST_NAME, SURNAME, USERMODEL_ID)
+SELECT *
+FROM (VALUES ('Firstname', 'Surname', '1'),
+             ('Firstname', 'Surname',  '2'),
+             ('Firstname', 'Surname',  '3'),
+             ('Firstname', 'Surname',  '4'),
+             ('Firstname', 'Surname',  '5'),
+             ('Firstname', 'Surname',  '6'),
+             ('Firstname', 'Surname',  '7'),
+             ('Firstname', 'Surname',  '8'),
+             ('Firstname', 'Surname',  '9'),
+             ('Firstname', 'Surname',  '10'),
+             ('Firstname', 'Surname',  '11'),
+             ('Firstname', 'Surname',  '12'),
+             ('Firstname', 'Surname',  '13'),
+             ('Firstname', 'Surname',  '14')) source_data
+WHERE NOT EXISTS (SELECT NULL FROM ACCOUNT_DETAILS);
 
 INSERT INTO PRESCRIPTION (MEDICATION_ID, PATIENT_ID, PRACTITIONER_ID, BEGIN_TIME, DOSE_MG)
 SELECT '1', '4', '2', {ts '2024-11-01 10:34:53'},  '15'

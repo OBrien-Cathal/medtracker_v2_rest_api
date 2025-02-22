@@ -17,10 +17,10 @@ ROW('doc2@medtracker.com', '$2a$10$WSU4n.NhUE7g1lwMAeTT9OXAaGJG2s.4UkhYIYuIcT0qn
 ROW('doc3@medtracker.com', '$2a$10$WSU4n.NhUE7g1lwMAeTT9OXAaGJG2s.4UkhYIYuIcT0qn0AxNV8NO', 'PRACTITIONER')) source_data
 WHERE NOT EXISTS (SELECT NULL FROM USERMODEL);
 
-INSERT INTO ACCOUNT_REGISTRATION (USERMODEL_ID, CONFIRMED, REGISTRATION_ID, REGISTRATION_TIME, CONFIRMATION_TIME )
+INSERT INTO ACCOUNT_REGISTRATION (USERMODEL_ID, CONFIRMED, REGISTRATION_ID, REGISTRATION_TIME, CONFIRMATION_TIME)
 SELECT *
 FROM (VALUES
-ROW('1', 'TRUE', '4fd1b3de-3f98-4cc1-bee4-13948f6b7b27', {ts '2024-12-01 10:34:53'}, {ts '2024-12-01 10:34:53'}),
+    ROW('1', 'TRUE', '4fd1b3de-3f98-4cc1-bee4-13948f6b7b27', {ts '2024-12-01 10:34:53'}, {ts '2024-12-01 10:34:53'}),
 ROW('2', 'TRUE', '4fd1b3de-3f98-4cc1-bee4-13948f6b7b27', {ts '2024-12-01 10:34:53'}, {ts '2024-12-01 10:34:53'}),
 ROW('3', 'TRUE', '4fd1b3de-3f98-4cc1-bee4-13948f6b7b27', {ts '2024-12-01 10:34:53'}, {ts '2024-12-01 10:34:53'}),
 ROW('4', 'TRUE', '4fd1b3de-3f98-4cc1-bee4-13948f6b7b27', {ts '2024-12-01 10:34:53'}, {ts '2024-12-01 10:34:53'}),
@@ -37,29 +37,25 @@ ROW('14', 'TRUE', '4fd1b3de-3f98-4cc1-bee4-13948f6b7b27', {ts '2024-12-01 10:34:
 WHERE NOT EXISTS (SELECT NULL FROM ACCOUNT_REGISTRATION);
 
 
-INSERT INTO ACCOUNT_DETAILS (FIRST_NAME, SURNAME, USERMODEL_ID, ID)
+INSERT INTO ACCOUNT_DETAILS (FIRST_NAME, SURNAME, USERMODEL_ID)
 SELECT *
 FROM (VALUES
-          ROW('FirstName', 'Surname', 1, 1),
-          ROW('FirstName', 'Surname', 2, 2),
-          ROW('FirstName', 'Surname', 3, 3),
-          ROW('FirstName', 'Surname', 4, 4),
-          ROW('FirstName', 'Surname', 5, 5),
-          ROW('FirstName', 'Surname', 6, 6),
-          ROW('FirstName', 'Surname', 7, 7),
-          ROW('FirstName', 'Surname', 8, 8),
-          ROW('FirstName', 'Surname', 9, 9),
-          ROW('FirstName', 'Surname', 10, 10),
-          ROW('FirstName', 'Surname', 11, 11),
-          ROW('FirstName', 'Surname', 12, 12),
-          ROW('FirstName', 'Surname', 12, 13),
-          ROW('FirstName', 'Surname', 14, 14)
-
-
-
-          ) source_data
+    ROW('FirstName', 'Surname', 1),
+          ROW('FirstName', 'Surname',  2),
+          ROW('FirstName', 'Surname', 3),
+          ROW('FirstName', 'Surname',  4),
+          ROW('FirstName', 'Surname',  5),
+          ROW('FirstName', 'Surname',  6),
+          ROW('FirstName', 'Surname',  7),
+          ROW('FirstName', 'Surname',  8),
+          ROW('FirstName', 'Surname',  9),
+          ROW('FirstName', 'Surname',  10),
+          ROW('FirstName', 'Surname',  11),
+          ROW('FirstName', 'Surname',  12),
+          ROW('FirstName', 'Surname',  13),
+          ROW('FirstName', 'Surname',  14)
+         ) source_data
 WHERE NOT EXISTS (SELECT NULL FROM ACCOUNT_DETAILS);
-
 
 
 
@@ -99,7 +95,7 @@ WHERE NOT EXISTS (SELECT ID
                   FROM MEDICATION
                   WHERE ID = '1');
 
-INSERT INTO PRESCRIPTION (MEDICATION_ID, PATIENT_ID, PRACTITIONER_ID, BEGIN_TIME,  DOSE_MG)
+INSERT INTO PRESCRIPTION (MEDICATION_ID, PATIENT_ID, PRACTITIONER_ID, BEGIN_TIME, DOSE_MG)
 SELECT '1', '4', '2', {ts '2024-11-01 10:34:53'}, '15'
 WHERE NOT EXISTS (SELECT PATIENT_ID
                   FROM PRESCRIPTION
@@ -108,7 +104,8 @@ INSERT INTO PRESCRIPTIONSCHEDULEENTRY (DAY_STAGE, PRESCRIPTION_ID)
 SELECT 'BEDTIME', '1'
 WHERE NOT EXISTS (SELECT PRESCRIPTION_ID
                   FROM PRESCRIPTIONSCHEDULEENTRY
-                  WHERE PRESCRIPTION_ID = '1' AND DAY_STAGE = 'BEDTIME');
+                  WHERE PRESCRIPTION_ID = '1'
+                    AND DAY_STAGE = 'BEDTIME');
 
 INSERT INTO DAILYEVALUATION (USERMODEL_ID, RECORD_DATE)
 SELECT '4', {ts '2024-12-01'}
