@@ -40,20 +40,20 @@ WHERE NOT EXISTS (SELECT NULL FROM ACCOUNT_REGISTRATION);
 INSERT INTO ACCOUNT_DETAILS (FIRST_NAME, SURNAME, USERMODEL_ID, ID)
 SELECT *
 FROM (VALUES
-          ROW('FIRST', 'SECOND', 1, 1),
-          ROW('FIRST', 'SECOND', 2, 2),
-          ROW('FIRST', 'SECOND', 3, 3),
-          ROW('FIRST', 'SECOND', 4, 4),
-          ROW('FIRST', 'SECOND', 5, 5),
-          ROW('FIRST', 'SECOND', 6, 6),
-          ROW('FIRST', 'SECOND', 7, 7),
-          ROW('FIRST', 'SECOND', 8, 8),
-          ROW('FIRST', 'SECOND', 9, 9),
-          ROW('FIRST', 'SECOND', 10, 10),
-          ROW('FIRST', 'SECOND', 11, 11),
-          ROW('FIRST', 'SECOND', 12, 12),
-          ROW('FIRST', 'SECOND', 12, 13),
-          ROW('FIRST', 'SECOND', 14, 14)
+          ROW('FirstName', 'Surname', 1, 1),
+          ROW('FirstName', 'Surname', 2, 2),
+          ROW('FirstName', 'Surname', 3, 3),
+          ROW('FirstName', 'Surname', 4, 4),
+          ROW('FirstName', 'Surname', 5, 5),
+          ROW('FirstName', 'Surname', 6, 6),
+          ROW('FirstName', 'Surname', 7, 7),
+          ROW('FirstName', 'Surname', 8, 8),
+          ROW('FirstName', 'Surname', 9, 9),
+          ROW('FirstName', 'Surname', 10, 10),
+          ROW('FirstName', 'Surname', 11, 11),
+          ROW('FirstName', 'Surname', 12, 12),
+          ROW('FirstName', 'Surname', 12, 13),
+          ROW('FirstName', 'Surname', 14, 14)
 
 
 

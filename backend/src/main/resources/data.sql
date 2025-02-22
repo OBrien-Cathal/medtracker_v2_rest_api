@@ -80,20 +80,20 @@ WHERE NOT EXISTS (SELECT NULL FROM ACCOUNT_REGISTRATION);
 
 INSERT INTO ACCOUNT_DETAILS (FIRST_NAME, SURNAME, USERMODEL_ID, ID)
 SELECT *
-FROM (VALUES (('FIRST', 'SECOND', 1, 1),
-              ('FIRST', 'SECOND', 2, 2),
-              ('FIRST', 'SECOND', 3, 3),
-              ('FIRST', 'SECOND', 4, 4),
-              ('FIRST', 'SECOND', 5, 5),
-              ('FIRST', 'SECOND', 6, 6),
-              ('FIRST', 'SECOND', 7, 7),
-              ('FIRST', 'SECOND', 8, 8),
-              ('FIRST', 'SECOND', 9, 9),
-              ('FIRST', 'SECOND', 10, 10),
-              ('FIRST', 'SECOND', 11, 11),
-              ('FIRST', 'SECOND', 12, 12),
-              ('FIRST', 'SECOND', 12, 13),
-              ('FIRST', 'SECOND', 14, 14))) source_data
+FROM (VALUES ('Firstname', 'Surname', 1, 1),
+              ('Firstname', 'Surname', 2, 2),
+              ('Firstname', 'Surname', 3, 3),
+              ('Firstname', 'Surname', 4, 4),
+              ('Firstname', 'Surname', 5, 5),
+              ('Firstname', 'Surname', 6, 6),
+              ('Firstname', 'Surname', 7, 7),
+              ('Firstname', 'Surname', 8, 8),
+              ('Firstname', 'Surname', 9, 9),
+              ('Firstname', 'Surname', 10, 10),
+              ('Firstname', 'Surname', 11, 11),
+              ('Firstname', 'Surname', 12, 12),
+              ('Firstname', 'Surname', 12, 13),
+              ('Firstname', 'Surname', 14, 14)) source_data
 WHERE NOT EXISTS (SELECT NULL FROM ACCOUNT_DETAILS);
 
 
