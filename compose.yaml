@@ -1,7 +1,7 @@
 services:
   backend:
+    image: cathalobrien/medtracker_v2_rest_api-backend
     container_name: mtbackend
-    build: backend
     ports:
       - "8080"
     environment:
