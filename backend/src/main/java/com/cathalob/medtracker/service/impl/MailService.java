@@ -16,7 +16,7 @@ import java.util.HashMap;
 
 @Service
 public class MailService {
-    private JavaMailSender javaMailSender;
+    private final JavaMailSender javaMailSender;
 
     @Autowired
     public MailService(JavaMailSender javaMailSender) {
@@ -43,7 +43,7 @@ public class MailService {
         mail.setTo(toAddress);
         mail.setSubject(subject);
         mail.setText(text);
-
+        System.out.println("Sending Mail to: " + toAddress);
         javaMailSender.send(mail);
     }
 
@@ -58,6 +58,7 @@ public class MailService {
         helper.setTo(toAddress);
         helper.setSubject(subject);
         helper.setText(text);
+
         attachments.forEach((s, byteArrayResource) -> {
 
             try {
@@ -68,7 +69,7 @@ public class MailService {
 
         });
 
-
+        System.out.println("Sending Mime Mail to: " + toAddress);
         javaMailSender.send(mimeMessage);
     }
 
