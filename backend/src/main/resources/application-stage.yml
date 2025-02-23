@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://db:5432/${POSTGRES_DB}?stringtype=unspecified
+    username: postgres
+    password: ${POSTGRES_PASSWORD:db-wrz2z}
+  jpa:
+    properties:
+      hibernate:
+        ddl-auto: none
+        show_sql: false
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:/schema.sql
+      data-locations: classpath:/data.sql
+initialData:
+  loadFromFile: false
+website:
+  origin: http://192.168.1.162:80
+  localOrigin: http://localhost:80
+
