@@ -121,20 +121,20 @@ WHERE NOT EXISTS (SELECT ID
 
 INSERT INTO ACCOUNT_DETAILS (FIRST_NAME, SURNAME, USERMODEL_ID)
 SELECT *
-FROM (VALUES ('Firstname', 'Surname', '1'),
-             ('Firstname', 'Surname',  '2'),
-             ('Firstname', 'Surname',  '3'),
-             ('Firstname', 'Surname',  '4'),
-             ('Firstname', 'Surname',  '5'),
-             ('Firstname', 'Surname',  '6'),
-             ('Firstname', 'Surname',  '7'),
-             ('Firstname', 'Surname',  '8'),
-             ('Firstname', 'Surname',  '9'),
-             ('Firstname', 'Surname',  '10'),
-             ('Firstname', 'Surname',  '11'),
-             ('Firstname', 'Surname',  '12'),
-             ('Firstname', 'Surname',  '13'),
-             ('Firstname', 'Surname',  '14')) source_data
+FROM (VALUES ('Firstname', 'Surname', 1),
+             ('Firstname', 'Surname',  2),
+             ('Firstname', 'Surname',  3),
+             ('Firstname', 'Surname',  4),
+             ('Firstname', 'Surname',  5),
+             ('Firstname', 'Surname',  6),
+             ('Firstname', 'Surname',  7),
+             ('Firstname', 'Surname',  8),
+             ('Firstname', 'Surname',  9),
+             ('Firstname', 'Surname',  10),
+             ('Firstname', 'Surname',  11),
+             ('Firstname', 'Surname',  12),
+             ('Firstname', 'Surname',  13),
+             ('Firstname', 'Surname',  14)) source_data
 WHERE NOT EXISTS (SELECT NULL FROM ACCOUNT_DETAILS);
 
 INSERT INTO PRESCRIPTION (MEDICATION_ID, PATIENT_ID, PRACTITIONER_ID, BEGIN_TIME, DOSE_MG)
